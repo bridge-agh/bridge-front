@@ -1,7 +1,7 @@
 # Getting Started with Create React App
 
-Link to Pages:
-<https://weed478.github.io/bridge-front>
+Link to app:
+<https://bridge-agh.web.app>
 
 ## Available Scripts
 
