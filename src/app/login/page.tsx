@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Login() {
   return (
     <div className="flex flex-col justify-center items-center my-40">
@@ -6,7 +8,7 @@ export default function Login() {
         <input type="text" placeholder="Email" className="input input-bordered mb-3" />
         <input type="password" placeholder="Password" className="input input-bordered mb-3" />
         <div className="self-stretch flex flex-row justify-between items-start">
-          <button className="btn btn-link">Register</button>
+          <Link href="/register" className="btn btn-link">Create account</Link>
           <button className="btn btn-primary">Log in</button>
         </div>
       </div>
