@@ -9,7 +9,7 @@ export default function Login() {
         <input type="password" placeholder="Password" className="input input-bordered mb-3" />
         <div className="self-stretch flex flex-row justify-between items-start">
           <Link href="/register" className="btn btn-link">Create account</Link>
-          <button className="btn btn-primary">Log in</button>
+          <Link href="/home" className="btn btn-primary">Log in</Link>
         </div>
       </div>
     </div>

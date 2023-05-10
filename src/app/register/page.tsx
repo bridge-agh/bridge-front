@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Register() {
   return (
     <div className="flex flex-col justify-center items-center my-20">
@@ -7,7 +9,7 @@ export default function Register() {
         <input type="text" placeholder="Email" className="input input-bordered mb-3" />
         <input type="password" placeholder="Password" className="input input-bordered mb-3" />
         <input type="password" placeholder="Confirm password" className="input input-bordered mb-3" />
-        <button className="btn btn-primary">Create account</button>
+        <Link href="/home" className="btn btn-primary">Create account</Link>
       </div>
     </div>
   )
