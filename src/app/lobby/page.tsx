@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-function Player({name}: {name: string}) {
+function Player({ name }: { name: string }) {
   return (
     <div className="flex flex-row pe-2 rounded-3xl justify-start items-center bg-base-100">
       <div className="w-14 h-14 rounded-full bg-blue-600 me-3 flex flex-col justify-center items-center">
@@ -8,7 +8,7 @@ function Player({name}: {name: string}) {
       </div>
       <div className="text-lg font-bold">{name}</div>
     </div>
-  )
+  );
 }
 
 export default function Lobby() {
@@ -27,10 +27,14 @@ export default function Lobby() {
           </div>
         </div>
         <div className="flex flex-row justify-between items-center">
-          <Link href="/home" className="btn btn-link text-error">Leave</Link>
-          <Link href="/game" className="btn btn-primary">Start</Link>
+          <Link href="/home" className="btn btn-link text-error">
+            Leave
+          </Link>
+          <Link href="/game" className="btn btn-primary">
+            Start
+          </Link>
         </div>
       </div>
     </div>
-  )
+  );
 }
