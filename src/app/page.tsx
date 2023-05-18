@@ -1,13 +1,13 @@
 import Link from "next/link";
 
 const pages = [
-  '/login',
-  '/register',
-  '/home',
-  '/lobby',
-  '/game',
-  '/results',
-]
+  "/login",
+  "/register",
+  "/home",
+  "/lobby",
+  "/game",
+  "/results",
+];
 
 export default function Root() {
   return (
@@ -18,5 +18,5 @@ export default function Root() {
         {pages.map((page, i) => <Link key={i} href={page} className="btn btn-link text-accent normal-case mt-3">{page}</Link>)}
       </div>
     </div>
-  )
+  );
 }

@@ -1,14 +1,14 @@
-import Drawer from '@/components/root/drawer/drawer'
-import Header from '@/components/root/header/header'
-import '@/styles/global.css'
-import { Inter } from 'next/font/google'
-import Providers from '@/app/providers'
+import Drawer from "@/components/root/drawer/drawer";
+import Header from "@/components/root/header/header";
+import "@/styles/global.css";
+import { Inter } from "next/font/google";
+import Providers from "@/app/providers";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: 'Bridge AGH',
-}
+  title: "Bridge AGH",
+};
 
 export default function RootLayout({
   children,
@@ -28,5 +28,5 @@ export default function RootLayout({
         </Providers>
       </body>
     </html>
-  )
+  );
 }

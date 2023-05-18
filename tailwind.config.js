@@ -3,7 +3,7 @@ import defaultTheme from "tailwindcss/defaultTheme";
 
 module.exports = {
   content: [
-    './src/**/*.{js,ts,jsx,tsx,mdx}',
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {},
@@ -16,4 +16,4 @@ module.exports = {
   daisyui: {
     themes: ["light", "dark"],
   },
-}
+};
