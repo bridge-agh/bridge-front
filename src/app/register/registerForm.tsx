@@ -87,16 +87,6 @@ export default function RegisterForm({ className }: { className?: string }) {
         <span className="text-center text-sm text-error mt-3 min-h-6">
           {errors && handleErrors(errors)}
         </span>
-
-        <p className="text-center w-full inline mt-2">
-          <span>Already have an acount? </span>
-          <Link
-            href="/login"
-            className="text-secondary hover:text-secondary-focus transition-colors"
-          >
-            Log in
-          </Link>
-        </p>
       </div>
     </form>
   );
