@@ -36,13 +36,13 @@ export default function Header() {
           </label>
           <ul
             tabIndex={0}
-            className="mt-16 p-2 shadow menu menu-compact dropdown-content bg-base-200 rounded-box w-52"
+            className="mt-16 p-2 shadow menu menu-compact dropdown-content bg-base-200 rounded-box w-52 drop-shadow-lg"
           >
             <li>
               <a>Profile</a>
             </li>
-            <li>
-              <ThemeSwitch className="self-stretch" />
+            <li >
+              <ThemeSwitch />
             </li>
             <li>
               <a>Logout</a>
