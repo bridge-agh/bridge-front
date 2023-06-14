@@ -4,4 +4,4 @@ function Game() {
   return <div>Game Screen</div>;
 }
 
-export default protectRoute(<Game />);
+export default protectRoute(Game);

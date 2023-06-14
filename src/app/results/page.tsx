@@ -4,4 +4,4 @@ function Results() {
   return <div>Results Screen</div>;
 }
 
-export default protectRoute(<Results />);
+export default protectRoute(Results);

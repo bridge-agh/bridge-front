@@ -33,4 +33,4 @@ function Home() {
   );
 }
 
-export default protectRoute(<Home />);
+export default protectRoute(Home);

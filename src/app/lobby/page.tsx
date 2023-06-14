@@ -40,4 +40,4 @@ function Lobby() {
   );
 }
 
-export default protectRoute(<Lobby />);
+export default protectRoute(Lobby);
