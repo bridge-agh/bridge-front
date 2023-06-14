@@ -1,6 +1,7 @@
 import Link from "next/link";
+import protectRoute from "@/logic/protect_route";
 
-export default function Home() {
+function Home() {
   return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 lg:col-start-3 lg:col-span-4 xl:col-start-5 xl:col-span-4">
       <div className="flex flex-col border-opacity-50">
@@ -31,3 +32,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default protectRoute(<Home />);
