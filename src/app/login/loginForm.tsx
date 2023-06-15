@@ -1,6 +1,10 @@
 "use client";
 
+import { useCallback, useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
+import { useSignInWithEmailAndPassword } from "react-firebase-hooks/auth";
+import { useRouter } from "next/navigation";
+import { auth } from "@/logic/fb";
 
 type LoginData = {
   email: string;
@@ -22,9 +26,25 @@ export default function LoginForm({ className }: { className?: string }) {
     mode: "onSubmit"
   });
 
-  const onSubmit: SubmitHandler<LoginData> = (data) => {
-    console.log(data);
-  };
+  const [signInWithEmailAndPassword, user, loading, error] = useSignInWithEmailAndPassword(auth);
+
+  const onSubmit: SubmitHandler<LoginData> = useCallback(
+    (data) => {
+      if (loading) return;
+      signInWithEmailAndPassword(data.email, data.password);
+    },
+    [signInWithEmailAndPassword, loading]
+  );
+
+  const router = useRouter();
+
+  useEffect(() => {
+    router.prefetch("/home");
+  }, [router]);
+
+  if (user) {
+    router.replace("/home");
+  }
 
   return (
     <form noValidate className={className} onSubmit={handleSubmit(onSubmit)}>
@@ -56,7 +76,7 @@ export default function LoginForm({ className }: { className?: string }) {
           Log in
         </button>
         <span className="text-center text-sm text-error mt-3 min-h-6">
-          {errors && handleErrors(errors)}
+          {(errors && handleErrors(errors)) || (error && error.message)}
         </span>
       </div>
     </form>
