@@ -72,10 +72,7 @@ export default function LoginForm({ className }: { className?: string }) {
           Log in
         </button>
         <span className="text-center text-sm text-error mt-3 min-h-6">
-          {errors && handleErrors(errors)}
-        </span>
-        <span className="text-center text-sm text-error mt-3 min-h-6">
-          {error && error.message}
+          {(errors && handleErrors(errors)) || (error && error.message)}
         </span>
       </div>
     </form>
