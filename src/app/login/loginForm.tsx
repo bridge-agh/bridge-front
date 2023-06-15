@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useSignInWithEmailAndPassword } from "react-firebase-hooks/auth";
 import { useRouter } from "next/navigation";
@@ -37,6 +37,10 @@ export default function LoginForm({ className }: { className?: string }) {
   );
 
   const router = useRouter();
+
+  useEffect(() => {
+    router.prefetch("/home");
+  }, [router]);
 
   if (user) {
     router.replace("/home");
