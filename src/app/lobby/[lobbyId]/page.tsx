@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useGetLobby } from "@/api/lobby";
 
 function Player({ name }: { name: string }) {
   return (
@@ -11,7 +14,15 @@ function Player({ name }: { name: string }) {
   );
 }
 
-export default function Lobby() {
+export default function Lobby({ params }: { params: { lobbyId: string } }) {
+  const [lobby, getLobbyError] = useGetLobby(params.lobbyId);
+
+  if (getLobbyError) {
+    return <div>Error: {getLobbyError}</div>;
+  }
+
+  console.log(lobby);
+
   return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 lg:col-start-3 lg:col-span-4 xl:col-start-5 xl:col-span-4">
       <div className="rounded-xl bg-base-200 p-5 flex flex-col justify-start items-stretch">

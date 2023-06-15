@@ -73,7 +73,7 @@ export function useJoinLobby() {
   return [joinLobby, joined, loading, error];
 }
 
-export function useGetLobby() {
-  const [lobby, error] = useLongPoll(`${API_URL}/getLobby?poll=true`);
+export function useGetLobby(lobbyId: string) {
+  const [lobby, error] = useLongPoll(`${API_URL}/getLobby?lobby_id=${lobbyId}&poll=true`);
   return [lobby, error];
 }
