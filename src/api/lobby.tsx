@@ -2,6 +2,8 @@ import { useState, useCallback } from "react";
 import useLongPoll from "@/logic/use_long_poll";
 import { API_URL } from ".";
 
+const ENDPOINT = `${API_URL}/lobby`;
+
 export function useCreateLobby() {
   const [lobbyId, setLobbyId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -11,7 +13,7 @@ export function useCreateLobby() {
     setLobbyId(null);
     setLoading(true);
     setError(null);
-    fetch(`${API_URL}/createLobby`, {
+    fetch(`${ENDPOINT}/createLobby`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -48,7 +50,7 @@ export function useJoinLobby() {
     setJoined(false);
     setLoading(true);
     setError(null);
-    fetch(`${API_URL}/joinLobby`, {
+    fetch(`${ENDPOINT}/joinLobby`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -74,6 +76,9 @@ export function useJoinLobby() {
 }
 
 export function useGetLobby(lobbyId: string) {
-  const [lobby, error] = useLongPoll(`${API_URL}/getLobby?lobby_id=${lobbyId}&poll=true`);
+  const [lobby, error] = useLongPoll(
+    `${ENDPOINT}/getLobby?lobby_id=${lobbyId}`,
+    `${ENDPOINT}/getLobby?lobby_id=${lobbyId}&poll=true`,
+  );
   return [lobby, error];
 }

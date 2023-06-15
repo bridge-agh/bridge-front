@@ -18,10 +18,13 @@ export default function Lobby({ params }: { params: { lobbyId: string } }) {
   const [lobby, getLobbyError] = useGetLobby(params.lobbyId);
 
   if (getLobbyError) {
-    return <div>Error: {getLobbyError}</div>;
+    console.log(getLobbyError);
+    return <div>Error</div>;
   }
 
-  console.log(lobby);
+  if (!lobby) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 lg:col-start-3 lg:col-span-4 xl:col-start-5 xl:col-span-4">
@@ -29,12 +32,12 @@ export default function Lobby({ params }: { params: { lobbyId: string } }) {
         <div className="text-2xl font-bold mb-3 self-center">Lobby</div>
         <div className="flex flex-row justify-between items-center mb-3">
           <div className="flex flex-col justify-start items-stretch me-16 gap-4">
-            <Player name="Grizzly" />
-            <Player name="Hyenaaagfdsg" />
+            <Player name={lobby.users[0] || "Waiting..."} />
+            <Player name={lobby.users[1] || "Waiting..."} />
           </div>
           <div className="flex flex-col justify-start items-stretch gap-4">
-            <Player name="Axolotl" />
-            <Player name="Cormorant" />
+            <Player name={lobby.users[2] || "Waiting..."} />
+            <Player name={lobby.users[3] || "Waiting..."} />
           </div>
         </div>
         <div className="flex flex-row justify-between items-center">
