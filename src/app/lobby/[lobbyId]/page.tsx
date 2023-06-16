@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import protectRoute from "@/logic/protect_route";
+import { useGetLobby } from "@/api/lobby";
+import ProtectedRoute from "@/components/protected_route";
 
 function Player({ name }: { name: string }) {
   return (
@@ -12,19 +15,30 @@ function Player({ name }: { name: string }) {
   );
 }
 
-function Lobby() {
+function Lobby({ params }: { params: { lobbyId: string } }) {
+  const [lobby, getLobbyError] = useGetLobby(params.lobbyId);
+
+  if (getLobbyError) {
+    console.log(getLobbyError);
+    return <div>Error</div>;
+  }
+
+  if (!lobby) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 lg:col-start-3 lg:col-span-4 xl:col-start-5 xl:col-span-4">
       <div className="rounded-xl bg-base-200 p-5 flex flex-col justify-start items-stretch">
         <div className="text-2xl font-bold mb-3 self-center">Lobby</div>
         <div className="flex flex-row justify-between items-center mb-3">
           <div className="flex flex-col justify-start items-stretch me-16 gap-4">
-            <Player name="Grizzly" />
-            <Player name="Hyenaaagfdsg" />
+            <Player name={lobby.users[0] || "Waiting..."} />
+            <Player name={lobby.users[1] || "Waiting..."} />
           </div>
           <div className="flex flex-col justify-start items-stretch gap-4">
-            <Player name="Axolotl" />
-            <Player name="Cormorant" />
+            <Player name={lobby.users[2] || "Waiting..."} />
+            <Player name={lobby.users[3] || "Waiting..."} />
           </div>
         </div>
         <div className="flex flex-row justify-between items-center">
@@ -40,4 +54,10 @@ function Lobby() {
   );
 }
 
-export default protectRoute(Lobby);
+export default function ProtectedLobby({ params }: { params: { lobbyId: string } }) {
+  return (
+    <ProtectedRoute>
+      <Lobby params={params} />
+    </ProtectedRoute>
+  );
+}
