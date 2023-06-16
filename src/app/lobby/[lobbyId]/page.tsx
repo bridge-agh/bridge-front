@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useGetLobby } from "@/api/lobby";
+import ProtectedRoute from "@/components/protected_route";
 
 function Player({ name }: { name: string }) {
   return (
@@ -14,7 +15,7 @@ function Player({ name }: { name: string }) {
   );
 }
 
-export default function Lobby({ params }: { params: { lobbyId: string } }) {
+function Lobby({ params }: { params: { lobbyId: string } }) {
   const [lobby, getLobbyError] = useGetLobby(params.lobbyId);
 
   if (getLobbyError) {
@@ -50,5 +51,13 @@ export default function Lobby({ params }: { params: { lobbyId: string } }) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProtectedLobby({ params }: { params: { lobbyId: string } }) {
+  return (
+    <ProtectedRoute>
+      <Lobby params={params} />
+    </ProtectedRoute>
   );
 }

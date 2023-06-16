@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { useCreateLobby, useJoinLobby } from "@/api/lobby";
 import useUserUid from "@/logic/use_user_uid";
+import protectRoute from "@/logic/protect_route";
 
-export default function Home() {
+function Home() {
   const router = useRouter();
   const [createLobby, createdLobbyId, createLoading, createError] = useCreateLobby();
   const [joinLobby, isJoinedLobby, joinLoading, joinError] = useJoinLobby();
@@ -71,3 +72,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default protectRoute(Home);
