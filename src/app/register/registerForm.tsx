@@ -1,7 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { useCallback } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
+import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
+import { useRouter } from "next/navigation";
+import { auth } from "@/logic/fb";
 
 type RegisterData = {
   username: string;
@@ -27,9 +30,21 @@ export default function RegisterForm({ className }: { className?: string }) {
     mode: "onSubmit"
   });
 
-  const onSubmit: SubmitHandler<RegisterData> = (data) => {
-    console.log(data);
-  };
+  const [createUserWithEmailAndPassword, user, loading, error] = useCreateUserWithEmailAndPassword(auth);
+
+  const onSubmit: SubmitHandler<RegisterData> = useCallback(
+    (data) => {
+      if (loading) return;
+      createUserWithEmailAndPassword(data.email, data.password);
+    },
+    [createUserWithEmailAndPassword, loading]
+  );
+
+  const router = useRouter();
+
+  if (user) {
+    router.replace("/login");
+  }
 
   return (
     <form noValidate className={className} onSubmit={handleSubmit(onSubmit)}>
@@ -86,6 +101,9 @@ export default function RegisterForm({ className }: { className?: string }) {
         </button>
         <span className="text-center text-sm text-error mt-3 min-h-6">
           {errors && handleErrors(errors)}
+        </span>
+        <span className="text-center text-sm text-error mt-3 min-h-6">
+          {error && error.message}
         </span>
       </div>
     </form>
