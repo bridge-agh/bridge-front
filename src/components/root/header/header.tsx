@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback } from "react";
 import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
+import { useRouter } from "next/navigation";
 import { auth } from "@/logic/fb";
 import DrawerButton from "@/components/root/drawer/drawer_button";
 import ThemeSwitch from "@/components/theme_switch";
@@ -9,6 +11,12 @@ import ThemeSwitch from "@/components/theme_switch";
 export default function Header() {
   const [user] = useAuthState(auth);
   const [signOut] = useSignOut(auth);
+  const router = useRouter();
+
+  const onClickSignOut = useCallback(() => {
+    signOut();
+    router.push("/");
+  }, [signOut, router]);
 
   return (
     <header className="navbar bg-base-300 p-4 header">
@@ -56,7 +64,7 @@ export default function Header() {
                 <ThemeSwitch />
               </li>
               <li>
-                <a onClick={signOut}>Logout</a>
+                <a onClick={onClickSignOut}>Logout</a>
               </li>
             </ul>
           </div>
