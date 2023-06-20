@@ -6,6 +6,7 @@ import {
   PlayerDirection,
 } from "@/app/game/gameModels";
 import BiddingPlayers from "@/app/game/bidding/biddingPlayers";
+import BiddingBids from "@/app/game/bidding/biddingBids";
 
 function BiddingPage() {
   // redux here, currently dummy data
@@ -37,8 +38,11 @@ function BiddingPage() {
 
   return (
     <div className="flex-col">
-      <div>
+      <div className="mb-4">
         <BiddingPlayers current_player={baseObservation.current_player} />
+      </div>
+      <div>
+        <BiddingBids />
       </div>
     </div>
   );

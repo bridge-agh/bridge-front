@@ -43,7 +43,7 @@ export enum BidSuit {
 }
 
 export enum BidTricks {
-  ONE = 7,
+  ONE = 1,
   TWO,
   THREE,
   FOUR,
