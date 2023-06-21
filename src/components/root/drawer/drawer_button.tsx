@@ -1,6 +1,6 @@
 "use client";
 
-const toggleDrawer = (event: React.ChangeEvent<HTMLInputElement>) => {
+export function toggleDrawer() {
   const drawerHandle: HTMLElement | null =
     document.getElementById("drawer-menu");
   const drawerButton: HTMLElement | null =
@@ -10,7 +10,7 @@ const toggleDrawer = (event: React.ChangeEvent<HTMLInputElement>) => {
     drawerHandle instanceof HTMLInputElement &&
     drawerButton instanceof HTMLInputElement
   ) {
-    if (event.target.checked) {
+    if (drawerButton.checked === true) {
       drawerHandle.checked = true;
       drawerButton.checked = true;
     } else {
@@ -18,7 +18,22 @@ const toggleDrawer = (event: React.ChangeEvent<HTMLInputElement>) => {
       drawerButton.checked = false;
     }
   }
-};
+}
+
+export function closeDrawer() {
+  const drawerHandle: HTMLElement | null =
+    document.getElementById("drawer-menu");
+  const drawerButton: HTMLElement | null =
+    document.getElementById("drawer-button");
+
+  if (
+    drawerHandle instanceof HTMLInputElement &&
+    drawerButton instanceof HTMLInputElement
+  ) {
+    drawerHandle.checked = false;
+    drawerButton.checked = false;
+  }
+}
 
 export default function DrawerButton() {
   return (
