@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --p-bright: rgb(214, 59, 193);
+}
+
 .header {
   height: 5rem;
 }
@@ -12,6 +16,36 @@
 
 .rounded-5mm {
   border-radius: 5mm;
+}
+
+.line-height-100 {
+  line-height: 100%;
+}
+
+[data-theme="light"] .hover-text-primary-bright:hover {
+  @apply text-base-200
+}
+
+[data-theme="light"] .hover-text-primary-bright:hover .fill-base-content {
+  @apply fill-base-200
+}
+
+
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-animation {
+  animation-name: spin;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
 }
 
 @media screen and (min-width: 320px) {

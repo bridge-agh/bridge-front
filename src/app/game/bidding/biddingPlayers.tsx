@@ -21,11 +21,11 @@ function BiddingPlayers({
               className={
                 "avatar placeholder transition ease-in-out ring-primary rounded-full " +
                 (playerDirection.valueOf() === current_player.valueOf()
-                  ? "scale-125 ring-2"
-                  : "scale-100 ring-0")
+                  ? "scale-125 ring-2 bg-base-200 text-base-content"
+                  : "scale-100 ring-0 bg-neutral-focus text-neutral-content")
               }
             >
-              <div className="bg-neutral-focus text-neutral-content rounded-full w-12">
+              <div className="rounded-full w-12">
                 <span className="text-xl">{directionValue[0]}</span>
               </div>
             </div>

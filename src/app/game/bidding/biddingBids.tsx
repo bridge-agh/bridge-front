@@ -11,28 +11,28 @@ import SpadesSymbol from "@/components/cards/symbols/spades";
 
 function Bid({ bid }: { bid: TrickBid | SpecialBid }) {}
 
-function suitToSymbol(suit: BidSuit, size: number = 4) {
+function suitToSymbol(suit: BidSuit) {
   switch (suit) {
     case BidSuit.CLUBS:
-      return <ClubSymbol className={`w-${size} h-${size} fill-base-content`} />;
+      return <ClubSymbol className="fill-base-content" />;
     case BidSuit.DIAMONDS:
-      return <DiamondsSymbol className={`w-${size} h-${size} fill-red-700`} />;
+      return <DiamondsSymbol className="fill-red-700" />;
     case BidSuit.HEARTS:
-      return <HeartsSymbol className={`w-${size} h-${size} fill-red-700`} />;
+      return <HeartsSymbol className="fill-red-700" />;
     case BidSuit.SPADES:
-      return (
-        <SpadesSymbol className={`w-${size} h-${size} fill-base-content`} />
-      );
+      return <SpadesSymbol className="fill-base-content" />;
     case BidSuit.NO_TRUMP:
-      return "NT";
+      return <span className="h-100 m-auto line-height-100">NT</span>;
   }
 }
 
 function TrickBidButton({ bid }: { bid: TrickBid }) {
   return (
-    <button className="btn bg-base-100 text-base-content border-0 hover:bg-primary-focus w-12 h-12 gap-1 p-1 text-lg">
+    <button className="btn bg-base-100 text-base-content hover-text-primary-bright hover:bg-primary-focus border-0 w-12 h-12 gap-1 p-1 text-lg">
       {bid.tricks}
-      {suitToSymbol(bid.suit, 6)}
+      <div className="w-6 h-6 flex flex-row justify-center">
+        {suitToSymbol(bid.suit)}
+      </div>
     </button>
   );
 }
@@ -60,10 +60,10 @@ function BiddingBids() {
             );
           })}
         <div className="grid grid-cols-2 gap-4 mt-4">
-          <button className="btn bg-base-100 text-base-content border-0 hover:bg-primary-focus text-lg">
+          <button className="btn bg-base-100 text-base-content hover-text-primary-bright border-0 hover:bg-primary-focus text-lg">
             <span className="text-2xl">Pass</span>
           </button>
-          <button className="btn bg-base-100 text-base-content border-0 hover:bg-primary-focus text-lg">
+          <button className="btn bg-base-100 text-base-content hover-text-primary-bright border-0 hover:bg-primary-focus text-lg">
             <span className="text-2xl">Double</span>
           </button>
         </div>
