@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   BaseObservation,
   BiddingObservation,
+  BidSuit,
   GameStage,
   PlayerDirection,
 } from "@/app/game/gameModels";
@@ -17,18 +18,44 @@ function BiddingPage() {
 
   const [biddingObservation, setBiddingObservation] =
     useState<BiddingObservation>({
-      first_dealer: PlayerDirection.NORTH,
+      first_dealer: PlayerDirection.EAST,
       bid_history: [],
       bid: null,
-      declarer: null,
+      declarer: PlayerDirection.EAST,
       multiplier: 1,
     });
 
   useEffect(() => {
+    const bids: any = [
+      {
+        suit: BidSuit.SPADES,
+        tricks: 1,
+      },
+      {
+        suit: BidSuit.HEARTS,
+        tricks: 3,
+      },
+      {
+        suit: BidSuit.SPADES,
+        tricks: 5,
+      },
+      {
+        suit: BidSuit.NO_TRUMP,
+        tricks: 7,
+      },
+    ];
+
     const timer = setInterval(() => {
       setBaseObservation({
         game_stage: GameStage.BIDDING,
         current_player: (baseObservation.current_player + 1) % 4,
+      });
+      setBiddingObservation({
+        first_dealer: biddingObservation.first_dealer,
+        bid_history: [],
+        bid: bids[(baseObservation.current_player + 1) % 4],
+        declarer: (biddingObservation.declarer! + 1) % 4,
+        multiplier: 1,
       });
     }, 1000);
     return () => {
@@ -39,10 +66,13 @@ function BiddingPage() {
   return (
     <div className="flex-col">
       <div className="mb-4">
-        <BiddingPlayers current_player={baseObservation.current_player} />
+        <BiddingPlayers
+          baseObservation={baseObservation}
+          biddingObservation={biddingObservation}
+        />
       </div>
       <div>
-        <BiddingBids />
+        <BiddingBids biddingObservation={biddingObservation}/>
       </div>
     </div>
   );

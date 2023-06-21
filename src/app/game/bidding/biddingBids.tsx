@@ -1,15 +1,14 @@
 import {
   BidSuit,
   BidTricks,
-  SpecialBid,
+  BiddingObservation,
   TrickBid,
 } from "@/app/game/gameModels";
 import ClubSymbol from "@/components/cards/symbols/clubs";
 import DiamondsSymbol from "@/components/cards/symbols/diamonds";
 import HeartsSymbol from "@/components/cards/symbols/hearts";
 import SpadesSymbol from "@/components/cards/symbols/spades";
-
-function Bid({ bid }: { bid: TrickBid | SpecialBid }) {}
+import { twMerge } from "tailwind-merge";
 
 function suitToSymbol(suit: BidSuit) {
   switch (suit) {
@@ -26,9 +25,25 @@ function suitToSymbol(suit: BidSuit) {
   }
 }
 
-function TrickBidButton({ bid }: { bid: TrickBid }) {
+function TrickBidButton({
+  bid,
+  disabled,
+  selected,
+}: {
+  bid: TrickBid;
+  disabled: boolean;
+  selected: boolean;
+}) {
   return (
-    <button className="btn bg-base-100 text-base-content hover-text-primary-bright hover:bg-primary-focus border-0 w-12 h-12 gap-1 p-1 text-lg">
+    <button
+      disabled={disabled}
+      className={twMerge(
+        "btn bg-base-100 text-base-content bid hover:bg-primary-focus border-0 w-12 h-12 gap-1 p-1 text-lg",
+        selected
+          ? "bg-accent bid-selected hover:bg-accent no-animation cursor-default"
+          : ""
+      )}
+    >
       {bid.tricks}
       <div className="w-6 h-6 flex flex-row justify-center">
         {suitToSymbol(bid.suit)}
@@ -37,7 +52,11 @@ function TrickBidButton({ bid }: { bid: TrickBid }) {
   );
 }
 
-function BiddingBids() {
+function BiddingBids({
+  biddingObservation,
+}: {
+  biddingObservation: BiddingObservation;
+}) {
   return (
     <div className="h-auto card w-100 bg-base-200 rounded-box place-items-center p-4">
       <div className="grid grid-rows-7 gap-1">
@@ -49,10 +68,28 @@ function BiddingBids() {
                 {Object.keys(BidSuit)
                   .filter((suit) => !isNaN(Number(suit)))
                   .map((suit) => {
+                    const tricksN = Number(trick);
+                    const suitN = Number(suit);
+
                     return (
                       <TrickBidButton
                         key={suit}
                         bid={{ tricks: Number(trick), suit: Number(suit) }}
+                        disabled={
+                          biddingObservation.bid &&
+                          (tricksN < biddingObservation.bid!.tricks ||
+                            (tricksN == biddingObservation.bid!.tricks &&
+                              suitN < biddingObservation.bid!.suit))
+                            ? true
+                            : false
+                        }
+                        selected={
+                          biddingObservation.bid &&
+                          tricksN == biddingObservation.bid!.tricks &&
+                          suitN == biddingObservation.bid!.suit
+                            ? true
+                            : false
+                        }
                       />
                     );
                   })}

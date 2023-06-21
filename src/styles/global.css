@@ -22,15 +22,29 @@
   line-height: 100%;
 }
 
-[data-theme="light"] .hover-text-primary-bright:hover {
+[data-theme="light"] .bid:hover {
   @apply text-base-200
 }
 
-[data-theme="light"] .hover-text-primary-bright:hover .fill-base-content {
+[data-theme="light"] .bid:hover .fill-base-content {
   @apply fill-base-200
 }
 
+[data-theme="dark"] .bid-selected {
+  @apply text-neutral-focus
+}
 
+[data-theme="dark"] .bid-selected .fill-base-content {
+  @apply fill-neutral-focus
+}
+
+[data-theme="light"] .bid-selected:hover {
+  @apply text-neutral-focus
+}
+
+[data-theme="light"] .bid-selected:hover .fill-base-content {
+  @apply fill-neutral-focus
+}
 
 @keyframes spin {
   0% {

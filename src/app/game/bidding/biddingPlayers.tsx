@@ -1,29 +1,39 @@
-import { PlayerDirection } from "@/app/game/gameModels";
+import {
+  BaseObservation,
+  BiddingObservation,
+  PlayerDirection,
+} from "@/app/game/gameModels";
+import { twMerge } from "tailwind-merge";
 
 function BiddingPlayers({
-  current_player,
+  baseObservation,
+  biddingObservation,
 }: {
-  current_player: PlayerDirection;
+  baseObservation: BaseObservation;
+  biddingObservation: BiddingObservation;
 }) {
-
-  
   return (
     <div className="flex flex-row justify-center gap-4">
       {Object.keys(PlayerDirection)
         .filter((key) => isNaN(Number(key)))
         .map((directionValue) => {
-          const playerDirection: PlayerDirection = PlayerDirection[
-            directionValue as keyof typeof PlayerDirection
-          ];
+          const playerDirection: PlayerDirection =
+            PlayerDirection[directionValue as keyof typeof PlayerDirection];
           return (
             <div
               key={playerDirection}
-              className={
-                "avatar placeholder transition ease-in-out ring-primary rounded-full " +
-                (playerDirection.valueOf() === current_player.valueOf()
+              className={twMerge(
+                "avatar placeholder transition ease-in-out ring-primary rounded-full",
+
+                playerDirection.valueOf() ===
+                  baseObservation.current_player.valueOf()
                   ? "scale-125 ring-2 bg-base-200 text-base-content"
-                  : "scale-100 ring-0 bg-neutral-focus text-neutral-content")
-              }
+                  : "scale-100 ring-0 bg-neutral-focus text-neutral-content",
+                biddingObservation.declarer!.valueOf() ===
+                  playerDirection.valueOf()
+                  ? "bg-accent text-neutral-focus "
+                  : ""
+              )}
             >
               <div className="rounded-full w-12">
                 <span className="text-xl">{directionValue[0]}</span>

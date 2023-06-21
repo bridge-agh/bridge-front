@@ -81,7 +81,7 @@ export interface BaseObservation {
 export interface BiddingObservation {
   first_dealer: PlayerDirection;
   bid_history: (TrickBid | SpecialBid)[];
-  bid: TrickBid | SpecialBid | null;
+  bid: TrickBid | null;
   declarer: PlayerDirection | null;
   multiplier: number;
 }
