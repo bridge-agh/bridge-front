@@ -39,12 +39,13 @@ export default function LoginForm({ className }: { className?: string }) {
 
   useEffect(() => {
     router.prefetch("/home");
+  }, [router]);
+
+  useEffect(() => {
     if (user) {
       router.replace("/home");
     }
   }, [router, user]);
-
-  
 
   return (
     <form noValidate className={className} onSubmit={handleSubmit(onSubmit)}>

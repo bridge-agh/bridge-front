@@ -3,28 +3,25 @@
 import { useRouter } from "next/navigation";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/logic/fb";
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 
-export default function ProtectedRoute({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [user, loading, error] = useAuthState(auth);
   const router = useRouter();
 
   useEffect(() => {
-    router.prefetch("/login");
     if (!user && !loading && !error) {
       router.push("/login");
     }
-  }, [router, user, loading, error]);
+  }, [user, loading, error, router]);
 
-  return (
-    <>
-      {(user && <>{children}</>) ||
-        (loading && <div>Loading...</div>) ||
-        (error && <div>Error: {error.message}</div>)}
-    </>
-  );
-}
+  if (user) {
+    return <>{children}</>;
+  }
+
+  if (!loading && error) {
+    return <div>Error: {error.message}</div>; 
+  } else {
+    return <div>Loading...</div>;
+  }
+};

@@ -13,8 +13,9 @@ export default function Drawer({ children }: { children: React.ReactNode }) {
   const [signOut] = useSignOut(auth);
   const router = useRouter();
 
-  const onClickSignOut = useCallback(() => {
-    signOut();
+  const onClickSignOut = useCallback(async () => {
+    closeDrawer();
+    await signOut();
     router.push("/");
   }, [signOut, router]);
 
@@ -49,10 +50,7 @@ export default function Drawer({ children }: { children: React.ReactNode }) {
           <div className="flex-1 flex flex-col justify-end gap-2">
             {user && (
               <li
-                onClick={() => {
-                  onClickSignOut();
-                  closeDrawer();
-                }}
+                onClick={onClickSignOut}
               >
                 <a className="btn text-primary-content">Logout</a>
               </li>
