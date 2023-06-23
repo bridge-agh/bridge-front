@@ -17,7 +17,7 @@ function Player({ name, role, owner, lobby }: { name: string, role: string, owne
         setPlayer("Waiting...");
       }
     }
-  }, [])
+  }, [player, lobby.users]);
   return (
     <div className="flex flex-col justify-start items-start items-stretch min-w-[100%] w-100 hover:w-fit hover:z-10">
       <div className="ml-2 font-bold text-accent-content">{role}</div>
