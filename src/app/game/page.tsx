@@ -9,6 +9,7 @@ import {
   PlayerDirection,
 } from "@/app/game/gameModels";
 import BiddingPage from "@/app/game/bidding/biddingPage";
+import PlayingPage from "./playing/playingPage";
 
 function gameStageToName(gameStage: GameStage) {
   switch (gameStage) {
@@ -25,6 +26,8 @@ function gameStageToScreen(gameStage: GameStage) {
   switch (gameStage) {
     case GameStage.BIDDING:
       return <BiddingPage />;
+    case GameStage.PLAYING:
+      return <PlayingPage />;
   }
 }
 
@@ -47,14 +50,43 @@ function Game() {
     hand: [],
   });
 
+  // debug
+  const [selectedStage, setSelectedStage] = useState<GameStage>(
+    GameStage.PLAYING
+  );
+
   return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 lg:col-start-3 lg:col-span-4 xl:col-start-5 xl:col-span-4">
-      <div className="text-center mb-4">
+      <div className="text-center mb-4 flex-row">
         <span className="text-lg uppercase font-bold">
-          {gameStageToName(baseObservation.game_stage)}
+          {gameStageToName(selectedStage)}
         </span>
+        <select
+          className="select select-bordered select-accent"
+          onChange={(e) => {
+            setSelectedStage(
+              GameStage[e.target.value as keyof typeof GameStage]
+            );
+          }}
+        >
+          {Object.keys(GameStage)
+            .filter((key) => isNaN(Number(key)))
+            .map((gameStageValue) => {
+              const gameStage: GameStage =
+                GameStage[gameStageValue as keyof typeof GameStage];
+              return (
+                <option
+                  key={gameStageValue}
+                  value={gameStageValue}
+                  selected={gameStage === selectedStage}
+                >
+                  {gameStageToName(gameStage)}
+                </option>
+              );
+            })}
+        </select>
       </div>
-      <div className="">{gameStageToScreen(baseObservation.game_stage)}</div>
+      <div className="">{gameStageToScreen(selectedStage)}</div>
     </div>
   );
 }
