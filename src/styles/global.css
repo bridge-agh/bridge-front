@@ -62,7 +62,7 @@
   animation-timing-function: linear;
 }
 
-@media screen and (min-width: 320px) {
+@media screen and (min-width: 640px) {
   .drawer-toggle ~ .drawer-side {
     display: none !important; /* override daisyUI */
   }
