@@ -86,7 +86,7 @@ function Game() {
             })}
         </select>
       </div>
-      <div className="">{gameStageToScreen(selectedStage)}</div>
+      <div className="w-[100%]">{gameStageToScreen(selectedStage)}</div>
     </div>
   );
 }
