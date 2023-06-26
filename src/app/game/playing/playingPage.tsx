@@ -1,6 +1,7 @@
 import protectRoute from "@/logic/protect_route";
 import { Card, CardRank, CardSuit } from "../gameModels";
-import Image from "next/image";
+import cardToComponent from "@/components/cards/cards";
+import React from "react";
 
 function Card({
   card,
@@ -21,17 +22,26 @@ function Card({
   const shift = ((cards_left - 1) * width * overlap + width) / 2;
   const left = `${index * width * overlap - shift}rem`;
 
-  console.log(path);
-  console.log(left);
+  const CardComponent: React.FC<{
+    className?: string;
+    background: string;
+    fill: string;
+  }> = cardToComponent(card)!;
+
   return (
     <div
-      className="absolute player-card-hover"
+      className="absolute player-card-hover cursor-pointer"
       style={{ left: left, width: `${width}rem`, height: `${height}rem` }}
     >
-      <Image className="player-card" src={path} fill={true} alt="card" />
-      <div
-        style={{ left: left, width: `${width}rem`, height: `${height}rem` }}
-      ></div>
+      <CardComponent
+        className="player-card"
+        background="#20252e"
+        fill={
+          card.suit == CardSuit.DIAMONDS || card.suit == CardSuit.HEARTS
+            ? "#ff3838"
+            : "#e3e3e3"
+        }
+      />
     </div>
   );
 }

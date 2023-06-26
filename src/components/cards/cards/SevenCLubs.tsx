@@ -34,9 +34,9 @@ function SevenClubs({
           <path
             d="M-265 -320L-265 -460L265 -460C135 -200 -90 100 -90 460"
             stroke="#e3e3e3"
-            stroke-width="80"
-            stroke-linecap="square"
-            stroke-miterlimit="1.5"
+            strokeWidth="80"
+            strokeLinecap="square"
+            strokeMiterlimit="1.5"
             fill="none"
           ></path>
         </symbol>

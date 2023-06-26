@@ -34,9 +34,9 @@ function TenDiamonds({
           <path
             d="M-260 430L-260 -430M-50 0L-50 -310A150 150 0 0 1 250 -310L250 310A150 150 0 0 1 -50 310Z"
             stroke="#ff3838"
-            stroke-width="80"
-            stroke-linecap="square"
-            stroke-miterlimit="1.5"
+            strokeWidth="80"
+            strokeLinecap="square"
+            strokeMiterlimit="1.5"
             fill="none"
           ></path>
         </symbol>

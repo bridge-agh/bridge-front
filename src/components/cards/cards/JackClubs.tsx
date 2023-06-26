@@ -34,9 +34,9 @@ function JackClubs({
           <path
             d="M50 -460L250 -460M150 -460L150 250A100 100 0 0 1 -250 250L-250 220"
             stroke="#e3e3e3"
-            stroke-width="80"
-            stroke-linecap="square"
-            stroke-miterlimit="1.5"
+            strokeWidth="80"
+            strokeLinecap="square"
+            strokeMiterlimit="1.5"
             fill="none"
           ></path>
         </symbol>

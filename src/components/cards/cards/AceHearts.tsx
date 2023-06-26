@@ -24,9 +24,9 @@ function AceHearts({
           <path
             d="M-270 460L-110 460M-200 450L0 -460L200 450M110 460L270 460M-120 130L120 130"
             stroke="#ff3838"
-            stroke-width="80"
-            stroke-linecap="square"
-            stroke-miterlimit="1.5"
+            strokeWidth="80"
+            strokeLinecap="square"
+            strokeMiterlimit="1.5"
             fill="none"
           ></path>
         </symbol>

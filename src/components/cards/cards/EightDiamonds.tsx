@@ -34,9 +34,9 @@ function EightDiamonds({
           <path
             d="M-1 -50A205 205 0 1 1 1 -50L-1 -50A255 255 0 1 0 1 -50Z"
             stroke="#ff3838"
-            stroke-width="80"
-            stroke-linecap="square"
-            stroke-miterlimit="1.5"
+            strokeWidth="80"
+            strokeLinecap="square"
+            strokeMiterlimit="1.5"
             fill="none"
           ></path>
         </symbol>

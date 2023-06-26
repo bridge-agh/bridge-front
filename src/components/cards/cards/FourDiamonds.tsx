@@ -34,9 +34,9 @@ function FourDiamonds({
           <path
             d="M50 460L250 460M150 460L150 -460L-300 175L-300 200L270 200"
             stroke="#ff3838"
-            stroke-width="80"
-            stroke-linecap="square"
-            stroke-miterlimit="1.5"
+            strokeWidth="80"
+            strokeLinecap="square"
+            strokeMiterlimit="1.5"
             fill="none"
           ></path>
         </symbol>
