@@ -56,7 +56,7 @@ function Game() {
   );
 
   return (
-    <div className="col-start-1 col-span-4 sm:col-span-6 lg:col-span-8 xl:col-span-12">
+    <div className="col-start-1 col-span-full">
       <div className="text-center mb-4 flex-row">
         <span className="text-lg uppercase font-bold">
           {gameStageToName(selectedStage)}
