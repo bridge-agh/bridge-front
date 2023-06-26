@@ -58,6 +58,7 @@ function matchesNow() {
   return Breakpoint.BASE;
 }
 
+// below need cleanup function
 export default function useMediaQuery() {
   const [breakPoint, setBreakPoint] = useState<Breakpoint>(matchesNow());
 

@@ -111,11 +111,8 @@ const cardToComponentMap = new Map<
 ]);
 
 function cardToComponent(card: Card) {
-  const component = cardToComponentMap.get(card.suit + card.rank);
-  if (!component) {
-    throw new Error("Card not found");
-  }
-  return component;
+  if (card) return cardToComponentMap.get(card.suit + card.rank);
+  return undefined;
 }
 
 export default cardToComponent;

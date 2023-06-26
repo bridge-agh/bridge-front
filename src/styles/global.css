@@ -54,10 +54,17 @@
 
 /* playing */
 
+.player-card {
+  filter: drop-shadow(0 0 0.1rem rgba(0, 0, 0, 0.25));
+  @apply transition-all;
+}
+
 .player-card-hover .player-card {
   @apply -translate-y-0;
-  @apply transition-all;
-  filter: drop-shadow(0 0 0.1rem rgba(0, 0, 0, 0.25));
+}
+
+.player-card-hover-disabled .player-card {
+  @apply -translate-y-0;
 }
 
 .player-card-hover:hover .player-card {

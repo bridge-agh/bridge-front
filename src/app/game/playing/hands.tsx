@@ -1,48 +1,72 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import HorizontalCard from "./cards";
 import { Card } from "@/app/game/gameModels";
+import useElement from "@/logic/use_element_properties";
 
-const maxDynamicWidth = 1024;
+const maxDynamicWidth = 1000;
 const overlap = 0.5;
 
-function HorizontalHand({ cards }: { cards: Card[] }) {
+function HorizontalHand({
+  cards,
+  cards_left,
+  accessible,
+}: {
+  cards?: Card[];
+  cards_left: number;
+  accessible: boolean;
+}) {
   const playerCardHolderRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState<number>(0);
+  const [width, height, setElement] = useElement(playerCardHolderRef.current!);
 
   useEffect(() => {
-    const resizeObserver = new ResizeObserver(() => {
-      if (playerCardHolderRef.current) {
-        if (playerCardHolderRef.current.offsetWidth >= maxDynamicWidth) {
-          setWidth(maxDynamicWidth);
-        } else {
-          setWidth(playerCardHolderRef.current.offsetWidth);
-        }
-      }
-    });
-
-    resizeObserver.observe(playerCardHolderRef.current!);
-
-    return function cleanup() {
-      resizeObserver.disconnect();
-    };
-  }, [playerCardHolderRef]);
+    if (playerCardHolderRef.current) {
+      setElement(playerCardHolderRef.current);
+    }
+  }, [setElement, playerCardHolderRef]);
 
   return (
     <div className="relative w-full" ref={playerCardHolderRef}>
       <div className="absolute w-min left-0 right-0 mx-auto">
-        {cards.map((card, index) => (
-          <HorizontalCard
-            key={index}
-            card={card}
-            index={index}
-            overlap={overlap}
-            parentWidth={width}
-            cards_left={cards.length}
-          />
-        ))}
+        {(cards &&
+          cards.map((card, index) => (
+            <HorizontalCard
+              key={index}
+              card={card}
+              index={index}
+              overlap={overlap}
+              parentWidth={width <= maxDynamicWidth ? width : maxDynamicWidth}
+              accessible={accessible}
+              cards_left={cards_left}
+            />
+          ))) ||
+          [...Array(cards_left)].map((_, index) => (
+            <HorizontalCard
+              key={index}
+              card={undefined}
+              index={index}
+              overlap={overlap}
+              parentWidth={width <= maxDynamicWidth ? width : maxDynamicWidth}
+              accessible={accessible}
+              cards_left={cards_left}
+            />
+          ))}
       </div>
     </div>
   );
 }
+
+export function PlayerHand({cards, accessible}: {cards: Card[], accessible: boolean}) {
+  return (
+    <HorizontalHand cards={cards} cards_left={cards.length} accessible={accessible} />
+  );
+}
+
+export function TopHand({cards, cards_left, accessible}: {cards?: Card[], cards_left: number, accessible: boolean}) {
+  return (
+    <HorizontalHand cards={cards} cards_left={cards_left} accessible={accessible} />
+  );
+}
+
+
 
 export default HorizontalHand;

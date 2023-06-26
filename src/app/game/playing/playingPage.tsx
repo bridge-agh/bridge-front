@@ -1,6 +1,6 @@
 import protectRoute from "@/logic/protect_route";
 import { Card, CardRank, CardSuit } from "../gameModels";
-import HorizontalHand from "@/app/game/playing/hands";
+import HorizontalHand, { PlayerHand, TopHand } from "@/app/game/playing/hands";
 import React from "react";
 
 function PlayingPage() {
@@ -20,7 +20,16 @@ function PlayingPage() {
     { suit: CardSuit.SPADES, rank: CardRank.KING },
   ];
 
-  return <HorizontalHand cards={cards} />;
+  return (
+    <div className="h-full grid grid-cols-5 grid-rows-6">
+      <div className="col-start-1 col-span-5 row-start-5 row-span-1">
+        <PlayerHand cards={cards} accessible={true} />
+      </div>
+      <div className="col-start-1 col-span-5 row-start-1 row-span-1">
+        <TopHand cards={undefined} cards_left={7} accessible={false} />
+      </div>
+    </div>
+  );
 }
 
 export default protectRoute(PlayingPage);

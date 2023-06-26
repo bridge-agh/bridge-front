@@ -1,17 +1,21 @@
 import { Card, CardSuit } from "../gameModels";
 import cardToComponent from "@/components/cards/cards";
+import Back from "@/components/cards/cards/Back";
+import { twMerge } from "tailwind-merge";
 
 function HorizontalCard({
   card,
   index,
   cards_left,
   overlap, // must be between 0 and 1
+  accessible,
   parentWidth,
 }: {
-  card: Card;
+  card?: Card;
   index: number;
   cards_left: number;
   overlap: number;
+  accessible: boolean;
   parentWidth: number;
 }) {
   const scale = parentWidth / (12 * overlap + 1);
@@ -22,26 +26,30 @@ function HorizontalCard({
   const shift = ((cards_left - 1) * width * overlap + width) / 2;
   const left = index * width * overlap - shift;
 
-  const CardComponent: React.FC<{
-    className?: string;
-    background: string;
-    fill: string;
-  }> = cardToComponent(card)!;
+  const CardComponent:
+    | React.FC<{
+        className?: string;
+        background: string;
+        fill: string;
+      }>
+    | undefined = cardToComponent(card!);
 
   return (
     <div
-      className="absolute player-card-hover cursor-pointer"
+      className={twMerge("absolute", card && accessible ? "player-card-hover cursor-pointer" : "cursor-default")}
       style={{ left: `${left}px`, width: `${width}px`, height: `${height}px` }}
     >
-      <CardComponent
-        className="player-card"
-        background="#20252e"
-        fill={
-          card.suit == CardSuit.DIAMONDS || card.suit == CardSuit.HEARTS
-            ? "#ff3838"
-            : "#e3e3e3"
-        }
-      />
+      {(CardComponent && (
+        <CardComponent
+          className="player-card"
+          background="#20252e"
+          fill={
+            card!.suit == CardSuit.DIAMONDS || card!.suit == CardSuit.HEARTS
+              ? "#ff3838"
+              : "#e3e3e3"
+          }
+        />
+      )) || <Back className="player-card" fill="#20252e" />}
     </div>
   );
 }
