@@ -33,7 +33,7 @@ function KingDiamonds({
         >
           <path
             d="M-285 -460L-85 -460M-185 -460L-185 460M-285 460L-85 460M85 -460L285 -460M185 -440L-170 155M85 460L285 460M185 440L-10 -70"
-            stroke="#ff3838"
+            stroke={fill}
             strokeWidth="80"
             strokeLinecap="square"
             strokeMiterlimit="1.5"

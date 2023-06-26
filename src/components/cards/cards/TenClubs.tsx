@@ -33,7 +33,7 @@ function TenClubs({
         >
           <path
             d="M-260 430L-260 -430M-50 0L-50 -310A150 150 0 0 1 250 -310L250 310A150 150 0 0 1 -50 310Z"
-            stroke="#e3e3e3"
+            stroke={fill}
             strokeWidth="80"
             strokeLinecap="square"
             strokeMiterlimit="1.5"

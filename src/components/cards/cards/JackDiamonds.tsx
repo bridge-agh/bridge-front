@@ -33,7 +33,7 @@ function JackDiamonds({
         >
           <path
             d="M50 -460L250 -460M150 -460L150 250A100 100 0 0 1 -250 250L-250 220"
-            stroke="#ff3838"
+            stroke={fill}
             strokeWidth="80"
             strokeLinecap="square"
             strokeMiterlimit="1.5"

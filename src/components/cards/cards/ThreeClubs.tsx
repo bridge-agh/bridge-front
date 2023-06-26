@@ -33,7 +33,7 @@ function ThreeClubs({
         >
           <path
             d="M-250 -320L-250 -460L200 -460L-110 -80C-100 -90 -50 -120 0 -120C200 -120 250 0 250 150C250 350 170 460 -30 460C-230 460 -260 300 -260 300"
-            stroke="#e3e3e3"
+            stroke={fill}
             strokeWidth="80"
             strokeLinecap="square"
             strokeMiterlimit="1.5"

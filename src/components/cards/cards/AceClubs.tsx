@@ -23,7 +23,7 @@ function AceClubs({
         >
           <path
             d="M-270 460L-110 460M-200 450L0 -460L200 450M110 460L270 460M-120 130L120 130"
-            stroke="#e3e3e3"
+            stroke={fill}
             strokeWidth="80"
             strokeLinecap="square"
             strokeMiterlimit="1.5"

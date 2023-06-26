@@ -33,7 +33,7 @@ function EightHearts({
         >
           <path
             d="M-1 -50A205 205 0 1 1 1 -50L-1 -50A255 255 0 1 0 1 -50Z"
-            stroke="#ff3838"
+            stroke={fill}
             strokeWidth="80"
             strokeLinecap="square"
             strokeMiterlimit="1.5"

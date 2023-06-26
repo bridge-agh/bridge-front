@@ -37,7 +37,7 @@ function AceDiamonds({
         >
           <path
             d="M-400 0C-350 0 0 -450 0 -500C0 -450 350 0 400 0C350 0 0 450 0 500C0 450 -350 0 -400 0Z"
-            fill="#ff3838"
+            fill={fill}
           ></path>
         </symbol>
       </defs>

@@ -33,7 +33,7 @@ function FourClubs({
         >
           <path
             d="M50 460L250 460M150 460L150 -460L-300 175L-300 200L270 200"
-            stroke="#e3e3e3"
+            stroke={fill}
             strokeWidth="80"
             strokeLinecap="square"
             strokeMiterlimit="1.5"

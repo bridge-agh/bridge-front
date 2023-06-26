@@ -33,7 +33,7 @@ function SevenDiamonds({
         >
           <path
             d="M-265 -320L-265 -460L265 -460C135 -200 -90 100 -90 460"
-            stroke="#ff3838"
+            stroke={fill}
             strokeWidth="80"
             strokeLinecap="square"
             strokeMiterlimit="1.5"
