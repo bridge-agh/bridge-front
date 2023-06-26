@@ -1,53 +1,77 @@
 import protectRoute from "@/logic/protect_route";
 import { Card, CardRank, CardSuit } from "../gameModels";
-import Image from 'next/image'
-import { ReactElement } from "react";
+import Image from "next/image";
 
-function Card({ card, index }: { card: Card, index: number }) {
-  const path = `/cards/${card.rank}_of_${card.suit}.png`
-  const left = `${index * 6.25}%`;
-  const ml = index != 0 ? "-18.75%" : "0%";
+function Card({
+  card,
+  index,
+  scale,
+  cards_left,
+}: {
+  card: Card;
+  index: number;
+  scale: number;
+  cards_left: number;
+}) {
+  const path = `/cards/${card.rank}_of_${card.suit}.png`;
+  const width = 2.25 * scale;
+  const height = 3.5 * scale;
+
+  const overlap = 0.3; // must be between 0 and 1
+  const shift = ((cards_left - 1) * width * overlap + width) / 2;
+  const left = `${index * width * overlap - shift}rem`;
+
   console.log(path);
   console.log(left);
   return (
-    <img src={path} alt="card" className={`w-[25%] h-auto relative ml-[${ml}] translate-x-[${left}] z-${index + 1}`} />
+    <div
+      className="absolute player-card-hover"
+      style={{ left: left, width: `${width}rem`, height: `${height}rem` }}
+    >
+      <Image className="player-card" src={path} fill={true} alt="card" />
+      <div
+        style={{ left: left, width: `${width}rem`, height: `${height}rem` }}
+      ></div>
+    </div>
   );
 }
 
 function HandOfCards({ cards }: { cards: Card[] }) {
-
   return (
-    <div className="fixed bottom-3 left-0 right-0 w-[90%] sm:w-[80%] md:w-[50%] lg:w-[40%] xl:w-[20 %] h-fit flex flex-row mx-auto">
-      {cards.map((card, index) => (
-        <Card card={card} index={index} />
-      ))}
+    <div className="relative w-full">
+      <div className="absolute w-min left-0 right-0 mx-auto">
+        {cards.map((card, index) => (
+          <Card
+            key={index}
+            card={card}
+            index={index}
+            scale={1.5}
+            cards_left={cards.length}
+          />
+        ))}
+      </div>
     </div>
-  )
+  );
 }
 
-
 function PlayingPage() {
-
-  let cards: Card[] = [{ suit: CardSuit.SPADES, rank: CardRank.ACE },
-  { suit: CardSuit.HEARTS, rank: CardRank.QUEEN },
-  { suit: CardSuit.CLUBS, rank: CardRank.KING },
-  { suit: CardSuit.CLUBS, rank: CardRank.JACK },
-  { suit: CardSuit.DIAMONDS, rank: CardRank.TEN },
-  { suit: CardSuit.HEARTS, rank: CardRank.TEN },
-  { suit: CardSuit.SPADES, rank: CardRank.NINE },
-  { suit: CardSuit.SPADES, rank: CardRank.JACK },
-  { suit: CardSuit.DIAMONDS, rank: CardRank.TWO },
-  { suit: CardSuit.CLUBS, rank: CardRank.THREE },
-  { suit: CardSuit.DIAMONDS, rank: CardRank.SEVEN },
-  { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-  { suit: CardSuit.SPADES, rank: CardRank.KING },
+  let cards: Card[] = [
+    { suit: CardSuit.SPADES, rank: CardRank.ACE },
+    { suit: CardSuit.HEARTS, rank: CardRank.QUEEN },
+    { suit: CardSuit.CLUBS, rank: CardRank.KING },
+    { suit: CardSuit.CLUBS, rank: CardRank.JACK },
+    { suit: CardSuit.DIAMONDS, rank: CardRank.TEN },
+    { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+    { suit: CardSuit.SPADES, rank: CardRank.NINE },
+    { suit: CardSuit.SPADES, rank: CardRank.JACK },
+    { suit: CardSuit.DIAMONDS, rank: CardRank.TWO },
+    { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+    { suit: CardSuit.DIAMONDS, rank: CardRank.SEVEN },
+    { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+    { suit: CardSuit.SPADES, rank: CardRank.KING },
   ];
 
-  return (
-
-    <HandOfCards cards={cards} />
-
-  );
+  return <HandOfCards cards={cards} />;
 }
 
 export default protectRoute(PlayingPage);
