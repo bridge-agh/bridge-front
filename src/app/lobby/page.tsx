@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useContext, useEffect } from "react";
+import { useCallback } from "react";
 import Link from "next/link";
-import { useGetLobby } from "@/api/lobby";
+import { useGetLobby, useFindLobby } from "@/api/lobby";
 import protectRoute from "@/logic/protect_route";
-import { LobbyIdContext } from "@/logic/state/lobby_id";
+import useUserUid from "@/logic/use_user_uid";
 
 function Player({ name }: { name: string }) {
   return (
@@ -18,8 +18,9 @@ function Player({ name }: { name: string }) {
 }
 
 function Lobby() {
-  const [lobbyId] = useContext(LobbyIdContext);
-  const [lobby, getLobbyError] = useGetLobby(lobbyId);
+  const [userUid] = useUserUid();
+  const [lobbyId, findLobbyLoading, findLobbyError] = useFindLobby(userUid);
+  const [lobby, getLobbyLoading, getLobbyError] = useGetLobby(lobbyId);
 
   const handleCopyClick = useCallback(() => {
     navigator.clipboard.writeText(lobbyId);
