@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useContext } from "react";
 import { useCreateLobby, useJoinLobby } from "@/api/lobby";
 import useUserUid from "@/logic/use_user_uid";
 import protectRoute from "@/logic/protect_route";
+import { LobbyIdContext } from "@/logic/state/lobby_id";
 
 function Home() {
   const router = useRouter();
@@ -12,6 +13,7 @@ function Home() {
   const [joinLobby, isJoinedLobby, joinLoading, joinError] = useJoinLobby();
   const [userUid, userLoading, userError] = useUserUid();
   const [targetLobbyId, setTargetLobbyId] = useState<string>("");
+  const [,setGlobalLobbyId] = useContext(LobbyIdContext);
 
   const onClickCreate = useCallback(() => {
     if (!userUid || createLoading || joinLoading) {
@@ -28,16 +30,22 @@ function Home() {
   }, [joinLobby, userUid, targetLobbyId, createLoading, joinLoading]);
 
   useEffect(() => {
+    router.prefetch("/lobby");
+  }, [router]);
+
+  useEffect(() => {
     if (createdLobbyId) {
-      router.push(`/lobby/${createdLobbyId}`);
+      setGlobalLobbyId(createdLobbyId);
+      router.push("/lobby");
     }
-  }, [router, createdLobbyId]);
+  }, [router, createdLobbyId, setGlobalLobbyId]);
 
   useEffect(() => {
     if (isJoinedLobby) {
-      router.push(`/lobby/${targetLobbyId}`);
+      setGlobalLobbyId(targetLobbyId);
+      router.push("/lobby");
     }
-  }, [router, isJoinedLobby, targetLobbyId]);
+  }, [router, isJoinedLobby, targetLobbyId, setGlobalLobbyId]);
 
   return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 lg:col-start-3 lg:col-span-4 xl:col-start-5 xl:col-span-4">
