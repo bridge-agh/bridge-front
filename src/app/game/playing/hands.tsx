@@ -86,14 +86,12 @@ function VerticalHand({
 }) {
   const playerCardHolderRef = useRef<HTMLDivElement>(null);
   const [width, height, setElement] = useElement(playerCardHolderRef.current!);
-  console.log(playerCardHolderRef);
+
   useEffect(() => {
     if (playerCardHolderRef.current) {
       setElement(playerCardHolderRef.current);
     }
   }, [setElement, playerCardHolderRef]);
-  console.log(height);
-  console.log(width);
   
   return (
     <div className="relative h-full" ref={playerCardHolderRef}>

@@ -42,6 +42,7 @@ function Game() {
     game: {
       round_player: PlayerDirection.NORTH,
       round_cards: [],
+      dummy_cards: [],
       tricks: {
         NS: [],
         EW: [],

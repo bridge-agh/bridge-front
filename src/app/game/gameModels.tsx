@@ -90,6 +90,7 @@ export interface GameObservation {
   game: {
     round_player: PlayerDirection;
     round_cards: Card[];
+    dummy_cards: Card[];
     tricks: {
       NS: Trick[];
       EW: Trick[];
