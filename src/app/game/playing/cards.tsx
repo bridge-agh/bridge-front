@@ -10,6 +10,7 @@ function HorizontalCard({
   overlap, // must be between 0 and 1
   accessible,
   parentWidth,
+  mirrored,
 }: {
   card?: Card;
   index: number;
@@ -17,6 +18,7 @@ function HorizontalCard({
   overlap: number;
   accessible: boolean;
   parentWidth: number;
+  mirrored?: boolean;
 }) {
   const scale = parentWidth / (12 * overlap + 1);
 
@@ -36,9 +38,21 @@ function HorizontalCard({
 
   return (
     <div
-      className={twMerge("absolute", card && accessible ? "player-card-hover cursor-pointer" : "cursor-default")}
-      style={{ left: `${left}px`, width: `${width}px`, height: `${height}px` }}
+      className={twMerge(
+        "absolute",
+        card && accessible
+          ? "player-card-hover cursor-pointer"
+          : "cursor-default"
+      )}
+      style={{
+        left: `${left}px`,
+        width: `${width}px`,
+        height: `${height}px`,
+        transform: mirrored ? "translateY(-" + height + "px)" : "",
+      }}
     >
+      {" "}
+      {mirrored}
       {(CardComponent && (
         <CardComponent
           className="player-card"

@@ -29,9 +29,9 @@ function BiddingPlayers({
                   baseObservation.current_player.valueOf()
                   ? "scale-125 ring-2 bg-base-200 text-base-content"
                   : "scale-100 ring-0 bg-neutral-focus text-neutral-content",
-                biddingObservation.declarer!.valueOf() ===
-                  playerDirection.valueOf()
-                  ? "bg-accent text-neutral-focus "
+                biddingObservation.declarer && (biddingObservation.declarer.valueOf() ===
+                  playerDirection.valueOf())
+                  ? "bg-accent text-neutral-focus"
                   : ""
               )}
             >

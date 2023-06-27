@@ -56,7 +56,7 @@ function Game() {
   );
 
   return (
-    <div className="col-start-1 col-span-full h-full">
+    <div className="col-start-1 col-span-full flex flex-col">
       <div className="text-center mb-4 flex-row">
         <span className="text-lg uppercase font-bold">
           {gameStageToName(selectedStage)}
@@ -86,7 +86,7 @@ function Game() {
             })}
         </select>
       </div>
-      <div className="h-full">{gameStageToScreen(selectedStage)}</div>
+      {gameStageToScreen(selectedStage)}
     </div>
   );
 }

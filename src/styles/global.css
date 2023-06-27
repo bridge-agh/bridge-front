@@ -55,7 +55,7 @@
 /* playing */
 
 .player-card {
-  filter: drop-shadow(0 0 0.1rem rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 0 0.2rem rgba(0, 0, 0, 0.25));
   @apply transition-all;
 }
 
