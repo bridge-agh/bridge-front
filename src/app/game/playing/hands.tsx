@@ -28,8 +28,8 @@ function HorizontalHand({
   }, [setElement, playerCardHolderRef]);
 
   return (
-    <div className="relative w-full" ref={playerCardHolderRef}>
-      <div className="absolute w-min left-0 right-0 mx-auto">
+    <div ref={playerCardHolderRef}>
+      <div className="absolute w-fit left-0 right-0 mx-auto">
         {(cards &&
           cards.map((card, index) => (
             <HorizontalCard
@@ -96,8 +96,8 @@ function VerticalHand({
   console.log(width);
   
   return (
-    <div className="relative w-full h-full" ref={playerCardHolderRef}>
-      <div className={twMerge("absolute w-min top-[50%] translate-y-[-50%] mx-auto", side ? "left-[10%]" : "right-[10%]")}>
+    <div className="relative h-full" ref={playerCardHolderRef}>
+      <div className={twMerge("absolute w-min top-[50%] translate-y-[-50%] mx-auto", side ? "left-[10%]" : "right-[10%] rotate-180")}>
         {(cards &&
           cards.map((card, index) => (
             <VerticalCard

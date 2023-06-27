@@ -68,7 +68,6 @@ function HorizontalCard({
   );
 }
 
-
 export function VerticalCard({
   card,
   index,
@@ -76,7 +75,7 @@ export function VerticalCard({
   overlap, // must be between 0 and 1
   accessible,
   parentHeight,
-  side
+  side,
 }: {
   card?: Card;
   index: number;
@@ -90,7 +89,6 @@ export function VerticalCard({
 
   const width = scale;
   const height = (3.5 / 2.25) * scale;
-  
 
   const shift = ((cards_left - 1) * width * overlap + width) / 2;
   const left = index * width * overlap - shift;
@@ -105,8 +103,21 @@ export function VerticalCard({
 
   return (
     <div
-      className={twMerge("absolute", card && accessible ? "player-card-hover cursor-pointer" : "cursor-default", side ? "rotate-90" : "rotate-[-90deg]" )}
-      style={{ top: `${left}px`, width: `${width}px`, height: `${height}px`, translate: `-${width/2}px -${width*overlap/2}px` }}
+      className={twMerge(
+        "absolute",
+        card && accessible
+          ? "player-card-hover cursor-pointer"
+          : "cursor-default",
+      )}
+      style={{
+        top: `${left}px`,
+        width: `${width}px`,
+        height: `${height}px`,
+        transform: side
+          ? `translateY(-${width/2 - width*overlap/2}px) rotate(90deg)`
+          : `translateY(-${width/2 - width*overlap/2}px) rotate(-90deg)`,
+      }}
+      // translate: `-${width/2}px -${width*overlap/2}px` }}
     >
       {(CardComponent && (
         <CardComponent

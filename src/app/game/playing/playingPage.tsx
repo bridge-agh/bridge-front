@@ -22,18 +22,18 @@ function PlayingPage() {
 
   return (
 
-    <div className="h-full grid grid-cols-5 grid-rows-6 overflow-hidden">
-      <div className="col-start-1 col-span-5 row-start-7 row-span-1">
-        <PlayerHand cards={cards} accessible={true} />
-      </div>
+    <div className="h-full grid grid-cols-5 grid-rows-6 overflow-visible">
       <div className="col-start-2 col-span-3 row-start-1 row-span-1">
         <TopHand cards={undefined} cards_left={7} accessible={false} />
       </div>
-      <div className="col-start-1 col-span-1 row-start-2 row-span-3">
+      <div className="col-start-1 col-span-1 row-start-1 row-span-4">
         <LeftHand cards={cards} cards_left={cards.length} accessible={false}/>
       </div>
-      <div className="col-start-5 col-span-1 row-start-2 row-span-3">
+      <div className="col-start-5 col-span-1 row-start-1 row-span-4">
         <RightHand cards={cards} cards_left={cards.length} accessible={false}/>
+      </div>
+      <div className="col-start-1 col-span-5 row-start-7 row-span-1">
+        <PlayerHand cards={cards} accessible={true} />
       </div>
     </div>
   );
