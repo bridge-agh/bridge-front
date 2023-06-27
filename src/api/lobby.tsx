@@ -108,6 +108,6 @@ async function findLobbyFetcher(userId: string): Promise<FindLobbyResponse> {
 }
 
 export function useFindLobby(userId: string|null) {
-  const { data, error, isLoading } = useSWR(userId, findLobbyFetcher);
+  const { data, error, isLoading } = useSWR(userId, findLobbyFetcher, { revalidateOnMount: true });
   return [data?.lobby_id, isLoading, error];
 }
