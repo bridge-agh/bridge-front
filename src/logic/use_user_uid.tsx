@@ -3,5 +3,6 @@ import { auth } from "@/logic/fb";
 
 export default function useUserUid() {
   const [user, loading, error] = useAuthState(auth);
-  return [user?.uid, loading, error];
+  const uid = user?.uid || null;
+  return {uid, loading, error};
 }

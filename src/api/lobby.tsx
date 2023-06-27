@@ -83,12 +83,31 @@ export function useJoinLobby() {
   return [joinLobby, joined, loading, error];
 }
 
+interface GetLobbyResponse {
+  host_id: string
+  users: [string]
+}
+
+async function getLobbyFetcher(lobbyId: string): Promise<GetLobbyResponse> {
+  const res = await fetch(`${ENDPOINT}/getLobby?lobby_id=${lobbyId}`);
+  return res.json();
+}
+
 export function useGetLobby(lobbyId: string|null) {
-  const { data, error, isLoading } = useSWR(lobbyId ? `${ENDPOINT}/getLobby?lobby_id=${lobbyId}` : null, fetcher, { refreshInterval: 1000 });
+  const { data, error, isLoading } = useSWR(lobbyId, getLobbyFetcher, { refreshInterval: 1000 });
   return [data, isLoading, error];
 }
 
+interface FindLobbyResponse {
+  lobby_id: string
+}
+
+async function findLobbyFetcher(userId: string): Promise<FindLobbyResponse> {
+  const res = await fetch(`${ENDPOINT}/findLobby?user_id=${userId}`);
+  return res.json();
+}
+
 export function useFindLobby(userId: string|null) {
-  const { data, error, isLoading } = useSWR(userId ? `${ENDPOINT}/findLobby?user_id=${userId}` : null, fetcher);
+  const { data, error, isLoading } = useSWR(userId, findLobbyFetcher);
   return [data?.lobby_id, isLoading, error];
 }

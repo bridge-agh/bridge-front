@@ -11,7 +11,7 @@ function Home() {
   const router = useRouter();
   const [createLobby, createdLobbyId, createLoading, createError] = useCreateLobby();
   const [joinLobby, isJoinedLobby, joinLoading, joinError] = useJoinLobby();
-  const [userUid, userLoading, userError] = useUserUid();
+  const { uid: userUid } = useUserUid();
   const [targetLobbyId, setTargetLobbyId] = useState<string>("");
   const [,setGlobalLobbyId] = useContext(LobbyIdContext);
 

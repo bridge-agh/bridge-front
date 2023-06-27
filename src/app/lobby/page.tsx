@@ -18,7 +18,7 @@ function Player({ name }: { name: string }) {
 }
 
 function Lobby() {
-  const [userUid] = useUserUid();
+  const { uid: userUid } = useUserUid();
   const [lobbyId, findLobbyLoading, findLobbyError] = useFindLobby(userUid);
   const [lobby, getLobbyLoading, getLobbyError] = useGetLobby(lobbyId);
 
