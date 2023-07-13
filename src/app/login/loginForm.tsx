@@ -20,7 +20,6 @@ export default function LoginForm({ className }: { className?: string }) {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<LoginData>({
     mode: "onSubmit"
@@ -42,9 +41,11 @@ export default function LoginForm({ className }: { className?: string }) {
     router.prefetch("/home");
   }, [router]);
 
-  if (user) {
-    router.replace("/home");
-  }
+  useEffect(() => {
+    if (user) {
+      router.replace("/home");
+    }
+  }, [router, user]);
 
   return (
     <form noValidate className={className} onSubmit={handleSubmit(onSubmit)}>
