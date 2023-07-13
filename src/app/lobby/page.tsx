@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useGetLobby } from "@/api/lobby";
 import ProtectedRoute from "@/components/protected_route";
 import { FaExchangeAlt } from "react-icons/fa";
 import { TiDelete } from "react-icons/ti";
 import { BsPersonCircle, BsQuestionCircle } from "react-icons/bs";
 import { useCallback, useState } from "react";
+import { useGetLobby, useFindLobby } from "@/api/lobby";
+import protectRoute from "@/logic/protect_route";
+import useUserUid from "@/logic/use_user_uid";
 
 function Player({ name, role, owner, lobby }: { name: string, role: string, owner: boolean, lobby: any }) {
   const [player, setPlayer] = useState(name);
@@ -36,11 +38,15 @@ function Player({ name, role, owner, lobby }: { name: string, role: string, owne
   );
 }
 
+function Lobby() {
+  const { uid: userUid } = useUserUid();
+  const [lobbyId, findLobbyLoading, findLobbyError] = useFindLobby(userUid);
+  const [lobby, getLobbyLoading, getLobbyError] = useGetLobby(lobbyId);
 
+  const handleCopyClick = useCallback(() => {
+    navigator.clipboard.writeText(lobbyId);
+  }, [lobbyId]);
 
-function Lobby({ params }: { params: { lobbyId: string } }) {
-  const [lobby, getLobbyError] = useGetLobby(params.lobbyId);
-  console.log(lobby);
   if (getLobbyError) {
     console.log(getLobbyError);
     return <div>Error</div>;
@@ -69,7 +75,10 @@ function Lobby({ params }: { params: { lobbyId: string } }) {
           <Link href="/home" className="btn btn-sm btn-link text-error xs:btn-md">
             Leave
           </Link>
-          <Link href="/game" className="btn btn-sm btn-primary xs:btn-md">
+          <button className="btn btn-primary" onClick={handleCopyClick}>
+            Copy ID
+          </button>
+          <Link href="/game" className="btn btn-primary xs:btn-md">
             Start
           </Link>
         </div>
@@ -78,10 +87,4 @@ function Lobby({ params }: { params: { lobbyId: string } }) {
   );
 }
 
-export default function ProtectedLobby({ params }: { params: { lobbyId: string } }) {
-  return (
-    <ProtectedRoute>
-      <Lobby params={params} />
-    </ProtectedRoute>
-  );
-}
+export default protectRoute(Lobby);
