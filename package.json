@@ -23,11 +23,8 @@
     "react-dom": "18.2.0",
     "react-firebase-hooks": "^5.1.1",
     "react-hook-form": "^7.43.9",
-<<<<<<< HEAD
     "react-icons": "^4.9.0",
-=======
     "swr": "^2.2.0",
->>>>>>> master
     "tailwindcss": "3.3.2",
     "typescript": "5.0.4"
   },
