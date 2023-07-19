@@ -1,8 +1,16 @@
 import { useState, useCallback } from "react";
-import useLongPoll from "@/logic/use_long_poll";
+import useSWR from "swr";
 import { API_URL } from ".";
 
 const ENDPOINT = `${API_URL}/lobby`;
+
+async function fetcher<JSON = any>(
+  input: RequestInfo,
+  init?: RequestInit
+): Promise<JSON> {
+  const res = await fetch(input, init);
+  return res.json();
+}
 
 export function useCreateLobby() {
   const [lobbyId, setLobbyId] = useState<string | null>(null);
@@ -75,10 +83,31 @@ export function useJoinLobby() {
   return [joinLobby, joined, loading, error];
 }
 
-export function useGetLobby(lobbyId: string) {
-  const [lobby, error] = useLongPoll(
-    `${ENDPOINT}/getLobby?lobby_id=${lobbyId}`,
-    `${ENDPOINT}/getLobby?lobby_id=${lobbyId}&poll=true`,
-  );
-  return [lobby, error];
+interface GetLobbyResponse {
+  host_id: string
+  users: [string]
+}
+
+async function getLobbyFetcher(lobbyId: string): Promise<GetLobbyResponse> {
+  const res = await fetch(`${ENDPOINT}/getLobby?lobby_id=${lobbyId}`);
+  return res.json();
+}
+
+export function useGetLobby(lobbyId: string|null) {
+  const { data, error, isLoading } = useSWR(lobbyId, getLobbyFetcher, { refreshInterval: 1000 });
+  return [data, isLoading, error];
+}
+
+interface FindLobbyResponse {
+  lobby_id: string
+}
+
+async function findLobbyFetcher(userId: string): Promise<FindLobbyResponse> {
+  const res = await fetch(`${ENDPOINT}/findLobby?user_id=${userId}`);
+  return res.json();
+}
+
+export function useFindLobby(userId: string|null) {
+  const { data, error, isLoading } = useSWR(userId, findLobbyFetcher, { revalidateOnMount: true });
+  return [data?.lobby_id, isLoading, error];
 }

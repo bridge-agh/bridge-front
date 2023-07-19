@@ -1,8 +1,10 @@
 "use client";
 
+import { useCallback } from "react";
 import Link from "next/link";
-import { useGetLobby } from "@/api/lobby";
-import ProtectedRoute from "@/components/protected_route";
+import { useGetLobby, useFindLobby } from "@/api/lobby";
+import protectRoute from "@/logic/protect_route";
+import useUserUid from "@/logic/use_user_uid";
 
 function Player({ name }: { name: string }) {
   return (
@@ -15,8 +17,14 @@ function Player({ name }: { name: string }) {
   );
 }
 
-function Lobby({ params }: { params: { lobbyId: string } }) {
-  const [lobby, getLobbyError] = useGetLobby(params.lobbyId);
+function Lobby() {
+  const { uid: userUid } = useUserUid();
+  const [lobbyId, findLobbyLoading, findLobbyError] = useFindLobby(userUid);
+  const [lobby, getLobbyLoading, getLobbyError] = useGetLobby(lobbyId);
+
+  const handleCopyClick = useCallback(() => {
+    navigator.clipboard.writeText(lobbyId);
+  }, [lobbyId]);
 
   if (getLobbyError) {
     console.log(getLobbyError);
@@ -45,6 +53,9 @@ function Lobby({ params }: { params: { lobbyId: string } }) {
           <Link href="/home" className="btn btn-link text-error">
             Leave
           </Link>
+          <button className="btn btn-primary" onClick={handleCopyClick}>
+            Copy ID
+          </button>
           <Link href="/game" className="btn btn-primary">
             Start
           </Link>
@@ -54,10 +65,4 @@ function Lobby({ params }: { params: { lobbyId: string } }) {
   );
 }
 
-export default function ProtectedLobby({ params }: { params: { lobbyId: string } }) {
-  return (
-    <ProtectedRoute>
-      <Lobby params={params} />
-    </ProtectedRoute>
-  );
-}
+export default protectRoute(Lobby);
