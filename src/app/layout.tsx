@@ -21,7 +21,7 @@ export default function RootLayout({
         <Providers>
           <Header />
           <Drawer>
-            <div className="main grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-12 p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12">
+            <div className="main h-full grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-12 p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12" style={{height: "inherit"}}>
               {children}
             </div>
           </Drawer>
