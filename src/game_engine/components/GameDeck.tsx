@@ -3,26 +3,64 @@ import { GameCard } from "./gameCard";
 
 export default function GameDeck({
   direction,
-  count
+  count,
 }: {
   direction: PlayerDirection;
   count: number;
 }) {
-  const x = 0;
-  const y = -1.15;
-  const z = 0;
+  var x = 0;
+  var y = 0;
+  var z = 0;
+  var rotation: number;
 
-  const scale = 0.85;
+  const x_rotated = 2;
+  const y_non_rotated = 1.3;
+
+  switch (direction) {
+    case PlayerDirection.NORTH:
+      x = 0;
+      y = y_non_rotated;
+      rotation = 0;
+      break;
+    case PlayerDirection.SOUTH:
+      x = 0;
+      y = -y_non_rotated;
+      rotation = 0;
+      break;
+    case PlayerDirection.EAST:
+      x = x_rotated;
+      y = 0;
+      rotation = -Math.PI / 2;
+      break;
+    case PlayerDirection.WEST:
+      x = -x_rotated;
+      y = 0;
+      rotation = Math.PI / 2;
+      break;
+  }
+
+  var scale = 0.58;
 
   const cardWidth = 0.57 * scale;
-  const cardSpacing = 0.05;
+  const cardSpacing = -.1;
   const cardXOffset = cardWidth + cardSpacing;
-  const cardX = x - (cardXOffset * count) / 2 + cardXOffset / 2;
+
+  var cardX = x - (cardXOffset * count) / 2 + cardXOffset / 2;
+  var cardY = y - (cardXOffset * count) / 2 + cardXOffset / 2;
 
   return (
     <>
       {Array.from(Array(count).keys()).map((i) => {
-        return <GameCard x={cardX + i * cardXOffset} y={y} z={z} key={i} scale={scale}/>;
+        return (
+          <GameCard
+            x={rotation ? x : cardX + cardXOffset * i }
+            y={rotation ? cardY + cardXOffset * i : y}
+            z={z + 0.001 * i}
+            rotation={rotation}
+            key={i}
+            scale={scale}
+          />
+        );
       })}
     </>
   );
