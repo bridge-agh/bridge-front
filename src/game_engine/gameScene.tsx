@@ -8,10 +8,10 @@ import GameDeck from "./components/GameDeck";
 export default function GameScene() {
   // base three stuff
   const canvasRef = useRef<HTMLCanvasElement>(null!);
-  const cameraRef = useRef(null);
+  const cameraRef = useRef<any>(null!); // any to supress warning
 
-  const fov = 45;
-  const planeAspectRatio = 16 / 9;
+  const fov = 50;
+  const planeAspectRatio = 12 / 9;
 
   const [cameraFOV, setCameraFOV] = useState(fov);
   const [cameraPlaneAspectRatio, setCameraPlaneAspectRatio] =
@@ -20,17 +20,21 @@ export default function GameScene() {
   const onWindowResize = useCallback(() => {
     console.log("canvasHeight: ", canvasRef.current.clientHeight);
     console.log("canvasWidth: ", canvasRef.current.clientWidth);
-    if (canvasRef.current) {
-      console.log("change");
+    if (canvasRef.current && cameraRef.current) {
+      if (cameraRef.current.aspect > planeAspectRatio) {
+        cameraRef.current.fov = fov;
+      }
+      else {
+        console.log("change");
 
-      setCameraPlaneAspectRatio(
-        canvasRef.current.clientWidth / canvasRef.current.clientHeight
-      );
-      const cameraHeight = Math.tan(MathUtils.degToRad(fov / 2));
-      const ratio = cameraPlaneAspectRatio / planeAspectRatio;
-      const newCameraHeight = cameraHeight / ratio;
-      setCameraFOV(MathUtils.radToDeg(Math.atan(newCameraHeight)) * 2);
-
+        setCameraPlaneAspectRatio(
+          canvasRef.current.clientWidth / canvasRef.current.clientHeight
+        );
+        const cameraHeight = Math.tan(MathUtils.degToRad(fov / 2));
+        const ratio = cameraPlaneAspectRatio / planeAspectRatio;
+        const newCameraHeight = cameraHeight / ratio;
+        setCameraFOV(MathUtils.radToDeg(Math.atan(newCameraHeight)) * 2);
+      }
       console.log("fov: ", cameraFOV);
       console.log("aspect ", cameraPlaneAspectRatio);
     }
@@ -101,6 +105,7 @@ export default function GameScene() {
         fov={cameraFOV}
         aspect={cameraPlaneAspectRatio}
         position={[0, 0, 4]}
+        ref={cameraRef}
       />
     </Canvas>
   );
