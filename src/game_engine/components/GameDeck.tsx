@@ -1,4 +1,5 @@
 import { PlayerDirection } from "@/app/game/gameModels";
+import { Vector3 } from "three";
 import { GameCard } from "./gameCard";
 
 export default function GameDeck({
@@ -53,10 +54,14 @@ export default function GameDeck({
       {Array.from(Array(count).keys()).map((i) => {
         return (
           <GameCard
-            x={rotation ? x : cardX + cardXOffset * i }
-            y={rotation ? cardY + cardXOffset * i : y}
-            z={z + 0.001 * i}
-            rotation={rotation}
+            cardFront="7S"
+            cardBack="BACK"
+            position={new Vector3(
+              rotation ? x : cardX + cardXOffset * i,
+              rotation ? cardY + cardXOffset * i : y,
+              z + 0.001 * i
+            )}
+            rotation={new Vector3(0, 0, rotation)}
             key={i}
             scale={scale}
           />
