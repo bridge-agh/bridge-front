@@ -12,7 +12,7 @@
   height: 5rem;
 }
 
-.drawer {
+.content-height {
   height: calc(100vh - 1rem * 5);
 }
 

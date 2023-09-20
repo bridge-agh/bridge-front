@@ -1,12 +1,12 @@
 "use client";
 
-import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
-import Link from "next/link";
 import ThemeSwitch from "@/components/theme_switch";
 import { auth } from "@/logic/fb";
-import { closeDrawer } from "./drawer_button";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
+import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
+import { closeDrawer } from "./drawer_button";
 
 export default function Drawer({ children }: { children: React.ReactNode }) {
   const [user] = useAuthState(auth);
@@ -20,7 +20,7 @@ export default function Drawer({ children }: { children: React.ReactNode }) {
   }, [signOut, router]);
 
   return (
-    <div className="drawer drawer-end">
+    <div className="content-height drawer-end">
       <input id="drawer-menu" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content">{children}</div>
       <div className="drawer-side hidden">

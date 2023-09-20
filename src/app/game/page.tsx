@@ -1,14 +1,14 @@
 "use client";
 
-import protectRoute from "@/logic/protect_route";
-import { useState } from "react";
+import BiddingPage from "@/app/game/bidding/biddingPage";
 import {
   BaseObservation,
   GameObservation,
   GameStage,
   PlayerDirection,
 } from "@/app/game/gameModels";
-import BiddingPage from "@/app/game/bidding/biddingPage";
+import protectRoute from "@/logic/protect_route";
+import { useState } from "react";
 import PlayingPage from "./playing/playingPage";
 
 function gameStageToName(gameStage: GameStage) {
@@ -57,7 +57,7 @@ function Game() {
   );
 
   return (
-    <div className="col-start-1 col-span-full flex flex-col">
+    <div className="absolute content-height w-full top-0 left-0 mt-[5rem]">
       {/* <div className="text-center mb-4 flex-row">
         <span className="text-lg uppercase font-bold">
           {gameStageToName(selectedStage)}
