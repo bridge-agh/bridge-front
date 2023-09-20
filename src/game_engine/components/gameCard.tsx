@@ -1,15 +1,15 @@
 import { a, useSpring } from "@react-spring/three";
 import { useLoader } from "@react-three/fiber";
 import { useRef } from "react";
-import { DoubleSide, MeshBasicMaterial, TextureLoader, Vector3, sRGBEncoding } from "three";
+import { DoubleSide, MeshBasicMaterial, SRGBColorSpace, TextureLoader, Vector3 } from "three";
 import RoundGeomtryBox from "./roundGeometryBox";
 
 export function GameCard({ cardFront, cardBack, position, rotation, scale, }: { cardFront: string, cardBack: string, position: Vector3, rotation: Vector3, scale: number }) {
   const cardMap = useLoader(TextureLoader, "png/cards/dark/" + cardFront + ".png");
-  cardMap.encoding = sRGBEncoding;
+  cardMap.colorSpace = SRGBColorSpace;
 
   const backMap = useLoader(TextureLoader, "png/cards/dark/" + cardBack + ".png");
-  backMap.encoding = sRGBEncoding;
+  backMap.colorSpace = SRGBColorSpace;
 
   const w = 0.57; // width
   const h = 0.89; // height

@@ -1,11 +1,29 @@
 import { BaseObservation, CardRank, CardSuit, GameObservation, GameStage, PlayerDirection } from "@/app/game/gameModels";
 import { OrbitControls, PerspectiveCamera, Stats } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { MathUtils } from "three";
 import GameDeck from "./components/GameDeck";
 
-export default function GameScene() {
+function calcFovAndAspect(currentHeight: number, currentWidth: number, currentAspect: number) {
+  const fov = 50;
+  const planeAspectRatio = 12 / 9;
+
+  if (currentAspect > planeAspectRatio) {
+    return [fov, currentAspect];
+  }
+  else {
+    const newAspect = currentWidth / currentHeight;
+
+    const cameraHeight = Math.tan(MathUtils.degToRad(fov / 2));
+    const ratio = newAspect / planeAspectRatio;
+    const newCameraHeight = cameraHeight / ratio;
+    const newFov = MathUtils.radToDeg(Math.atan(newCameraHeight)) * 2;
+    return [newFov, newAspect];
+  }
+}
+
+export default function GameScene({ width, height, parentRef }: { width: number, height: number, parentRef: RefObject<HTMLDivElement> }) {
   // base three stuff
   const canvasRef = useRef<HTMLCanvasElement>(null!);
   const cameraRef = useRef<any>(null!); // any to supress warning
@@ -13,40 +31,34 @@ export default function GameScene() {
   const fov = 50;
   const planeAspectRatio = 12 / 9;
 
-  const [cameraFOV, setCameraFOV] = useState(fov);
+  const [cameraFOV, setCameraFOV] = useState(calcFovAndAspect(0, 0, planeAspectRatio)[0]);
   const [cameraPlaneAspectRatio, setCameraPlaneAspectRatio] =
-    useState(planeAspectRatio);
+    useState(calcFovAndAspect(0, 0, planeAspectRatio)[1]);
 
   const onWindowResize = useCallback(() => {
     console.log("canvasHeight: ", canvasRef.current.clientHeight);
     console.log("canvasWidth: ", canvasRef.current.clientWidth);
-    if (canvasRef.current && cameraRef.current) {
-      if (cameraRef.current.aspect > planeAspectRatio) {
-        cameraRef.current.fov = fov;
-      }
-      else {
-        console.log("change");
 
-        setCameraPlaneAspectRatio(
-          canvasRef.current.clientWidth / canvasRef.current.clientHeight
-        );
-        const cameraHeight = Math.tan(MathUtils.degToRad(fov / 2));
-        const ratio = cameraPlaneAspectRatio / planeAspectRatio;
-        const newCameraHeight = cameraHeight / ratio;
-        setCameraFOV(MathUtils.radToDeg(Math.atan(newCameraHeight)) * 2);
-      }
-      console.log("fov: ", cameraFOV);
-      console.log("aspect ", cameraPlaneAspectRatio);
+    var res;
+    if (canvasRef.current && cameraRef.current) {
+      res = calcFovAndAspect(height, width, cameraRef.current.aspect);
+    } else {
+      res = calcFovAndAspect(height, width, cameraPlaneAspectRatio);
     }
-  }, [canvasRef, fov, planeAspectRatio, cameraPlaneAspectRatio, cameraFOV]);
+
+    setCameraFOV(res[0]);
+    setCameraPlaneAspectRatio(res[1]);
+
+    console.log("fov: ", cameraFOV);
+    console.log("aspect ", cameraPlaneAspectRatio);
+  }, [canvasRef, cameraRef, cameraFOV, cameraPlaneAspectRatio, width, height]);
 
   useEffect(() => {
-    if (cameraRef.current) {
+    if (parentRef.current)
       onWindowResize();
-    }
     window.addEventListener("resize", onWindowResize);
     return () => window.removeEventListener("resize", onWindowResize);
-  }, [onWindowResize, cameraRef]);
+  }, [onWindowResize, parentRef]);
 
 
   // redux here, currently dummy data
@@ -89,9 +101,9 @@ export default function GameScene() {
   );
 
   return (
-    <Canvas ref={canvasRef} >
-      <ambientLight intensity={1} />
-      <directionalLight position={[5, 5, 5]} color={0xffffff} intensity={2.5} />
+    <Canvas ref={canvasRef}>
+      <ambientLight intensity={1.5} />
+      <directionalLight position={[0, 0, 4]} color={0xffffff} intensity={1.5} />
       <GameDeck direction={PlayerDirection.NORTH} count={13} />
       <GameDeck direction={PlayerDirection.SOUTH} count={13} />
       <GameDeck direction={PlayerDirection.EAST} count={13} />

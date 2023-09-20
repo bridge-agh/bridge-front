@@ -57,36 +57,7 @@ function Game() {
   );
 
   return (
-    <div className="absolute content-height w-full top-0 left-0">
-      {/* <div className="text-center mb-4 flex-row">
-        <span className="text-lg uppercase font-bold">
-          {gameStageToName(selectedStage)}
-        </span>
-        <select
-          className="select select-bordered select-accent"
-          onChange={(e) => {
-            setSelectedStage(
-              GameStage[e.target.value as keyof typeof GameStage]
-            );
-          }}
-        >
-          {Object.keys(GameStage)
-            .filter((key) => isNaN(Number(key)))
-            .map((gameStageValue) => {
-              const gameStage: GameStage =
-                GameStage[gameStageValue as keyof typeof GameStage];
-              return (
-                <option
-                  key={gameStageValue}
-                  value={gameStageValue}
-                  selected={gameStage === selectedStage}
-                >
-                  {gameStageToName(gameStage)}
-                </option>
-              );
-            })}
-        </select>
-      </div> */}
+    <div className="col-start-1 col-span-full flex flex-col">
       {gameStageToScreen(selectedStage)}
     </div>
   );
