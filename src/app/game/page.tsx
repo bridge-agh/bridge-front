@@ -57,7 +57,7 @@ function Game() {
   );
 
   return (
-    <div className="absolute content-height w-full top-0 left-0 mt-[5rem]">
+    <div className="absolute content-height w-full top-0 left-0">
       {/* <div className="text-center mb-4 flex-row">
         <span className="text-lg uppercase font-bold">
           {gameStageToName(selectedStage)}

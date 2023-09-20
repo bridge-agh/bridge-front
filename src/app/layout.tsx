@@ -1,8 +1,8 @@
+import Providers from "@/app/providers";
 import Drawer from "@/components/root/drawer/drawer";
 import Header from "@/components/root/header/header";
 import "@/styles/global.css";
 import { Inter } from "next/font/google";
-import Providers from "@/app/providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +21,7 @@ export default function RootLayout({
         <Providers>
           <Header />
           <Drawer>
-            <div className="main drawer grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-12 p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12" style={{height: "inherit"}}>
+            <div className="main relative content-height grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-12 p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12">
               {children}
             </div>
           </Drawer>

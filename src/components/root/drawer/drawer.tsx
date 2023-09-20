@@ -20,7 +20,7 @@ export default function Drawer({ children }: { children: React.ReactNode }) {
   }, [signOut, router]);
 
   return (
-    <div className="content-height drawer-end">
+    <div className="drawer drawer-end">
       <input id="drawer-menu" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content">{children}</div>
       <div className="drawer-side hidden">

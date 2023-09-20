@@ -12,7 +12,7 @@
   height: 5rem;
 }
 
-.content-height {
+.drawer, .content-height {
   height: calc(100vh - 1rem * 5);
 }
 
@@ -50,55 +50,6 @@
 
 [data-theme="light"] .bid-selected:hover .fill-base-content {
   @apply fill-neutral-focus;
-}
-
-/* playing */
-
-.player-card {
-  filter: drop-shadow(0 0 0.2rem rgba(0, 0, 0, 0.25));
-  @apply transition-all;
-}
-
-.player-card-hover .player-card {
-  @apply -translate-y-0;
-}
-
-.player-card-hover-disabled .player-card {
-  @apply -translate-y-0;
-}
-
-.player-card-hover:hover .player-card {
-  @apply -translate-y-4;
-}
-
-@media screen and (min-width: 320px) {
-  .player-card-hover:hover .player-card {
-    @apply -translate-y-6;
-  }
-}
-
-@media screen and (min-width: 480px) {
-  .player-card-hover:hover .player-card {
-    @apply -translate-y-8;
-  }
-}
-
-@media screen and (min-width: 640px) {
-  .player-card-hover:hover .player-card {
-    @apply -translate-y-10;
-  }
-}
-
-@media screen and (min-width: 768px) {
-  .player-card-hover:hover .player-card {
-    @apply -translate-y-12;
-  }
-}
-
-@media screen and (min-width: 1024px) {
-  .player-card-hover:hover .player-card {
-    @apply -translate-y-14;
-  }
 }
 
 /* daisyUI fix */
