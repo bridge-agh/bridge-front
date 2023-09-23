@@ -2,7 +2,7 @@ import { a, useSpring } from "@react-spring/three";
 import { useLoader } from "@react-three/fiber";
 import { useRef } from "react";
 import { DoubleSide, MeshBasicMaterial, SRGBColorSpace, TextureLoader, Vector3 } from "three";
-import RoundGeomtryBox from "./roundGeometryBox";
+import RoundGeometryBox from "./roundGeometryBox";
 
 export function GameCard({ cardFront, cardBack, position, rotation, scale, }: { cardFront: string, cardBack: string, position: Vector3, rotation: Vector3, scale: number }) {
   const cardMap = useLoader(TextureLoader, "png/cards/dark/" + cardFront + ".png");
@@ -18,7 +18,7 @@ export function GameCard({ cardFront, cardBack, position, rotation, scale, }: { 
   const s = 25; // smoothness
 
 
-  const geometry = RoundGeomtryBox({ w, h, t, r, s });
+  const geometry = RoundGeometryBox({ w, h, t, r, s });
   geometry.computeVertexNormals();
 
   const sideRopeMaterial = new MeshBasicMaterial({ color: 0x000000 });

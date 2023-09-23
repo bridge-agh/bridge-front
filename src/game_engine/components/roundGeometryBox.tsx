@@ -2,7 +2,7 @@ import { BufferAttribute, BufferGeometry } from "three";
 
 // created by Klaus Hoffmeister under https://hofk.de/disclaim
 
-export default function RoundGeomtryBox({ w, h, t, r, s }: { w: number, h: number, t: number, r: number, s: number }) { // width, height, thick, radius corner, smoothness
+export default function RoundGeometryBox({ w, h, t, r, s }: { w: number, h: number, t: number, r: number, s: number }) { // width, height, thick, radius corner, smoothness
 
   // helper const's and let's
   const wi = w / 2 - r;		// inner width, half
