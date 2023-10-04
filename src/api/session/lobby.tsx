@@ -35,12 +35,11 @@ interface JoinLobbyRequest {
 }
 
 async function joinLobbyFetcher(request: JoinLobbyRequest): Promise<void> {
-  const res = await fetch(`${API_URL_SESSION_LOBBY}/join`, {
+  await fetch(`${API_URL_SESSION_LOBBY}/join`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(request)
   });
-  return res.json();
 }
 
 export function useJoinLobby() {
@@ -55,12 +54,11 @@ interface LeaveLobbyRequest {
 }
 
 async function leaveLobbyFetcher(request: LeaveLobbyRequest): Promise<void> {
-  const res = await fetch(`${API_URL_SESSION_LOBBY}/leave`, {
+  await fetch(`${API_URL_SESSION_LOBBY}/leave`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(request)
   });
-  return res.json();
 }
 
 export function useLeaveLobby() {
@@ -71,8 +69,8 @@ export function useLeaveLobby() {
 
 interface GetInfoResponse {
   host_id: string
-  users: [string]
-  ready: [boolean]
+  users: string[]
+  ready: boolean[]
   started: boolean
 }
 
@@ -81,7 +79,7 @@ async function getLobbyFetcher(session_id: string): Promise<GetInfoResponse> {
   return res.json();
 }
 
-export function useGetLobby(lobbyId: string|null): [GetInfoResponse|undefined, boolean, any] {
+export function useGetLobby(lobbyId: string|undefined): [GetInfoResponse|undefined, boolean, any] {
   const { data, error, isLoading } = useSWR(lobbyId, getLobbyFetcher, { refreshInterval: 1000 });
   return [data, isLoading, error];
 }

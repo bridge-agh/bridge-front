@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback } from "react";
-import Link from "next/link";
-import { useGetLobby, useFindLobby } from "@/api/lobby";
+import { useFindSession } from "@/api/session";
+import { useGetLobby, useLeaveLobby, useReady } from "@/api/session/lobby";
 import protectRoute from "@/logic/protect_route";
 import useUserUid from "@/logic/use_user_uid";
 
@@ -19,21 +19,30 @@ function Player({ name }: { name: string }) {
 
 function Lobby() {
   const { uid: userUid } = useUserUid();
-  const [lobbyId, findLobbyLoading, findLobbyError] = useFindLobby(userUid);
-  const [lobby, getLobbyLoading, getLobbyError] = useGetLobby(lobbyId);
+  const [findResponse, findLoading, findError] = useFindSession(userUid);
+  const [getResponse, getLoading, getError] = useGetLobby(findResponse?.session_id);
+  const [triggerLeave,, leaveLoading, leaveError] = useLeaveLobby();
 
   const handleCopyClick = useCallback(() => {
-    navigator.clipboard.writeText(lobbyId);
-  }, [lobbyId]);
+    if (!findResponse?.session_id) return;
+    navigator.clipboard.writeText(findResponse?.session_id);
+  }, [findResponse]);
 
-  if (getLobbyError) {
-    console.log(getLobbyError);
+  const handleLeaveClick = useCallback(() => {
+    if (!findResponse?.session_id || !userUid) return;
+    triggerLeave({ user_id: userUid, session_id: findResponse?.session_id });
+  }, [triggerLeave, findResponse, userUid]);
+
+  if (getError) {
+    console.log(getError);
     return <div>Error</div>;
   }
 
-  if (!lobby) {
+  if (!getResponse) {
     return <div>Loading...</div>;
   }
+
+  const lobby = getResponse;
 
   return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 lg:col-start-3 lg:col-span-4 xl:col-start-5 xl:col-span-4">
@@ -50,15 +59,15 @@ function Lobby() {
           </div>
         </div>
         <div className="flex flex-row justify-between items-center">
-          <Link href="/home" className="btn btn-link text-error">
+          <button className="btn btn-link text-error" onClick={handleLeaveClick}>
             Leave
-          </Link>
+          </button>
           <button className="btn btn-primary" onClick={handleCopyClick}>
             Copy ID
           </button>
-          <Link href="/game" className="btn btn-primary">
-            Start
-          </Link>
+          <button className="btn btn-primary" onClick={handleReadyClick}>
+            Ready
+          </button>
         </div>
       </div>
     </div>

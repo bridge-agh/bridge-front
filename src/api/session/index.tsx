@@ -34,7 +34,7 @@ async function findSessionFetcher(userId: string): Promise<FindSessionResponse> 
   return res.json();
 }
 
-export function useFindSession(userId: string): [FindSessionResponse|undefined, boolean, any] {
+export function useFindSession(userId: string|undefined): [FindSessionResponse|undefined, boolean, any] {
   const { data, error, isLoading } = useSWR(userId, findSessionFetcher, { refreshInterval: 1000 });
   return [data, isLoading, error];
 }

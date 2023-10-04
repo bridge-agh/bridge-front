@@ -15,6 +15,7 @@ export function useFetch<T, U>(fetcher: (request: T) => Promise<U>): [(request: 
     fetcher(request)
       .then(data => {
         setData(data);
+        setError(null);
       })
       .catch(err => {
         setError(err);
