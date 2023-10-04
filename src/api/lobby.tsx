@@ -4,110 +4,130 @@ import { API_URL } from ".";
 
 const ENDPOINT = `${API_URL}/lobby`;
 
-async function fetcher<JSON = any>(
-  input: RequestInfo,
-  init?: RequestInit
-): Promise<JSON> {
-  const res = await fetch(input, init);
+function useFetch<T, U>(fetcher: (request: T) => Promise<U>): [(request: T) => void, U|undefined, boolean, any] {
+  const [data, setData] = useState<U|undefined>(undefined);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<any>(undefined);
+
+  const trigger = useCallback((request: T) => {
+    if (loading) return;
+    setData(undefined);
+    setLoading(true);
+    setError(undefined);
+    fetcher(request)
+      .then(data => {
+        setData(data);
+      })
+      .catch(err => {
+        setError(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [fetcher, loading]);
+
+  return [trigger, data, loading, error];
+}
+
+// /create
+
+interface CreateLobbyRequest {
+  host_id: string
+}
+
+interface CreateLobbyResponse {
+  session_id: string
+}
+
+async function createLobbyFetcher(request: CreateLobbyRequest): Promise<CreateLobbyResponse> {
+  const res = await fetch(`${ENDPOINT}/create`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(request)
+  });
   return res.json();
 }
 
 export function useCreateLobby() {
-  const [lobbyId, setLobbyId] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<any>(null);
-
-  const createLobby = useCallback((host_id: string) => {
-    setLobbyId(null);
-    setLoading(true);
-    setError(null);
-    fetch(`${ENDPOINT}/createLobby`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ host_id })
-    })
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        } else {
-          throw res.statusText;
-        }
-      })
-      .then(data => {
-        setLobbyId(data.lobby_id);
-      })
-      .catch(err => {
-        setError(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
-
-  return [createLobby, lobbyId, loading, error];
+  return useFetch(createLobbyFetcher);
 }
 
-export function useJoinLobby() {
-  const [joined, setJoined] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<any>(null);
+// /join
 
-  const joinLobby = useCallback((lobby_id: string, user_id: string) => {
-    setJoined(false);
-    setLoading(true);
-    setError(null);
-    fetch(`${ENDPOINT}/joinLobby`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ lobby_id, user_id })
-    })
-      .then(res => {
-        if (res.ok) {
-          setJoined(true);
-        } else {
-          throw res.statusText;
-        }
-      })
-      .catch(err => {
-        setError(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
-
-  return [joinLobby, joined, loading, error];
+interface JoinLobbyRequest {
+  user_id: string
+  session_id: string
 }
 
-interface GetLobbyResponse {
-  host_id: string
-  users: [string]
-}
-
-async function getLobbyFetcher(lobbyId: string): Promise<GetLobbyResponse> {
-  const res = await fetch(`${ENDPOINT}/getLobby?lobby_id=${lobbyId}`);
+async function joinLobbyFetcher(request: JoinLobbyRequest): Promise<void> {
+  const res = await fetch(`${ENDPOINT}/join`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(request)
+  });
   return res.json();
 }
 
-export function useGetLobby(lobbyId: string|null) {
+export function useJoinLobby() {
+  return useFetch(joinLobbyFetcher);
+}
+
+// /leave
+
+interface LeaveLobbyRequest {
+  user_id: string
+  session_id: string
+}
+
+async function leaveLobbyFetcher(request: LeaveLobbyRequest): Promise<void> {
+  const res = await fetch(`${ENDPOINT}/leave`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(request)
+  });
+  return res.json();
+}
+
+export function useLeaveLobby() {
+  return useFetch(leaveLobbyFetcher);
+}
+
+// /info
+
+interface GetInfoResponse {
+  host_id: string
+  users: [string]
+  ready: [boolean]
+  started: boolean
+}
+
+async function getLobbyFetcher(session_id: string): Promise<GetInfoResponse> {
+  const res = await fetch(`${ENDPOINT}/info?session_id=${session_id}`);
+  return res.json();
+}
+
+export function useGetLobby(lobbyId: string|null): [GetInfoResponse|undefined, boolean, any] {
   const { data, error, isLoading } = useSWR(lobbyId, getLobbyFetcher, { refreshInterval: 1000 });
   return [data, isLoading, error];
 }
 
-interface FindLobbyResponse {
-  lobby_id: string
+
+// /ready
+
+interface ReadyRequest {
+  user_id: string
+  session_id: string
 }
 
-async function findLobbyFetcher(userId: string): Promise<FindLobbyResponse> {
-  const res = await fetch(`${ENDPOINT}/findLobby?user_id=${userId}`);
+async function readyFetcher(request: ReadyRequest): Promise<void> {
+  const res = await fetch(`${ENDPOINT}/ready`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(request)
+  });
   return res.json();
 }
 
-export function useFindLobby(userId: string|null) {
-  const { data, error, isLoading } = useSWR(userId, findLobbyFetcher, { revalidateOnMount: true });
-  return [data?.lobby_id, isLoading, error];
+export function useReady() {
+  return useFetch(readyFetcher);
 }
