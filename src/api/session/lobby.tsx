@@ -1,33 +1,8 @@
-import { useState, useCallback } from "react";
 import useSWR from "swr";
-import { API_URL } from ".";
+import { API_URL_SESSION } from ".";
+import { useFetch } from "..";
 
-const ENDPOINT = `${API_URL}/lobby`;
-
-function useFetch<T, U>(fetcher: (request: T) => Promise<U>): [(request: T) => void, U|undefined, boolean, any] {
-  const [data, setData] = useState<U|undefined>(undefined);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<any>(undefined);
-
-  const trigger = useCallback((request: T) => {
-    if (loading) return;
-    setData(undefined);
-    setLoading(true);
-    setError(undefined);
-    fetcher(request)
-      .then(data => {
-        setData(data);
-      })
-      .catch(err => {
-        setError(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [fetcher, loading]);
-
-  return [trigger, data, loading, error];
-}
+export const API_URL_SESSION_LOBBY = `${API_URL_SESSION}/lobby`;
 
 // /create
 
@@ -40,7 +15,7 @@ interface CreateLobbyResponse {
 }
 
 async function createLobbyFetcher(request: CreateLobbyRequest): Promise<CreateLobbyResponse> {
-  const res = await fetch(`${ENDPOINT}/create`, {
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/create`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(request)
@@ -60,7 +35,7 @@ interface JoinLobbyRequest {
 }
 
 async function joinLobbyFetcher(request: JoinLobbyRequest): Promise<void> {
-  const res = await fetch(`${ENDPOINT}/join`, {
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/join`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(request)
@@ -80,7 +55,7 @@ interface LeaveLobbyRequest {
 }
 
 async function leaveLobbyFetcher(request: LeaveLobbyRequest): Promise<void> {
-  const res = await fetch(`${ENDPOINT}/leave`, {
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/leave`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(request)
@@ -102,7 +77,7 @@ interface GetInfoResponse {
 }
 
 async function getLobbyFetcher(session_id: string): Promise<GetInfoResponse> {
-  const res = await fetch(`${ENDPOINT}/info?session_id=${session_id}`);
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/info?session_id=${session_id}`);
   return res.json();
 }
 
@@ -110,7 +85,6 @@ export function useGetLobby(lobbyId: string|null): [GetInfoResponse|undefined, b
   const { data, error, isLoading } = useSWR(lobbyId, getLobbyFetcher, { refreshInterval: 1000 });
   return [data, isLoading, error];
 }
-
 
 // /ready
 
@@ -120,7 +94,7 @@ interface ReadyRequest {
 }
 
 async function readyFetcher(request: ReadyRequest): Promise<void> {
-  const res = await fetch(`${ENDPOINT}/ready`, {
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/ready`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(request)
