@@ -12,37 +12,49 @@ function Player({ name }: { name: string }) {
       <div className="w-14 h-14 rounded-full bg-blue-600 me-3 flex flex-col justify-center items-center">
         <div>YOU</div>
       </div>
-      <div className="text-lg font-bold">{name}</div>
+      <div className="text-lg font-bold">{name.slice(0, 8)}...</div>
     </div>
   );
 }
 
 function Lobby() {
   const { uid: userUid } = useUserUid();
-  const [findResponse, findLoading, findError] = useFindSession(userUid);
-  const [getResponse, getLoading, getError] = useGetLobby(findResponse?.session_id);
-  const [triggerLeave,, leaveLoading, leaveError] = useLeaveLobby();
+  const findSession = useFindSession(userUid);
+  const getLobby = useGetLobby(findSession.data?.session_id);
+  const leaveLobby = useLeaveLobby();
+  const setReady = useReady();
 
   const handleCopyClick = useCallback(() => {
-    if (!findResponse?.session_id) return;
-    navigator.clipboard.writeText(findResponse?.session_id);
-  }, [findResponse]);
+    if (findSession.data === undefined) return;
+    navigator.clipboard.writeText(findSession.data.session_id);
+  }, [findSession]);
 
   const handleLeaveClick = useCallback(() => {
-    if (!findResponse?.session_id || !userUid) return;
-    triggerLeave({ user_id: userUid, session_id: findResponse?.session_id });
-  }, [triggerLeave, findResponse, userUid]);
+    if (findSession.data === undefined || userUid === undefined) return;
+    leaveLobby.trigger({ user_id: userUid, session_id: findSession.data.session_id });
+  }, [leaveLobby, findSession, userUid]);
 
-  if (getError) {
-    console.log(getError);
-    return <div>Error</div>;
-  }
+  const handleReadyClick = useCallback(() => {
+    if (findSession.data === undefined || userUid === undefined) return;
+    setReady.trigger({ user_id: userUid, session_id: findSession.data.session_id });
+  }, [setReady, findSession, userUid]);
 
-  if (!getResponse) {
+  if (findSession.loading || getLobby.loading) {
     return <div>Loading...</div>;
   }
 
-  const lobby = getResponse;
+  if (getLobby.error !== null || findSession.error !== null) {
+    console.log(findSession);
+    console.log(getLobby);
+    console.log(getLobby.error || findSession.error);
+    return <div>Error</div>;
+  }
+
+  if (getLobby.data === undefined || findSession.data === undefined) {
+    return <div>Error fetching lobby</div>;
+  }
+
+  const lobby = getLobby.data;
 
   return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 lg:col-start-3 lg:col-span-4 xl:col-start-5 xl:col-span-4">

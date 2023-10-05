@@ -1,6 +1,6 @@
 import useSWR from "swr";
 import { API_URL_SESSION } from ".";
-import { useFetch } from "..";
+import { useFetch, SWRHook } from "..";
 
 export const API_URL_SESSION_LOBBY = `${API_URL_SESSION}/lobby`;
 
@@ -79,9 +79,9 @@ async function getLobbyFetcher(session_id: string): Promise<GetInfoResponse> {
   return res.json();
 }
 
-export function useGetLobby(lobbyId: string|undefined): [GetInfoResponse|undefined, boolean, any] {
+export function useGetLobby(lobbyId: string|undefined): SWRHook<GetInfoResponse> {
   const { data, error, isLoading } = useSWR(lobbyId, getLobbyFetcher, { refreshInterval: 1000 });
-  return [data, isLoading, error];
+  return { data, error: error === undefined ? null : error, loading: isLoading };
 }
 
 // /ready

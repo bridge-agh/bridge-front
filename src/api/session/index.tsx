@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import { API_URL, useFetch } from "..";
+import { API_URL, useFetch, SWRHook } from "..";
 
 export const API_URL_SESSION = `${API_URL}/session`;
 
@@ -34,7 +34,7 @@ async function findSessionFetcher(userId: string): Promise<FindSessionResponse> 
   return res.json();
 }
 
-export function useFindSession(userId: string|undefined): [FindSessionResponse|undefined, boolean, any] {
+export function useFindSession(userId: string|undefined): SWRHook<FindSessionResponse> {
   const { data, error, isLoading } = useSWR(userId, findSessionFetcher, { refreshInterval: 1000 });
-  return [data, isLoading, error];
+  return { data, error: error === undefined ? null : error, loading: isLoading };
 }

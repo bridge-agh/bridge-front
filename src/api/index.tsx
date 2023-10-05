@@ -1,11 +1,24 @@
 import { useState, useCallback } from "react";
 
-export const API_URL = "https://bridge-back-develop.bridge-agh.gleeze.com";
+export const API_URL = "https://bridge-back-master.bridge-agh.gleeze.com";
 
-export function useFetch<T, U>(fetcher: (request: T) => Promise<U>): [(request: T) => void, U | undefined, boolean, any] {
+export interface FetchHook<T, U> {
+  trigger: (request: T) => void;
+  data: U | undefined;
+  loading: boolean;
+  error: any | undefined | null;
+}
+
+export interface SWRHook<U> {
+  data: U | undefined;
+  loading: boolean;
+  error: any | undefined | null;
+}
+
+export function useFetch<T, U>(fetcher: (request: T) => Promise<U>): FetchHook<T, U> {
   const [data, setData] = useState<U | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<any>(undefined);
+  const [error, setError] = useState<any | undefined | null>(undefined);
 
   const trigger = useCallback((request: T) => {
     if (loading) return;
@@ -25,5 +38,5 @@ export function useFetch<T, U>(fetcher: (request: T) => Promise<U>): [(request: 
       });
   }, [fetcher, loading]);
 
-  return [trigger, data, loading, error];
+  return { trigger, data, loading, error };
 }

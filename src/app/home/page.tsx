@@ -9,43 +9,43 @@ import { LobbyIdContext } from "@/logic/state/lobby_id";
 
 function Home() {
   const router = useRouter();
-  const [createLobby, createResponse, createLoading, createError] = useCreateLobby();
-  const [joinLobby,, joinLoading, joinError] = useJoinLobby();
+  const createLobby = useCreateLobby();
+  const joinLobby = useJoinLobby();
   const { uid: userUid } = useUserUid();
   const [targetLobbyId, setTargetLobbyId] = useState<string>("");
   const [,setGlobalLobbyId] = useContext(LobbyIdContext);
 
   const onClickCreate = useCallback(() => {
-    if (!userUid || createLoading || joinLoading) {
+    if (userUid === undefined || createLobby.loading || joinLobby.loading) {
       return;
     }
-    createLobby({host_id: userUid});
-  }, [createLobby, userUid, createLoading, joinLoading]);
+    createLobby.trigger({host_id: userUid});
+  }, [createLobby, joinLobby, userUid]);
 
   const onClickJoin = useCallback(() => {
-    if (!userUid || !targetLobbyId || createLoading || joinLoading) {
+    if (userUid === undefined || targetLobbyId === "" || createLobby.loading || joinLobby.loading) {
       return;
     }
-    joinLobby({session_id: targetLobbyId, user_id: userUid});
-  }, [joinLobby, userUid, targetLobbyId, createLoading, joinLoading]);
+    joinLobby.trigger({session_id: targetLobbyId, user_id: userUid});
+  }, [joinLobby, createLobby, userUid, targetLobbyId]);
 
   useEffect(() => {
     router.prefetch("/lobby");
   }, [router]);
 
   useEffect(() => {
-    if (createResponse?.session_id) {
-      setGlobalLobbyId(createResponse.session_id);
+    if (createLobby.data !== undefined) {
+      setGlobalLobbyId(createLobby.data.session_id);
       router.push("/lobby");
     }
-  }, [router, createResponse, setGlobalLobbyId]);
+  }, [router, createLobby, setGlobalLobbyId]);
 
   useEffect(() => {
-    if (joinError === null) {
+    if (joinLobby.error === null) {
       setGlobalLobbyId(targetLobbyId);
       router.push("/lobby");
     }
-  }, [router, joinError, targetLobbyId, setGlobalLobbyId]);
+  }, [router, joinLobby, targetLobbyId, setGlobalLobbyId]);
 
   return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 lg:col-start-3 lg:col-span-4 xl:col-start-5 xl:col-span-4">
