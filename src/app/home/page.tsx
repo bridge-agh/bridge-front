@@ -1,51 +1,39 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback, useContext } from "react";
-import { useCreateLobby, useJoinLobby } from "@/api/lobby";
-import useUserUid from "@/logic/use_user_uid";
+import { useState, useEffect, useCallback } from "react";
+import { useCreateLobby, useJoinLobby } from "@/api/session/lobby";
+import useUser from "@/logic/use_user";
 import protectRoute from "@/logic/protect_route";
-import { LobbyIdContext } from "@/logic/state/lobby_id";
 
 function Home() {
   const router = useRouter();
-  const [createLobby, createdLobbyId, createLoading, createError] = useCreateLobby();
-  const [joinLobby, isJoinedLobby, joinLoading, joinError] = useJoinLobby();
-  const { uid: userUid } = useUserUid();
+  const createLobby = useCreateLobby();
+  const joinLobby = useJoinLobby();
+  const { user } = useUser();
   const [targetLobbyId, setTargetLobbyId] = useState<string>("");
-  const [,setGlobalLobbyId] = useContext(LobbyIdContext);
+
+  const goToLobby = useCallback(() => {
+    router.push("/lobby");
+  }, [router]);
 
   const onClickCreate = useCallback(() => {
-    if (!userUid || createLoading || joinLoading) {
+    if (!user || createLobby.loading || joinLobby.loading) {
       return;
     }
-    createLobby(userUid);
-  }, [createLobby, userUid, createLoading, joinLoading]);
+    createLobby.trigger({host_id: user.uid}).then(goToLobby);
+  }, [createLobby, joinLobby, goToLobby, user]);
 
   const onClickJoin = useCallback(() => {
-    if (!userUid || !targetLobbyId || createLoading || joinLoading) {
+    if (!user || !targetLobbyId || createLobby.loading || joinLobby.loading) {
       return;
     }
-    joinLobby(targetLobbyId, userUid);
-  }, [joinLobby, userUid, targetLobbyId, createLoading, joinLoading]);
+    joinLobby.trigger({session_id: targetLobbyId, user_id: user.uid}).then(goToLobby);
+  }, [joinLobby, createLobby, goToLobby, user, targetLobbyId]);
 
   useEffect(() => {
     router.prefetch("/lobby");
   }, [router]);
-
-  useEffect(() => {
-    if (createdLobbyId) {
-      setGlobalLobbyId(createdLobbyId);
-      router.push("/lobby");
-    }
-  }, [router, createdLobbyId, setGlobalLobbyId]);
-
-  useEffect(() => {
-    if (isJoinedLobby) {
-      setGlobalLobbyId(targetLobbyId);
-      router.push("/lobby");
-    }
-  }, [router, isJoinedLobby, targetLobbyId, setGlobalLobbyId]);
 
   return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 lg:col-start-3 lg:col-span-4 xl:col-start-5 xl:col-span-4">
