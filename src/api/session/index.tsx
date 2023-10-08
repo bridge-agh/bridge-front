@@ -1,11 +1,11 @@
 import useSWR from "swr";
-import { API_URL, useFetch, SWRHook } from "..";
+import { API_URL, useFetch, SWRState, SWRKey } from "..";
 
 export const API_URL_SESSION = `${API_URL}/session`;
 
 // /heartbeat
 
-interface HeartbeatRequest {
+export interface HeartbeatRequest {
   user_id: string
   session_id: string
 }
@@ -25,16 +25,20 @@ export function useHeartbeat() {
 
 // /find
 
-interface FindSessionResponse {
+export interface FindSessionRequest {
+  user_id: string
+}
+
+export interface FindSessionResponse {
   session_id: string
 }
 
-async function findSessionFetcher(userId: string): Promise<FindSessionResponse> {
-  const res = await fetch(`${API_URL_SESSION}/find?user_id=${userId}`);
+async function findSessionFetcher(request: FindSessionRequest): Promise<FindSessionResponse> {
+  const res = await fetch(`${API_URL_SESSION}/find?user_id=${request.user_id}`);
   return res.json();
 }
 
-export function useFindSession(userId: string|undefined): SWRHook<FindSessionResponse> {
-  const { data, error, isLoading } = useSWR(userId, findSessionFetcher, { refreshInterval: 1000 });
-  return { data, error: error === undefined ? null : error, loading: isLoading };
+export function useFindSession(request: SWRKey<FindSessionRequest>): SWRState<FindSessionResponse> {
+  const { data, isLoading } = useSWR(request, findSessionFetcher, { refreshInterval: 1000 });
+  return { data, loading: isLoading };
 }

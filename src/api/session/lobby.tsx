@@ -1,16 +1,16 @@
 import useSWR from "swr";
 import { API_URL_SESSION } from ".";
-import { useFetch, SWRHook } from "..";
+import { useFetch, SWRState, SWRKey } from "..";
 
 export const API_URL_SESSION_LOBBY = `${API_URL_SESSION}/lobby`;
 
 // /create
 
-interface CreateLobbyRequest {
+export interface CreateLobbyRequest {
   host_id: string
 }
 
-interface CreateLobbyResponse {
+export interface CreateLobbyResponse {
   session_id: string
 }
 
@@ -29,7 +29,7 @@ export function useCreateLobby() {
 
 // /join
 
-interface JoinLobbyRequest {
+export interface JoinLobbyRequest {
   user_id: string
   session_id: string
 }
@@ -48,7 +48,7 @@ export function useJoinLobby() {
 
 // /leave
 
-interface LeaveLobbyRequest {
+export interface LeaveLobbyRequest {
   user_id: string
   session_id: string
 }
@@ -67,21 +67,25 @@ export function useLeaveLobby() {
 
 // /info
 
-interface GetInfoResponse {
+export interface GetInfoRequest {
+  session_id: string
+}
+
+export interface GetInfoResponse {
   host_id: string
   users: string[]
   ready: boolean[]
   started: boolean
 }
 
-async function getLobbyFetcher(session_id: string): Promise<GetInfoResponse> {
-  const res = await fetch(`${API_URL_SESSION_LOBBY}/info?session_id=${session_id}`);
+async function getLobbyFetcher(request: GetInfoRequest): Promise<GetInfoResponse> {
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/info?session_id=${request.session_id}`);
   return res.json();
 }
 
-export function useGetLobby(lobbyId: string|undefined): SWRHook<GetInfoResponse> {
-  const { data, error, isLoading } = useSWR(lobbyId, getLobbyFetcher, { refreshInterval: 1000 });
-  return { data, error: error === undefined ? null : error, loading: isLoading };
+export function useGetLobby(request: SWRKey<GetInfoRequest>): SWRState<GetInfoResponse> {
+  const { data, isLoading } = useSWR(request, getLobbyFetcher, { refreshInterval: 1000 });
+  return { data, loading: isLoading };
 }
 
 // /ready

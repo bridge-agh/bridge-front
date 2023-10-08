@@ -5,7 +5,7 @@ import { useCallback, useEffect } from "react";
 import { useFindSession } from "@/api/session";
 import { useGetLobby, useLeaveLobby, useReady } from "@/api/session/lobby";
 import protectRoute from "@/logic/protect_route";
-import useUserUid from "@/logic/use_user_uid";
+import useUser from "@/logic/use_user";
 
 function Player({ name, ready }: { name: string, ready: boolean }) {
   return (
@@ -20,50 +20,42 @@ function Player({ name, ready }: { name: string, ready: boolean }) {
 
 function Lobby() {
   const router = useRouter();
-  const { uid: userUid } = useUserUid();
-  const findSession = useFindSession(userUid);
-  const getLobby = useGetLobby(findSession.data?.session_id);
+  const { user } = useUser();
+  const findSession = useFindSession(user ? { user_id: user.uid } : undefined);
+  const getLobby = useGetLobby(findSession.data ? { session_id: findSession.data.session_id } : undefined);
   const leaveLobby = useLeaveLobby();
   const setReady = useReady();
 
   const handleCopyClick = useCallback(() => {
-    if (findSession.data === undefined) return;
+    if (!findSession.data) return;
     navigator.clipboard.writeText(findSession.data.session_id);
   }, [findSession]);
 
   const handleLeaveClick = useCallback(() => {
-    if (findSession.data === undefined || userUid === undefined) return;
-    leaveLobby.trigger({ user_id: userUid, session_id: findSession.data.session_id });
-  }, [leaveLobby, findSession, userUid]);
+    if (!findSession.data || !user || leaveLobby.loading) return;
+    leaveLobby.trigger({ user_id: user.uid, session_id: findSession.data.session_id });
+  }, [leaveLobby, findSession, user]);
 
   const handleReadyClick = useCallback(() => {
-    if (findSession.data === undefined || userUid === undefined) return;
-    setReady.trigger({ user_id: userUid, session_id: findSession.data.session_id });
-  }, [setReady, findSession, userUid]);
+    if (!findSession.data || !user || setReady.loading) return;
+    setReady.trigger({ user_id: user.uid, session_id: findSession.data.session_id });
+  }, [setReady, findSession, user]);
 
   useEffect(() => {
-    if (getLobby.data !== undefined && getLobby.data.users.length === 4 && getLobby.data.ready.every((ready) => ready)) {
+    router.prefetch("/game");
+  }, [router]);
+
+  useEffect(() => {
+    if (getLobby.data && getLobby.data.users.length === 4 && getLobby.data.ready.every(x => x)) {
+      console.log(getLobby);
       router.push("/game");
     }
   }, [router, getLobby]);
 
-  if (userUid === undefined || findSession.loading || getLobby.loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (getLobby.error !== null || findSession.error !== null) {
-    console.log(findSession);
-    console.log(getLobby);
-    console.log(getLobby.error || findSession.error);
-    return <div>Error</div>;
-  }
-
-  if (getLobby.data === undefined || findSession.data === undefined) {
-    return <div>Error fetching lobby</div>;
-  }
+  if (!getLobby.data || !user) return null;
 
   const lobby = getLobby.data;
-  const myIndex = lobby.users.indexOf(userUid);
+  const myIndex = lobby.users.indexOf(user.uid);
 
   return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 lg:col-start-3 lg:col-span-4 xl:col-start-5 xl:col-span-4">
