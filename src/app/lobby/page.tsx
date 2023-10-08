@@ -1,51 +1,37 @@
 "use client";
 
 import Link from "next/link";
-<<<<<<< HEAD
+
 import { useGetLobby, useFindLobby } from "@/api/lobby";
 import protectRoute from "@/logic/protect_route";
 import useUserUid from "@/logic/use_user_uid";
-=======
->>>>>>> 70e54ea (copy link merged from master)
-import { FaExchangeAlt } from "react-icons/fa";
+
 import { TiDelete } from "react-icons/ti";
 import { BsPersonCircle, BsQuestionCircle } from "react-icons/bs";
 import { useCallback, useState } from "react";
 
 
 function Player({ name, role, lobby, userUid }: { name: string, role: string, lobby: any, userUid: string | null }) {
-  const [player, setPlayer] = useState(name);
-  const onClickDelete = useCallback(() => {
-    for (let i = 0; i < lobby.users.length; i++) {
-      if (lobby.users[i] === player) {
-        lobby.users[i] = null;
-        setPlayer("Waiting...");
-      }
-    }
-<<<<<<< HEAD:src/app/lobby/page.tsx
-  }, [lobby.users, player]);
-=======
-  }, [player, lobby.users]);
-<<<<<<< HEAD
->>>>>>> cd9d72f (useCallback fix):src/app/lobby/[lobbyId]/page.tsx
-=======
+  const onClickDelete = useCallback(() => {}, []);
+
+
+  console.log(name, role, lobby, userUid);
   const onClickChange = () => {};
->>>>>>> 70e54ea (copy link merged from master)
   return (
     <div className="flex flex-col justify-start items-start items-stretch min-w-[100%] w-100 hover:w-fit hover:z-10">
-      <div className="ml-2 font-bold text-accent-content">{role}</div>
-      <div className="flex flex-row pe-2 rounded-3xl justify-start items-center bg-base-300 w-[100%]">
-        <div className="w-11 h-11 xs:w-14 xs:h-14 rounded-full bg-blue-600 me-3 flex flex-col justify-center items-center shrink-0">
-          {player != "Waiting..." &&
+      <div className="font-bold text-accent-content w-11 xs:w-14 text-center text-sm xs:text-base">{role}</div>
+      <div className="flex flex-row pe-2 rounded-3xl justify-start items-center bg-base-300 w-[100%] max-w-full">
+    
+        <div className="w-11 h-11 xs:w-14 xs:h-14 rounded-full bg-blue-600 flex flex-col justify-center items-center shrink-0">
+          {name != "Waiting..." &&
           <BsPersonCircle className="w-11 h-11 xs:w-14 xs:h-14" /> || 
           <BsQuestionCircle className="w-11 h-11 xs:w-14 xs:h-14 "/>}
         </div>
-        <div className="font-semibold xs:text-lg xs:font-bold truncate ">{player}</div>
-        {name == "Waiting..." && (
-          <FaExchangeAlt className="w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] ml-auto shrink-0 justify-self-end cursor-pointer" onClick={onClickChange}/>
-        )}
+        
+        
+        <div className="ml-2 font-semibold xs:text-lg xs:font-bold truncate hover:break-all hover:whitespace-normal">{name}</div>
         {name != lobby.host_id && userUid == lobby.host_id && (
-          <TiDelete className="w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] ml-2 shrink-0 text-error cursor-pointer" onClick={onClickDelete}/>
+          <TiDelete className="w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] ml-2 shrink-0 ml-auto justify-self-end text-error cursor-pointer" onClick={onClickDelete}/>
         )}
       </div>
     </div>
@@ -86,21 +72,14 @@ function Lobby() {
             <Player name={lobby.users[3] || "Waiting..."} role="East" lobby={lobby} userUid={userUid}/>
           </div>
         </div>
-        <div className="flex flex-row justify-between items-center">
-          <Link href="/home" className="btn btn-sm btn-link text-error text-xs xs:btn-md">
+        <div className="flex flex-row justify-evenly sm:justify-between items-center">
+          <Link href="/home" className="btn btn-xs btn-link text-error text-xs xs:btn-sm sm:btn-md">
             Leave
           </Link>
-<<<<<<< HEAD
-          <button className="btn btn-sm btn-primary xs:btn-md" onClick={handleCopyClick}>
+          <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" onClick={handleCopyClick}>
             Copy ID
           </button>
-          <Link href="/game" className="btn btn-sm btn-primary xs:btn-md">
-=======
-          <button className="btn btn-sm btn-primary text-xs xs:btn-md" onClick={handleCopyClick}>
-            Copy ID
-          </button>
-          <Link href="/game" className="btn btn-sm btn-primary text-xs xs:btn-md">
->>>>>>> 70e54ea (copy link merged from master)
+          <Link href="/game" className="btn btn-xs btn-primary xs:btn-sm sm:btn-md">
             Start
           </Link>
         </div>
