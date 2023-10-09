@@ -16,6 +16,7 @@ async function heartbeatFetcher(request: HeartbeatRequest): Promise<void> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request)
   });
+  if (!res.ok) return Promise.reject(res.statusText);
   return res.json();
 }
 
@@ -35,6 +36,7 @@ export interface FindSessionResponse {
 
 async function findSessionFetcher(request: FindSessionRequest): Promise<FindSessionResponse> {
   const res = await fetch(`${API_URL_SESSION}/find?user_id=${request.user_id}`);
+  if (!res.ok) return Promise.reject(res.statusText);
   return res.json();
 }
 

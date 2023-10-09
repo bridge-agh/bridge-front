@@ -20,6 +20,7 @@ async function createLobbyFetcher(request: CreateLobbyRequest): Promise<CreateLo
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(request)
   });
+  if (!res.ok) return Promise.reject(res.statusText);
   return res.json();
 }
 
@@ -35,11 +36,13 @@ export interface JoinLobbyRequest {
 }
 
 async function joinLobbyFetcher(request: JoinLobbyRequest): Promise<void> {
-  await fetch(`${API_URL_SESSION_LOBBY}/join`, {
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/join`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(request)
   });
+  if (!res.ok) return Promise.reject(res.statusText);
+  return Promise.resolve();
 }
 
 export function useJoinLobby() {
@@ -54,11 +57,13 @@ export interface LeaveLobbyRequest {
 }
 
 async function leaveLobbyFetcher(request: LeaveLobbyRequest): Promise<void> {
-  await fetch(`${API_URL_SESSION_LOBBY}/leave`, {
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/leave`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(request)
   });
+  if (!res.ok) return Promise.reject(res.statusText);
+  return Promise.resolve();
 }
 
 export function useLeaveLobby() {
@@ -80,6 +85,7 @@ export interface GetInfoResponse {
 
 async function getLobbyFetcher(request: GetInfoRequest): Promise<GetInfoResponse> {
   const res = await fetch(`${API_URL_SESSION_LOBBY}/info?session_id=${request.session_id}`);
+  if (!res.ok) return Promise.reject(res.statusText);
   return res.json();
 }
 
@@ -101,6 +107,7 @@ async function readyFetcher(request: ReadyRequest): Promise<void> {
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(request)
   });
+  if (!res.ok) return Promise.reject(res.statusText);
   return res.json();
 }
 

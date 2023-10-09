@@ -26,6 +26,10 @@ function Lobby() {
   const leaveLobby = useLeaveLobby();
   const setReady = useReady();
 
+  const goHome = useCallback(() => {
+    router.push("/home");
+  }, [router]);
+
   const handleCopyClick = useCallback(() => {
     if (!findSession.data) return;
     navigator.clipboard.writeText(findSession.data.session_id);
@@ -33,8 +37,8 @@ function Lobby() {
 
   const handleLeaveClick = useCallback(() => {
     if (!findSession.data || !user || leaveLobby.loading) return;
-    leaveLobby.trigger({ user_id: user.uid, session_id: findSession.data.session_id });
-  }, [leaveLobby, findSession, user]);
+    leaveLobby.trigger({ user_id: user.uid, session_id: findSession.data.session_id }).then(goHome);
+  }, [leaveLobby, findSession, goHome, user]);
 
   const handleReadyClick = useCallback(() => {
     if (!findSession.data || !user || setReady.loading) return;
