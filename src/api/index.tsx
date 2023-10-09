@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 
-export const API_URL = "https://bridge-back-master.bridge-agh.gleeze.com";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export interface FetchState<T, U> {
   trigger: (request: T) => Promise<U>;
