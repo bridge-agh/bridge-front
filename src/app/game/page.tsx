@@ -1,65 +1,66 @@
 "use client";
 
-import BiddingPage from "@/app/game/bidding/biddingPage";
 import {
-  BaseObservation,
-  GameObservation,
+  CardRank,
+  CardSuit,
   GameStage,
-  PlayerDirection,
+  GameState,
+  PlayerDirection
 } from "@/app/game/gameModels";
+import GameController from "@/game_engine/gameController";
 import protectRoute from "@/logic/protect_route";
 import { useState } from "react";
-import PlayingPage from "./playing/playingPage";
+import PlayingPage from "./playingPage";
 
-function gameStageToName(gameStage: GameStage) {
-  switch (gameStage) {
-    case GameStage.BIDDING:
-      return "Bidding";
-    case GameStage.PLAYING:
-      return "Playing";
-    case GameStage.SCORING:
-      return "Scoring";
-  }
-}
-
-function gameStageToScreen(gameStage: GameStage) {
-  switch (gameStage) {
-    case GameStage.BIDDING:
-      return <BiddingPage />;
-    case GameStage.PLAYING:
-      return <PlayingPage />;
-  }
-}
 
 function Game() {
-  // redux here, currently dummy data
-  const [baseObservation, setBaseObservation] = useState<BaseObservation>({
-    game_stage: GameStage.BIDDING,
-    current_player: PlayerDirection.NORTH,
-  });
-
-  const [gameObservation, setGameObservation] = useState<GameObservation>({
-    game: {
-      round_player: PlayerDirection.NORTH,
-      round_cards: [],
-      dummy_cards: [],
-      tricks: {
-        NS: [],
-        EW: [],
-      },
+  // these are the observations that are fetched from the server
+  const [serverGameState, setServerGameState] = useState<GameState>({
+    base: {
+      game_stage: GameStage.PLAYING,
+      current_player: PlayerDirection.NORTH,
     },
-    hand: [],
+    bidding: {
+      first_dealer: PlayerDirection.NORTH,
+      bid_history: [],
+      bid: null,
+      declarer: null,
+      multiplier: 1,
+    },
+    game: {
+      game: {
+        round_player: PlayerDirection.NORTH,
+        round_cards: [],
+        dummy_cards: [],
+        tricks: {
+          NS: [],
+          EW: [],
+        },
+      },
+      hand: [
+        { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+        { suit: CardSuit.CLUBS, rank: CardRank.TWO },
+        { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+        { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+        { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+        { suit: CardSuit.CLUBS, rank: CardRank.SIX },
+        { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+        { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+        { suit: CardSuit.CLUBS, rank: CardRank.NINE },
+        { suit: CardSuit.CLUBS, rank: CardRank.TEN },
+        { suit: CardSuit.CLUBS, rank: CardRank.JACK },
+        { suit: CardSuit.CLUBS, rank: CardRank.QUEEN },
+        { suit: CardSuit.CLUBS, rank: CardRank.KING },
+      ],
+    },
   });
-
-  // debug
-  const [selectedStage, setSelectedStage] = useState<GameStage>(
-    GameStage.PLAYING
-  );
 
   return (
-    <div className="col-start-1 col-span-full flex flex-col">
-      {gameStageToScreen(selectedStage)}
-    </div>
+    <GameController serverGameState={serverGameState}>
+      <div className="col-start-1 col-span-full flex flex-col">
+        <PlayingPage />
+      </div>
+    </GameController>
   );
 }
 

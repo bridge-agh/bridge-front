@@ -1,3 +1,4 @@
+
 export enum GameStage {
   BIDDING,
   PLAYING,
@@ -97,4 +98,10 @@ export interface GameObservation {
     };
   };
   hand: Card[];
+}
+
+export interface GameState {
+  base: BaseObservation;
+  bidding: BiddingObservation;
+  game: GameObservation;
 }

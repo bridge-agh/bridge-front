@@ -1,14 +1,25 @@
-import { a, useSpring } from "@react-spring/three";
+import { SpringValue, a } from "@react-spring/three";
 import { useLoader } from "@react-three/fiber";
 import { useRef } from "react";
-import { DoubleSide, MeshBasicMaterial, SRGBColorSpace, TextureLoader, Vector3 } from "three";
-import RoundGeometryBox from "./roundGeometryBox";
+import { DoubleSide, MeshBasicMaterial, SRGBColorSpace, TextureLoader } from "three";
+import RoundGeometryBox from "../geometry/roundGeometryBox";
 
-export function GameCard({ cardFront, cardBack, position, rotation, scale, }: { cardFront: string, cardBack: string, position: Vector3, rotation: Vector3, scale: number }) {
+export function GameCard({ cardFront, position, rotation, scale, onPointerEnter, onPointerLeave, onClick }:
+  {
+    cardFront: string,
+    position: SpringValue<number[]>,
+    rotation: SpringValue<number[]>,
+    scale: SpringValue<number>,
+    onPointerEnter: () => void;
+    onPointerLeave: () => void;
+    onClick: () => void;
+  }) {
+  console.log("gamecard");
+
   const cardMap = useLoader(TextureLoader, "png/cards/dark/" + cardFront + ".png");
   cardMap.colorSpace = SRGBColorSpace;
 
-  const backMap = useLoader(TextureLoader, "png/cards/dark/" + cardBack + ".png");
+  const backMap = useLoader(TextureLoader, "png/cards/dark/BACK.png");
   backMap.colorSpace = SRGBColorSpace;
 
   const w = 0.57; // width
@@ -31,37 +42,28 @@ export function GameCard({ cardFront, cardBack, position, rotation, scale, }: { 
 
   const ref = useRef(null);
 
-
-  const [{ springX, springY, springZ, springXRotation, springYRotation, springZRotation, springScale }] = useSpring({
-    springX: position.x,
-    springY: position.y,
-    springZ: position.z,
-    springXRotation: rotation.x,
-    springYRotation: rotation.y,
-    springZRotation: rotation.z,
-    springScale: scale,
-    config: { mass: 5, tension: 400, friction: 50, precision: 0.0001, duration: 120 },
-  }, [position, rotation, scale]);
-
-
-  const calcX = springX.to([-10, 10], [-10, 10]);
-  const calcY = springY.to([-10, 10], [-10, 10]);
-  const calcZ = springZ.to([-10, 10], [-10, 10]);
-  const calcXRotation = springXRotation.to([0, 2 * Math.PI], [0, 2 * Math.PI]);
-  const calcYRotation = springYRotation.to([0, 2 * Math.PI], [0, 2 * Math.PI]);
-  const calcZRotation = springZRotation.to([0, 2 * Math.PI], [0, 2 * Math.PI]);
-
-
   return (
     <a.mesh ref={ref}
-      position-x={calcX}
-      position-y={calcY}
-      position-z={calcZ}
-      rotation-x={calcXRotation}
-      rotation-y={calcYRotation}
-      rotation-z={calcZRotation}
-      scale={springScale}
-      geometry={geometry} material={material}
+      geometry={geometry}
+      material={material}
+
+      position={position.to((x, y, z) => [x, y, z])}
+      // @ts-ignore
+      rotation={rotation.to((x, y, z) => [x, y, z])}
+      scale={scale}
+
+      onPointerEnter={(e) => {
+        e.stopPropagation();
+        onPointerEnter();
+      }}
+      onPointerLeave={(e) => {
+        e.stopPropagation();
+        onPointerLeave();
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
     />
   );
 }

@@ -77,16 +77,16 @@ function BiddingBids({
                         bid={{ tricks: Number(trick), suit: Number(suit) }}
                         disabled={
                           biddingObservation.bid &&
-                          (tricksN < biddingObservation.bid!.tricks ||
-                            (tricksN == biddingObservation.bid!.tricks &&
-                              suitN < biddingObservation.bid!.suit))
+                            (tricksN < biddingObservation.bid!.tricks ||
+                              (tricksN == biddingObservation.bid!.tricks &&
+                                suitN < biddingObservation.bid!.suit))
                             ? true
                             : false
                         }
                         selected={
                           biddingObservation.bid &&
-                          tricksN == biddingObservation.bid!.tricks &&
-                          suitN == biddingObservation.bid!.suit
+                            tricksN == biddingObservation.bid!.tricks &&
+                            suitN == biddingObservation.bid!.suit
                             ? true
                             : false
                         }

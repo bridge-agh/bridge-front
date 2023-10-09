@@ -1,9 +1,9 @@
-import { BaseObservation, CardRank, CardSuit, GameObservation, GameStage, PlayerDirection } from "@/app/game/gameModels";
 import { OrbitControls, PerspectiveCamera, Stats } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { RefObject, useCallback, useEffect, useRef, useState } from "react";
+import { RefObject, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { MathUtils } from "three";
-import GameDeck from "./components/GameDeck";
+import { GameCard } from "./components/gameCard";
+import { GameContext } from "./gameController";
 
 function calcFovAndAspect(currentHeight: number, currentWidth: number, currentAspect: number) {
   const fov = 50;
@@ -23,13 +23,14 @@ function calcFovAndAspect(currentHeight: number, currentWidth: number, currentAs
   }
 }
 
+const fov = 50;
+const planeAspectRatio = 12 / 9;
+
 export default function GameScene({ width, height, parentRef }: { width: number, height: number, parentRef: RefObject<HTMLDivElement> }) {
-  // base three stuff
+  console.log("gamescene");
+  // canvas resize and scaling
   const canvasRef = useRef<HTMLCanvasElement>(null!);
   const cameraRef = useRef<any>(null!); // any to supress warning
-
-  const fov = 50;
-  const planeAspectRatio = 12 / 9;
 
   const [cameraFOV, setCameraFOV] = useState(calcFovAndAspect(0, 0, planeAspectRatio)[0]);
   const [cameraPlaneAspectRatio, setCameraPlaneAspectRatio] =
@@ -61,53 +62,28 @@ export default function GameScene({ width, height, parentRef }: { width: number,
   }, [onWindowResize, parentRef]);
 
 
-  // redux here, currently dummy data
-  const [baseObservation, setBaseObservation] = useState<BaseObservation>({
-    game_stage: GameStage.BIDDING,
-    current_player: PlayerDirection.NORTH,
-  });
-
-  const [gameObservation, setGameObservation] = useState<GameObservation>({
-    game: {
-      round_player: PlayerDirection.NORTH,
-      round_cards: [],
-      dummy_cards: [],
-      tricks: {
-        NS: [],
-        EW: [],
-      },
-    },
-    // 13 random cards
-    hand: [
-      { suit: CardSuit.CLUBS, rank: CardRank.ACE },
-      { suit: CardSuit.CLUBS, rank: CardRank.TWO },
-      { suit: CardSuit.CLUBS, rank: CardRank.THREE },
-      { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-      { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
-      { suit: CardSuit.CLUBS, rank: CardRank.SIX },
-      { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
-      { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-      { suit: CardSuit.CLUBS, rank: CardRank.NINE },
-      { suit: CardSuit.CLUBS, rank: CardRank.TEN },
-      { suit: CardSuit.CLUBS, rank: CardRank.JACK },
-      { suit: CardSuit.CLUBS, rank: CardRank.QUEEN },
-      { suit: CardSuit.CLUBS, rank: CardRank.KING },
-    ],
-  });
-
-  // debug
-  const [selectedStage, setSelectedStage] = useState<GameStage>(
-    GameStage.PLAYING
-  );
+  const gameContext = useContext(GameContext);
+  console.log("gameContext: ", gameContext);
 
   return (
     <Canvas ref={canvasRef}>
       <ambientLight intensity={1.5} />
       <directionalLight position={[0, 0, 4]} color={0xffffff} intensity={1.5} />
-      <GameDeck direction={PlayerDirection.NORTH} count={13} />
-      <GameDeck direction={PlayerDirection.SOUTH} count={13} />
-      <GameDeck direction={PlayerDirection.EAST} count={13} />
-      <GameDeck direction={PlayerDirection.WEST} count={13} />
+      {gameContext && gameContext.cards.map((_, index) => {
+        console.log("cards render");
+        return (
+          <GameCard
+            key={index}
+            cardFront="7S"
+            position={gameContext.cards[index].props.position}
+            rotation={gameContext.cards[index].props.rotation}
+            scale={gameContext.cards[index].props.scale}
+            onPointerEnter={() => gameContext.onPointerEnter(gameContext.cards[index])}
+            onPointerLeave={() => gameContext.onPointerLeave(gameContext.cards[index])}
+            onClick={() => gameContext.onClick(gameContext.cards[index])}
+          />
+        );
+      })}
       <OrbitControls />
       <gridHelper />
       <axesHelper />
@@ -122,7 +98,3 @@ export default function GameScene({ width, height, parentRef }: { width: number,
     </Canvas>
   );
 }
-function Card() {
-  throw new Error("Function not implemented.");
-}
-
