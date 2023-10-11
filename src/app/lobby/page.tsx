@@ -12,26 +12,21 @@ import { useCallback, useState } from "react";
 
 
 function Player({ name, role, lobby, userUid }: { name: string, role: string, lobby: any, userUid: string | null }) {
-  const onClickDelete = useCallback(() => {}, []);
 
-
-  console.log(name, role, lobby, userUid);
-  const onClickChange = () => {};
   return (
-    <div className="flex flex-col justify-start items-start items-stretch min-w-[100%] w-100 hover:w-fit hover:z-10">
+    <div className="flex flex-col justify-start items-start items-stretch min-w-[100%]">
       <div className="font-bold text-accent-content w-11 xs:w-14 text-center text-sm xs:text-base">{role}</div>
-      <div className="flex flex-row pe-2 rounded-3xl justify-start items-center bg-base-300 w-[100%] max-w-full">
+      <div className="flex flex-row pe-2 rounded-3xl justify-start items-center bg-base-300 w-[100%]">
     
         <div className="w-11 h-11 xs:w-14 xs:h-14 rounded-full bg-blue-600 flex flex-col justify-center items-center shrink-0">
           {name != "Waiting..." &&
           <BsPersonCircle className="w-11 h-11 xs:w-14 xs:h-14" /> || 
           <BsQuestionCircle className="w-11 h-11 xs:w-14 xs:h-14 "/>}
         </div>
-        
-        
+   
         <div className="ml-2 font-semibold xs:text-lg xs:font-bold truncate hover:break-all hover:whitespace-normal">{name}</div>
         {name != lobby.host_id && userUid == lobby.host_id && (
-          <TiDelete className="w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] ml-2 shrink-0 ml-auto justify-self-end text-error cursor-pointer" onClick={onClickDelete}/>
+          <TiDelete className="w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] ml-2 shrink-0 ml-auto justify-self-end text-error cursor-pointer"/>
         )}
       </div>
     </div>
@@ -80,7 +75,7 @@ function Lobby() {
             Copy ID
           </button>
           <Link href="/game" className="btn btn-xs btn-primary xs:btn-sm sm:btn-md">
-            Start
+            Ready
           </Link>
         </div>
       </div>
