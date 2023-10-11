@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-
 import { useGetLobby, useFindLobby } from "@/api/lobby";
 import protectRoute from "@/logic/protect_route";
 import useUserUid from "@/logic/use_user_uid";
