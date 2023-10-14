@@ -39,12 +39,27 @@ const reduce = (state: CardState[], action: { index: number, state: CardState })
 };
 
 export default function GameController({ serverGameState, children }: { serverGameState: GameState, children: React.ReactNode }) {
-  const [isAnimating, setIsAnimating] = useState(false);
+  // GAME LOGIC
 
+  const [localGameState, setLocalGameState] = useState(serverGameState); // state that will be diff with server state
+
+  useEffect(() => {
+    if (localGameState !== serverGameState) {
+      setLocalGameState(serverGameState);
+    }
+  }, [localGameState, serverGameState]);
+
+
+  // ANIMATIONS
+
+  const [isAnimating, setIsAnimating] = useState(false); // true if animation should block interactions
+
+  // state of each card
   const [cardStates, dispatchCardState] = useReducer(reduce, Array(52).fill(null).map(() => ({
     disabled: false
   })));
 
+  // card interactions callbacks
   const onPointerEnter = useCallback((springCard: SpringCard) => {
     if (isAnimating || cardStates[springCard.index].disabled) return;
     springCard.api.start({
@@ -76,7 +91,7 @@ export default function GameController({ serverGameState, children }: { serverGa
     }, 1000);
   }, [cardStates, isAnimating]);
 
-
+  // card rendering
   const cards = Array(52).fill(null).map((_, index) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [props, api] = useSpring(() => ({
@@ -92,15 +107,6 @@ export default function GameController({ serverGameState, children }: { serverGa
       props
     };
   });
-
-
-  const [localGameState, setLocalGameState] = useState(serverGameState);
-
-  useEffect(() => {
-    if (localGameState !== serverGameState) {
-      setLocalGameState(serverGameState);
-    }
-  }, [localGameState, serverGameState]);
 
   return (
     <GameContext.Provider value={{
