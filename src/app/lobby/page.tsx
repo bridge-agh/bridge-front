@@ -6,14 +6,29 @@ import { useFindSession } from "@/api/session";
 import { useGetLobby, useLeaveLobby, useReady } from "@/api/session/lobby";
 import protectRoute from "@/logic/protect_route";
 import useUser from "@/logic/use_user";
+import { User } from "firebase/auth";
+import { TiDelete } from "react-icons/ti";
+import { BsPersonCircle, BsQuestionCircle } from "react-icons/bs";
 
-function Player({ name, ready }: { name: string, ready: boolean }) {
+
+function Player({ name, ready, role, lobby, user}: { name: string, ready: boolean, role: string, lobby: any, user: User}) {
+
   return (
-    <div className="flex flex-row pe-2 rounded-3xl justify-start items-center bg-base-100">
-      <div className={`w-14 h-14 rounded-full ${ready ? "bg-green-600" : "bg-blue-600"} me-3 flex flex-col justify-center items-center`}>
-        <div>YOU</div>
+    <div className="flex flex-col justify-start items-start items-stretch min-w-[100%]">
+      <div className="font-bold text-accent-content w-11 xs:w-14 text-center text-sm xs:text-base">{role}</div>
+      <div className="flex flex-row pe-2 rounded-3xl justify-start items-center bg-base-300 w-[100%]">
+    
+        <div className={`w-11 h-11 xs:w-14 xs:h-14 rounded-full ${ready ? "bg-green-600" : "bg-blue-600"} flex flex-col justify-center items-center shrink-0`}>
+          {name != "Waiting..." &&
+          <BsPersonCircle className="w-11 h-11 xs:w-14 xs:h-14" /> || 
+          <BsQuestionCircle className="w-11 h-11 xs:w-14 xs:h-14 "/>}
+        </div>
+   
+        <div className="ml-2 font-semibold xs:text-lg xs:font-bold truncate hover:break-all hover:whitespace-normal">{name}</div>
+        {name != user.uid && user.uid == lobby.host_id && (
+          <TiDelete className="w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] ml-2 shrink-0 ml-auto justify-self-end text-error cursor-pointer"/>
+        )}
       </div>
-      <div className="text-lg font-bold">{name.slice(0, 8)}...</div>
     </div>
   );
 }
@@ -60,29 +75,29 @@ function Lobby() {
 
   const lobby = getLobby.data;
   const myIndex = lobby.users.indexOf(user.uid);
-
+  
   return (
-    <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 lg:col-start-3 lg:col-span-4 xl:col-start-5 xl:col-span-4">
+    <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 md:col-start-1 md:col-span-6 lg:col-start-2 lg:col-span-6 xl:col-start-4 xl:col-span-6">
       <div className="rounded-xl bg-base-200 p-5 flex flex-col justify-start items-stretch">
         <div className="text-2xl font-bold mb-3 self-center">Lobby</div>
-        <div className="flex flex-row justify-between items-center mb-3">
-          <div className="flex flex-col justify-start items-stretch me-16 gap-4">
-            <Player name={lobby.users[0] || "Waiting..."} ready={lobby.ready[0]} />
-            <Player name={lobby.users[1] || "Waiting..."} ready={lobby.ready[1]} />
+        <div className="flex flex-col gap-4 md:flex-row justify-between items-center mb-3">
+          <div className="flex w-[90%] sm:w-[70%] md:w-[43%] flex-col justify-start items-stretch gap-4">
+            <Player name={lobby.users[0] || "Waiting..."} role="North" lobby={lobby}  ready={lobby.ready[0]} user={user} />
+            <Player name={lobby.users[1] || "Waiting..."} role="South" lobby={lobby}  ready={lobby.ready[1]} user={user} />
           </div>
-          <div className="flex flex-col justify-start items-stretch gap-4">
-            <Player name={lobby.users[2] || "Waiting..."} ready={lobby.ready[2]} />
-            <Player name={lobby.users[3] || "Waiting..."} ready={lobby.ready[3]} />
+          <div className="flex w-[90%] sm:w-[70%] md:w-[43%] flex-col justify-start items-stretch gap-4">
+            <Player name={lobby.users[2] || "Waiting..."} role="West" lobby={lobby} ready={lobby.ready[2]} user={user} />
+            <Player name={lobby.users[3] || "Waiting..."} role="East" lobby={lobby} ready={lobby.ready[3]} user={user} />
           </div>
         </div>
-        <div className="flex flex-row justify-between items-center">
-          <button className="btn btn-link text-error" onClick={handleLeaveClick}>
+        <div className="flex flex-row justify-evenly sm:justify-between items-center">
+          <button className="btn btn-xs btn-link text-error text-xs xs:btn-sm sm:btn-md" onClick={handleLeaveClick}>
             Leave
           </button>
-          <button className="btn btn-primary" onClick={handleCopyClick}>
+          <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" onClick={handleCopyClick}>
             Copy ID
           </button>
-          <button className="btn btn-primary" disabled={lobby.ready[myIndex]} onClick={handleReadyClick}>
+          <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" disabled={lobby.ready[myIndex]} onClick={handleReadyClick}>
             Ready
           </button>
         </div>
