@@ -1,3 +1,5 @@
+"use client";
+
 import { OrbitControls, PerspectiveCamera, Stats } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { RefObject, useCallback, useContext, useEffect, useRef, useState } from "react";
@@ -33,9 +35,6 @@ export default function GameScene({ width, height, parentRef }: { width: number,
     useState(calcFovAndAspect(0, 0, planeAspectRatio)[1]);
 
   const onWindowResize = useCallback(() => {
-    console.log("canvasHeight: ", canvasRef.current.clientHeight);
-    console.log("canvasWidth: ", canvasRef.current.clientWidth);
-
     var res;
     if (canvasRef.current && cameraRef.current) {
       res = calcFovAndAspect(height, width, cameraRef.current.aspect);
@@ -45,10 +44,7 @@ export default function GameScene({ width, height, parentRef }: { width: number,
 
     setCameraFOV(res[0]);
     setCameraPlaneAspectRatio(res[1]);
-
-    console.log("fov: ", cameraFOV);
-    console.log("aspect ", cameraPlaneAspectRatio);
-  }, [canvasRef, cameraRef, cameraFOV, cameraPlaneAspectRatio, width, height]);
+  }, [canvasRef, cameraRef, cameraPlaneAspectRatio, width, height]);
 
   useEffect(() => {
     if (parentRef.current)
@@ -64,10 +60,10 @@ export default function GameScene({ width, height, parentRef }: { width: number,
     <Canvas ref={canvasRef}>
       <ambientLight intensity={1.5} />
       <directionalLight position={[0, 0, 4]} color={0xffffff} intensity={1.5} />
-      {gameContext && gameContext.cards.map((_, index) => (
+      {gameContext && gameContext.cards[51] != null && gameContext.cards.map((_, index) => (
         <GameCard
           key={index}
-          cardFront="7S"
+          cardFront={gameContext.cards[index].cardFront}
           position={gameContext.cards[index].props.position}
           rotation={gameContext.cards[index].props.rotation}
           scale={gameContext.cards[index].props.scale}
@@ -83,7 +79,7 @@ export default function GameScene({ width, height, parentRef }: { width: number,
         makeDefault
         fov={cameraFOV}
         aspect={cameraPlaneAspectRatio}
-        position={[-3, 1.5, 5]}
+        position={[0, 0, 4]}
         ref={cameraRef}
       />
     </Canvas>

@@ -13,26 +13,26 @@ export enum PlayerDirection {
 }
 
 export enum CardSuit {
-  CLUBS = "clubs",
-  DIAMONDS = "diamonds",
-  HEARTS = "hearts",
-  SPADES = "spades",
+  CLUBS = 1,
+  DIAMONDS,
+  HEARTS,
+  SPADES,
 }
 
 export enum CardRank {
-  TWO = "2",
-  THREE = "3",
-  FOUR = "4",
-  FIVE = "5",
-  SIX = "6",
-  SEVEN = "7",
-  EIGHT = "8",
-  NINE = "9",
-  TEN = "10",
-  JACK = "jack",
-  QUEEN = "queen",
-  KING = "king",
-  ACE = "ace",
+  TWO = 2,
+  THREE,
+  FOUR,
+  FIVE,
+  SIX,
+  SEVEN,
+  EIGHT,
+  NINE,
+  TEN,
+  JACK,
+  QUEEN,
+  KING,
+  ACE,
 }
 
 export enum BidSuit {

@@ -4,6 +4,14 @@ import { useMemo } from "react";
 import { DoubleSide, MeshBasicMaterial, SRGBColorSpace, TextureLoader } from "three";
 import RoundGeometryBox from "../geometry/roundGeometryBox";
 
+export const CARD_WIDTH = 0.57; // width
+export const CARD_HEIGHT = 0.89; // height
+export const CARD_THICK = 0.01; // thick
+export const CARD_RADIUS = 0.052; // radius corner
+export const CARD_SMOOTHNESS = 25; // smoothness
+
+const texutreLoader = new TextureLoader();
+
 export function GameCard({ cardFront, position, rotation, scale, onPointerEnter, onPointerLeave, onClick }:
   {
     cardFront: string,
@@ -15,24 +23,28 @@ export function GameCard({ cardFront, position, rotation, scale, onPointerEnter,
     onClick: () => void;
   }) {
 
-  const cardMap = useLoader(TextureLoader, "png/cards/dark/" + cardFront + ".png");
-  cardMap.colorSpace = SRGBColorSpace;
+  const cardMap = useMemo(() => {
+    const map = texutreLoader.load("png/cards/dark/" + cardFront + ".png");
+    map.colorSpace = SRGBColorSpace;
+    return map;
+  }, [cardFront]);
+  // const cardMap = useLoader(TextureLoader, "png/cards/dark/" + cardFront + ".png");
+  // cardMap.colorSpace = SRGBColorSpace;
+
+  // const cardMap = useMemo(() => {
+  //   const map = useLoader(TextureLoader, "png/cards/dark/" + cardFront + ".png");
+  //   map.colorSpace = SRGBColorSpace;
+  //   map.tex;
+  // }, [cardFront]);
 
   const backMap = useLoader(TextureLoader, "png/cards/dark/BACK.png");
   backMap.colorSpace = SRGBColorSpace;
 
-  const w = 0.57; // width
-  const h = 0.89; // height
-  const t = 0.01; // thick
-  const r = 0.052; // radius corner
-  const s = 25; // smoothness
-
-
   const geometry = useMemo(() => {
-    const geometry = RoundGeometryBox({ w, h, t, r, s });
+    const geometry = RoundGeometryBox({ w: CARD_WIDTH, h: CARD_HEIGHT, t: CARD_THICK, r: CARD_RADIUS, s: CARD_SMOOTHNESS });
     geometry.computeVertexNormals();
     return geometry;
-  }, [w, h, t, r, s]);
+  }, []);
 
   const sideRopeMaterial = useMemo(() => new MeshBasicMaterial({ color: 0x000000 }), []);
 
