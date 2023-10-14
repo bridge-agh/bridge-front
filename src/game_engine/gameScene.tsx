@@ -55,7 +55,7 @@ export default function GameScene({ width, height, parentRef }: { width: number,
 
 
   const gameContext = useContext(GameContext);
-
+  console.log("gamescene");
   return (
     <Canvas ref={canvasRef}>
       <ambientLight intensity={1.5} />

@@ -149,7 +149,7 @@ export default function GameController({ serverGameState, children }: { serverGa
       //   });
       // });
       setIsAnimating(false);
-    }, 2000);
+    }, 250);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // only run once
 
