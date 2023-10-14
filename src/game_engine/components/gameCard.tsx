@@ -1,6 +1,6 @@
 import { SpringValue, a } from "@react-spring/three";
 import { useLoader } from "@react-three/fiber";
-import { useRef } from "react";
+import { useMemo } from "react";
 import { DoubleSide, MeshBasicMaterial, SRGBColorSpace, TextureLoader } from "three";
 import RoundGeometryBox from "../geometry/roundGeometryBox";
 
@@ -14,7 +14,6 @@ export function GameCard({ cardFront, position, rotation, scale, onPointerEnter,
     onPointerLeave: () => void;
     onClick: () => void;
   }) {
-  console.log("gamecard");
 
   const cardMap = useLoader(TextureLoader, "png/cards/dark/" + cardFront + ".png");
   cardMap.colorSpace = SRGBColorSpace;
@@ -29,21 +28,22 @@ export function GameCard({ cardFront, position, rotation, scale, onPointerEnter,
   const s = 25; // smoothness
 
 
-  const geometry = RoundGeometryBox({ w, h, t, r, s });
-  geometry.computeVertexNormals();
+  const geometry = useMemo(() => {
+    const geometry = RoundGeometryBox({ w, h, t, r, s });
+    geometry.computeVertexNormals();
+    return geometry;
+  }, [w, h, t, r, s]);
 
-  const sideRopeMaterial = new MeshBasicMaterial({ color: 0x000000 });
+  const sideRopeMaterial = useMemo(() => new MeshBasicMaterial({ color: 0x000000 }), []);
 
-  const material = [
+  const material = useMemo(() => [
     new MeshBasicMaterial({ map: cardMap, side: DoubleSide, wireframe: false }),
     new MeshBasicMaterial({ map: backMap, side: DoubleSide, wireframe: false }),
     sideRopeMaterial
-  ];
-
-  const ref = useRef(null);
+  ], [cardMap, backMap, sideRopeMaterial]);
 
   return (
-    <a.mesh ref={ref}
+    <a.mesh
       geometry={geometry}
       material={material}
 

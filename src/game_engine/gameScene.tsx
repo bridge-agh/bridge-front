@@ -5,10 +5,10 @@ import { MathUtils } from "three";
 import { GameCard } from "./components/gameCard";
 import { GameContext } from "./gameController";
 
-function calcFovAndAspect(currentHeight: number, currentWidth: number, currentAspect: number) {
-  const fov = 50;
-  const planeAspectRatio = 12 / 9;
+const fov = 50;
+const planeAspectRatio = 12 / 9;
 
+function calcFovAndAspect(currentHeight: number, currentWidth: number, currentAspect: number) {
   if (currentAspect > planeAspectRatio) {
     return [fov, currentAspect];
   }
@@ -23,11 +23,7 @@ function calcFovAndAspect(currentHeight: number, currentWidth: number, currentAs
   }
 }
 
-const fov = 50;
-const planeAspectRatio = 12 / 9;
-
 export default function GameScene({ width, height, parentRef }: { width: number, height: number, parentRef: RefObject<HTMLDivElement> }) {
-  console.log("gamescene");
   // canvas resize and scaling
   const canvasRef = useRef<HTMLCanvasElement>(null!);
   const cameraRef = useRef<any>(null!); // any to supress warning
@@ -63,27 +59,22 @@ export default function GameScene({ width, height, parentRef }: { width: number,
 
 
   const gameContext = useContext(GameContext);
-  console.log("gameContext: ", gameContext);
 
   return (
     <Canvas ref={canvasRef}>
       <ambientLight intensity={1.5} />
       <directionalLight position={[0, 0, 4]} color={0xffffff} intensity={1.5} />
-      {gameContext && gameContext.cards.map((_, index) => {
-        console.log("cards render");
-        return (
-          <GameCard
-            key={index}
-            cardFront="7S"
-            position={gameContext.cards[index].props.position}
-            rotation={gameContext.cards[index].props.rotation}
-            scale={gameContext.cards[index].props.scale}
-            onPointerEnter={() => gameContext.onPointerEnter(gameContext.cards[index])}
-            onPointerLeave={() => gameContext.onPointerLeave(gameContext.cards[index])}
-            onClick={() => gameContext.onClick(gameContext.cards[index])}
-          />
-        );
-      })}
+      {gameContext && gameContext.cards.map((_, index) => (
+        <GameCard
+          key={index}
+          cardFront="7S"
+          position={gameContext.cards[index].props.position}
+          rotation={gameContext.cards[index].props.rotation}
+          scale={gameContext.cards[index].props.scale}
+          onPointerEnter={() => gameContext.onPointerEnter(gameContext.cards[index])}
+          onPointerLeave={() => gameContext.onPointerLeave(gameContext.cards[index])}
+          onClick={() => gameContext.onClick(gameContext.cards[index])} />
+      ))}
       <OrbitControls />
       <gridHelper />
       <axesHelper />
@@ -92,7 +83,7 @@ export default function GameScene({ width, height, parentRef }: { width: number,
         makeDefault
         fov={cameraFOV}
         aspect={cameraPlaneAspectRatio}
-        position={[0, 0, 4]}
+        position={[-3, 1.5, 5]}
         ref={cameraRef}
       />
     </Canvas>
