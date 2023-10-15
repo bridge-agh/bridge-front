@@ -47,6 +47,23 @@ const reductCardContext = (state: CardContext[], action: { index: number, state:
   return newState;
 };
 
+const requestTimeout = (fn: () => void, delay: number) => {
+  const start = new Date().getTime();
+
+  const loop = () => {
+    const delta = new Date().getTime() - start;
+
+    if (delta >= delay) {
+      fn();
+      return;
+    }
+
+    const raf = requestAnimationFrame(loop);
+  };
+
+  const raf = requestAnimationFrame(loop);
+};
+
 export default function GameController({ serverGameState, children }: { serverGameState: GameState, children: React.ReactNode }) {
   // ANIMATIONS
 
@@ -132,7 +149,7 @@ export default function GameController({ serverGameState, children }: { serverGa
     console.log("run");
 
     setIsAnimating(true);
-    setTimeout(() => {
+    requestTimeout(() => {
       console.log("run2");
 
       const playerHand = getPlayerHand(localGameState);
@@ -147,7 +164,7 @@ export default function GameController({ serverGameState, children }: { serverGa
         }, 100 * index);
       });
 
-      setTimeout(() => {
+      requestTimeout(() => {
         setIsAnimating(false);
       }, 100 * (playerHand.cards.length - 1) + 350 - 100);
     }, 250);

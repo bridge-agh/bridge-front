@@ -1,6 +1,7 @@
 import { SpringValue, a } from "@react-spring/three";
+import { useTexture } from "@react-three/drei";
 import { useMemo } from "react";
-import { DoubleSide, MeshBasicMaterial, SRGBColorSpace, TextureLoader } from "three";
+import { DoubleSide, MeshBasicMaterial, SRGBColorSpace } from "three";
 import RoundGeometryBox from "../geometry/roundGeometryBox";
 
 export const CARD_WIDTH = 0.57; // width
@@ -8,10 +9,6 @@ export const CARD_HEIGHT = 0.89; // height
 export const CARD_THICK = 0.01; // thick
 export const CARD_RADIUS = 0.052; // radius corner
 export const CARD_SMOOTHNESS = 25; // smoothness
-
-const textureLoader = new TextureLoader();
-const backMap = textureLoader.load("png/cards/dark/BACK.png"); // TODO: fix ReferenceError: document is not defined (webpack - gameCard.tsx:28:31)
-backMap.colorSpace = SRGBColorSpace;
 
 export function GameCard({ cardFront, position, rotation, scale, onPointerEnter, onPointerLeave, onClick }:
   {
@@ -24,13 +21,17 @@ export function GameCard({ cardFront, position, rotation, scale, onPointerEnter,
     onClick: () => void;
   }) {
 
+  const cardTexture = useTexture("png/cards/dark/" + cardFront + ".png");
   const cardMap = useMemo(() => {
-    if (cardFront == "BACK") return backMap;
-    console.log("loading mesh");
-    const map = textureLoader.load("png/cards/dark/" + cardFront + ".png");
-    map.colorSpace = SRGBColorSpace;
-    return map;
-  }, [cardFront]);
+    cardTexture.colorSpace = SRGBColorSpace;
+    return cardTexture;
+  }, [cardTexture]);
+
+  const backTexture = useTexture("png/cards/dark/BACK.png");
+  const backMap = useMemo(() => {
+    backTexture.colorSpace = SRGBColorSpace;
+    return backTexture;
+  }, [backTexture]);
 
   const geometry = useMemo(() => {
     const geometry = RoundGeometryBox({ w: CARD_WIDTH, h: CARD_HEIGHT, t: CARD_THICK, r: CARD_RADIUS, s: CARD_SMOOTHNESS });
@@ -44,7 +45,7 @@ export function GameCard({ cardFront, position, rotation, scale, onPointerEnter,
     new MeshBasicMaterial({ map: cardMap, side: DoubleSide, wireframe: false }),
     new MeshBasicMaterial({ map: backMap, side: DoubleSide, wireframe: false }),
     sideRopeMaterial
-  ], [cardMap, sideRopeMaterial]);
+  ], [backMap, cardMap, sideRopeMaterial]);
 
   console.log("card");
   return (
