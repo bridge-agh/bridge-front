@@ -1,7 +1,7 @@
 import { Card, GameState } from "@/app/game/gameModels";
 import { SpringRef, easings, useSpring } from "@react-spring/three";
 import { createContext, useCallback, useEffect, useReducer, useState } from "react";
-import { getPlayerHand } from "./logic/cardCalculations";
+import { HORIZONTAL_CARD_Y, getPlayerHand } from "./logic/cardCalculations";
 
 export const GameContext = createContext<GameControllerContext>(null!);
 
@@ -54,23 +54,23 @@ export default function GameController({ serverGameState, children }: { serverGa
 
   // state of each card
   const [cardStates, dispatchCardState] = useReducer(reduceCardState, Array(52).fill(null).map(() => ({
-    disabled: false
+    disabled: true
   })));
 
   // card interactions callbacks
   const onPointerEnter = useCallback((springCard: CardContext) => {
     if (isAnimating || cardStates[springCard.index].disabled) return;
     springCard.api.start({
-      scale: 1.0,
-      config: { duration: 350 }
+      position: [springCard.props.position.get()[0], -HORIZONTAL_CARD_Y + .1, springCard.props.position.get()[2]],
+      config: { duration: 150, easing: easings.easeOutCubic }
     });
   }, [cardStates, isAnimating]);
 
   const onPointerLeave = useCallback((springCard: CardContext) => {
     if (isAnimating || cardStates[springCard.index].disabled) return;
     springCard.api.start({
-      scale: 0.58,
-      config: { duration: 350 }
+      position: [springCard.props.position.get()[0], -HORIZONTAL_CARD_Y, springCard.props.position.get()[2]],
+      config: { duration: 150, easing: easings.easeOutCubic }
     });
   }, [cardStates, isAnimating]);
 
@@ -79,7 +79,7 @@ export default function GameController({ serverGameState, children }: { serverGa
     setIsAnimating(true);
     dispatchCardState({ index: springCard.index, state: { disabled: true } });
     springCard.api.start({
-      position: [0, 2, springCard.props.position.get()[2]],
+      position: [0, 1, springCard.props.position.get()[2]],
       rotation: [0, 2 * Math.PI, 0],
       scale: 0.58,
       config: { duration: 1000 }
@@ -92,7 +92,7 @@ export default function GameController({ serverGameState, children }: { serverGa
   const [cardContexts, dispatchCardContext] = useReducer(reductCardContext, Array(52).fill(null).map((_, index) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [props, api] = useSpring(() => ({
-      position: [0, 0, 0],
+      position: [0, 0, 1],
       rotation: [0, -Math.PI, 0],
       scale: 0.58,
       config: { mass: 3, tension: 400, friction: 500, precision: 0.01, duration: 350, easing: easings.easeInOutCubic },
@@ -130,11 +130,15 @@ export default function GameController({ serverGameState, children }: { serverGa
 
   useEffect(() => {
     console.log("run");
+
+    setIsAnimating(true);
     setTimeout(() => {
       console.log("run2");
+
       const playerHand = getPlayerHand(localGameState);
       playerHand.cards.map((card, index) => {
         setTimeout(() => {
+          dispatchCardState({ index: index, state: { disabled: false } });
           dispatchCardContext({ index: index, state: { ...cardContexts[index], card: card.card, cardFront: "7S" } });
           cardContexts[index].api.start({
             position: card.position,
@@ -143,12 +147,9 @@ export default function GameController({ serverGameState, children }: { serverGa
         }, 100 * index);
       });
 
-      // cards.map((card) => {
-      //   card.api.start({
-      //     position: [-2, 0, 0],
-      //   });
-      // });
-      setIsAnimating(false);
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 100 * (playerHand.cards.length - 1) + 350 - 100);
     }, 250);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // only run once

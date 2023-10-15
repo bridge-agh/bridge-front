@@ -10,7 +10,7 @@ export const CARD_RADIUS = 0.052; // radius corner
 export const CARD_SMOOTHNESS = 25; // smoothness
 
 const textureLoader = new TextureLoader();
-const backMap = textureLoader.load("png/cards/dark/BACK.png");
+const backMap = textureLoader.load("png/cards/dark/BACK.png"); // TODO: fix ReferenceError: document is not defined (webpack - gameCard.tsx:28:31)
 backMap.colorSpace = SRGBColorSpace;
 
 export function GameCard({ cardFront, position, rotation, scale, onPointerEnter, onPointerLeave, onClick }:

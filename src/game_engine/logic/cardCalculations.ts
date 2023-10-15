@@ -9,9 +9,9 @@ export interface PlayerHandState {
   canPlay: boolean;
 }
 
-const CARD_SPACING = .5 * CARD_WIDTH; // TODO: calculate for mobile
-const HORIZONTAL_CARD_Y = 1.3; // TODO: calculate for mobile
-const VERTICAL_CARD_X = 2; // TODO: calculate for mobile
+export const CARD_SPACING = .5 * CARD_WIDTH; // TODO: calculate for mobile
+export const HORIZONTAL_CARD_Y = 1.3; // TODO: calculate for mobile
+export const VERTICAL_CARD_X = 2; // TODO: calculate for mobile
 
 export function getPlayerHand(gameState: GameState) {
   const canPlay = gameState.base.current_player === PlayerDirection.SOUTH;
