@@ -3,61 +3,74 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useFindSession } from "@/api/session";
-import { useGetLobby, useLeaveLobby, useReady, useChoosePosition, useForceSwap} from "@/api/session/lobby";
+import { useGetLobby, useLeaveLobby, useReady, useForceSwap, Player} from "@/api/session/lobby";
 import protectRoute from "@/logic/protect_route";
 import useUser from "@/logic/use_user";
-import { User } from "firebase/auth";
 import { TiDelete } from "react-icons/ti";
 import { BsPersonCircle, BsQuestionCircle } from "react-icons/bs";
 import { FaExchangeAlt } from "react-icons/fa";
+import { twMerge } from "tailwind-merge";
 
 
-function Player({ name, ready, lobby, user, position, choosePosition }: { name: string, ready: boolean, lobby: any, user: User, position: string, choosePosition: (position: string) => void}) {
-  const [nameText, setNameText] = useState(name);
+function Player({ player, userId, hostId, position, addPositionToSwap, positionsToSwap }: { player: Player | undefined | null, userId: string, hostId: string, position: string, addPositionToSwap: (position: string) => void, positionsToSwap: string[]}) {
+  const [nameText, setNameText] = useState(player?.id);
+  const [isPlayer, setIsPlayer] = useState(false);
+  const [animation, setAnimation] = useState("");
+  const [exchangeButtonHovered, setExchangeButtonHovered] = useState(false);
+
+
+  const changeNameText = useCallback((newName: string) => {
+    if (nameText == null) setNameText(newName);
+    else if (nameText != newName) {
+      setAnimation("animate-fade-in");
+      setTimeout(() => {
+        setNameText(newName);
+        setAnimation("animate-fade-out");
+      }, 501);
+    }  
+  }, [nameText]);
+  
   useEffect(() => {
-    changeNameText(name);
-  }, [name]);
-  const [opacity, setOpacity] = useState(100);
-  const changeNameText = (newName: string) => {
-    setOpacity(0);
-    setTimeout(() => {
-      setNameText(newName);
-      setOpacity(100);
-    }, 300);
-  };
+    if (player != null && player != undefined) {
+      changeNameText(player.id);
+      setIsPlayer(true);
+    }
+    else {
+      changeNameText("Waiting...");
+      setIsPlayer(false);
+    }
+  }, [player, changeNameText]);
+
   return (
     <div 
       className="flex flex-col justify-start items-start items-stretch min-w-[100%]"
-      onMouseEnter={() =>  {
-        if (nameText == "Waiting...") {
-          changeNameText("Change position");
-        }
-      }}
-      onMouseLeave={() => {
-        if (nameText == "Change position") {
-          changeNameText("Waiting...");
-        }
-      }}
-      onClick={() => {
-        if (["Change position", "Waiting..."].includes(nameText)) choosePosition(position);
-      }}  
     >
       <div className="font-bold text-accent-content w-11 xs:w-14 text-center text-sm xs:text-base">{position}</div>
-      <div className="flex flex-row pe-2 rounded-3xl justify-start items-center bg-base-300 w-[100%]">
-        <div className={`w-11 h-11 xs:w-14 xs:h-14 rounded-full ${ready ? "bg-green-600" : "bg-blue-600"} transition-all flex flex-col justify-center items-center shrink-0`}>
-          {name != "Waiting..." &&
-          <BsPersonCircle className="w-11 h-11 xs:w-14 xs:h-14" /> || 
+      <div className={twMerge("flex flex-row pe-2 rounded-full justify-start items-center bg-base-300 w-[100%] transition-all", exchangeButtonHovered ? "ring-4 ring-info" : "", position == positionsToSwap[0] ? "ring-4 ring-success": "")}>
+        <div className={`w-11 h-11 xs:w-14 xs:h-14 rounded-full duration-500 ${player?.ready ? "bg-green-600" : "bg-blue-600"} flex flex-col justify-center items-center`}>
+          {isPlayer &&
+          <BsPersonCircle 
+            className="w-11 h-11 xs:w-14 xs:h-14"
+          /> || 
           <BsQuestionCircle className="w-11 h-11 xs:w-14 xs:h-14 "/>}
         </div>
    
         <div
-          className={`ml-2 font-semibold xs:text-lg xs:font-bold truncate opacity-${opacity} transition-opacity duration-[300ms]`}
+          className={twMerge("ml-2 font-semibold xs:text-lg xs:font-bold truncate hover:break-all hover:whitespace-normal", animation)}
+        >
+          <span className={twMerge(animation)}>{nameText}</span>
+        </div>
 
-        >{nameText}</div>
-        {name == "Waiting..." && (
-          <FaExchangeAlt className="w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] ml-auto shrink-0 justify-self-end cursor-pointer"/>
+        {userId == hostId && (isPlayer || positionsToSwap.length > 0) && (
+          <FaExchangeAlt 
+            className="w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] ml-auto shrink-0 justify-self-end cursor-pointer animate-fade-out"
+            onClick={() => addPositionToSwap(position)}
+            onMouseEnter={() => setExchangeButtonHovered(true)}
+            onMouseLeave={() => setExchangeButtonHovered(false)}
+            onAnimationStart={() => setExchangeButtonHovered(false)}
+          />
         )}        
-        {name != user.uid && user.uid == lobby.host_id && (
+        {player?.id != userId && userId == hostId && isPlayer && (
           <TiDelete className="w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] ml-2 shrink-0 justify-self-end text-error cursor-pointer"/>
         )}
       </div>
@@ -72,8 +85,8 @@ function Lobby() {
   let getLobby = useGetLobby(findSession.data ? { session_id: findSession.data.session_id } : undefined);
   const leaveLobby = useLeaveLobby();
   const setReady = useReady();  
-  const choosePosition = useChoosePosition();
   const forceSwap = useForceSwap();
+  const [positionsToSwap, setPositionsToSwap] = useState<string[]>([]);
   
   const goHome = useCallback(() => {
     router.push("/home");
@@ -94,28 +107,41 @@ function Lobby() {
     setReady.trigger({ user_id: user.uid, session_id: findSession.data.session_id });
   }, [setReady, findSession, user]);
 
-  const handleChoosePosition = useCallback((position: string) => {
-    if (!findSession.data || !user || choosePosition.loading) return;
-    choosePosition.trigger({ user_id: user.uid, session_id: findSession.data.session_id, position: position });
-  }, [choosePosition, findSession, user]);
+  const handleForceSwap = useCallback(() => {
+    if (!findSession.data || !user || forceSwap.loading || positionsToSwap.length != 2) return;
+    forceSwap.trigger({ first_position: positionsToSwap[0], second_position: positionsToSwap[1], session_id: findSession.data.session_id });
+  }, [forceSwap, findSession, positionsToSwap, user]);
+
+  const addPositionToSwap = useCallback((position: string) => {
+    setPositionsToSwap((positions) => {
+      const newPositions = [...positions];
+      if (newPositions.length < 2) newPositions.push(position);
+      return newPositions;
+    });
+  }, []);
 
   useEffect(() => {
     router.prefetch("/game");
   }, [router]);
 
   useEffect(() => {
-    if (getLobby.data && getLobby.data.users.length === 4 && getLobby.data.ready.every(x => x)) {
+    if (getLobby.data && getLobby.data.users.length === 4 && getLobby.data.users.every(u => u.ready)) {
       console.log(getLobby);
       router.push("/game");
     }
   }, [router, getLobby]);
 
-  // const [chosenPosition, setChosenPosition] = useState(false);
+  useEffect(() => {
+    if (positionsToSwap.length == 2) {
+      if (positionsToSwap[0] != positionsToSwap[1]) handleForceSwap();
+      setPositionsToSwap([]);
+    }
+  }, [positionsToSwap, handleForceSwap]);
 
   if (!getLobby.data || !user) return null;
   
   const lobby = getLobby.data;
-  const myIndex = lobby.users.findIndex(u => u.id === user.uid);
+  const currentUser = lobby.users.find(u => u.id === user.uid);
   
   return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 md:col-start-1 md:col-span-6 lg:col-start-2 lg:col-span-6 xl:col-start-4 xl:col-span-6">
@@ -123,12 +149,12 @@ function Lobby() {
         <div className="text-2xl font-bold mb-3 self-center">Lobby</div>
         <div className="flex flex-col gap-4 md:flex-row justify-between items-center mb-3">
           <div className="flex w-[90%] sm:w-[70%] md:w-[43%] flex-col justify-start items-stretch gap-4">
-            <Player name={lobby.users.find(u => u.position == "north")?.id || "Waiting..."} lobby={lobby}  ready={lobby.ready[0]} user={user} position="north" choosePosition={handleChoosePosition} />
-            <Player name={lobby.users.find(u => u.position == "south")?.id || "Waiting..."} lobby={lobby}  ready={lobby.ready[1]} user={user} position="south" choosePosition={handleChoosePosition} />
+            <Player player={lobby.users.find(u => u.position == "North")} userId={user.uid} hostId={lobby.host_id} position="North" addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
+            <Player player={lobby.users.find(u => u.position == "South")} userId={user.uid} hostId={lobby.host_id} position="South" addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
           </div>
           <div className="flex w-[90%] sm:w-[70%] md:w-[43%] flex-col justify-start items-stretch gap-4">
-            <Player name={lobby.users.find(u => u.position == "west")?.id || "Waiting..."} lobby={lobby} ready={lobby.ready[2]} user={user} position="west" choosePosition={handleChoosePosition} />
-            <Player name={lobby.users.find(u => u.position == "east")?.id || "Waiting..."} lobby={lobby} ready={lobby.ready[3]} user={user} position="east" choosePosition={handleChoosePosition} />
+            <Player player={lobby.users.find(u => u.position == "West")} userId={user.uid} hostId={lobby.host_id} position="West" addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
+            <Player player={lobby.users.find(u => u.position == "East")} userId={user.uid} hostId={lobby.host_id} position="East" addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
           </div>
         </div>
         <div className="flex flex-row justify-evenly sm:justify-between items-center">
@@ -138,7 +164,7 @@ function Lobby() {
           <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" onClick={handleCopyClick}>
             Copy ID
           </button>
-          <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" disabled={lobby.ready[myIndex]} onClick={handleReadyClick}>
+          <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" disabled={currentUser?.ready} onClick={handleReadyClick}>
             Ready
           </button>
         </div>

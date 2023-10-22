@@ -48,12 +48,15 @@ async function joinLobbyFetcher(request: JoinLobbyRequest): Promise<void> {
 export function useJoinLobby() {
   return useFetch(joinLobbyFetcher);
 }
+
+// /force-swap
+
 export interface ForceSwapRequest {
-  first_user_id: string
-  second_user_id: string
+  first_position: string
+  second_position: string
   session_id: string
-  position: string
 }
+
 async function forceSwapFetcher(request: ForceSwapRequest): Promise<void> {
   const res = await fetch(`${API_URL_SESSION_LOBBY}/force-swap`, {
     method: "POST",
@@ -63,26 +66,11 @@ async function forceSwapFetcher(request: ForceSwapRequest): Promise<void> {
   if (!res.ok) return Promise.reject(res.statusText);
   return Promise.resolve();
 }
+
 export function useForceSwap() {
   return useFetch(forceSwapFetcher);
 }
-export interface ChoosePositionRequest {
-  user_id: string
-  session_id: string
-  position: string
-}
-async function choosePositionFetcher(request: ChoosePositionRequest): Promise<void> {
-  const res = await fetch(`${API_URL_SESSION_LOBBY}/choose`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(request)
-  });
-  if (!res.ok) return Promise.reject(res.statusText);
-  return Promise.resolve();
-}
-export function useChoosePosition() {
-  return useFetch(choosePositionFetcher);
-}
+
 // /leave
 
 export interface LeaveLobbyRequest {
@@ -110,7 +98,7 @@ export interface GetInfoRequest {
   session_id: string
 }
 
-export interface LobbyUser {
+export interface Player {
   id: string
   ready: boolean
   position: string
@@ -118,8 +106,7 @@ export interface LobbyUser {
 
 export interface GetInfoResponse {
   host_id: string
-  users: LobbyUser[]
-  ready: boolean[]
+  users: Player[]
   started: boolean
 }
 
