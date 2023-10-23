@@ -9,7 +9,7 @@ import {
 } from "@/app/game/gameModels";
 import GameController from "@/game_engine/gameController";
 import protectRoute from "@/logic/protect_route";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import PlayingPage from "./playingPage";
 
 
@@ -19,48 +19,71 @@ function Game() {
     base: {
       game_stage: GameStage.PLAYING,
       current_player: PlayerDirection.NORTH,
+      player_direction: PlayerDirection.EAST,
     },
     bidding: {
-      first_dealer: PlayerDirection.NORTH,
+      first_dealer: PlayerDirection.WEST,
       bid_history: [],
       bid: null,
-      declarer: null,
+      declarer: PlayerDirection.WEST,
       multiplier: 1,
     },
     game: {
-      game: {
-        round_player: PlayerDirection.NORTH,
-        round_cards: [],
-        dummy_cards: [],
-        tricks: {
-          NS: [],
-          EW: [],
-        },
-      },
-      hand: [
+      round_player: PlayerDirection.NORTH,
+      round_cards: [],
+      dummy_cards: [
         { suit: CardSuit.CLUBS, rank: CardRank.ACE },
-        { suit: CardSuit.CLUBS, rank: CardRank.TWO },
+        { suit: CardSuit.SPADES, rank: CardRank.TWO },
         { suit: CardSuit.CLUBS, rank: CardRank.THREE },
         { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
         { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
         { suit: CardSuit.CLUBS, rank: CardRank.SIX },
         { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
         { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-        { suit: CardSuit.CLUBS, rank: CardRank.NINE },
-        { suit: CardSuit.CLUBS, rank: CardRank.TEN },
-        { suit: CardSuit.CLUBS, rank: CardRank.JACK },
-        { suit: CardSuit.CLUBS, rank: CardRank.QUEEN },
-        { suit: CardSuit.CLUBS, rank: CardRank.KING },
+        { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+        { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+        { suit: CardSuit.SPADES, rank: CardRank.JACK },
+        { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+        { suit: CardSuit.HEARTS, rank: CardRank.KING },
+      ],
+      tricks: {
+        NS: [
+          // {
+          //   round_player: PlayerDirection.NORTH,
+          //   winner: PlayerDirection.NORTH,
+          //   cards: [
+          //     { suit: CardSuit.CLUBS, rank: CardRank.ACE }
+          //   ],
+          // }
+        ],
+        EW: [],
+      },
+      hand: [
+        { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+        { suit: CardSuit.SPADES, rank: CardRank.TWO },
+        { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+        { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+        { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+        { suit: CardSuit.CLUBS, rank: CardRank.SIX },
+        { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+        { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+        { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+        { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+        { suit: CardSuit.SPADES, rank: CardRank.JACK },
+        { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+        { suit: CardSuit.HEARTS, rank: CardRank.KING },
       ],
     },
   });
 
   return (
-    <GameController serverGameState={serverGameState}>
-      <div className="col-start-1 col-span-full flex flex-col">
-        <PlayingPage />
-      </div>
-    </GameController>
+    <div className="col-start-1 col-span-full flex flex-col">
+      <Suspense fallback={<div>Loading!!!</div>}>
+        <GameController serverGameState={serverGameState}>
+          <PlayingPage />
+        </GameController>
+      </Suspense>
+    </div>
   );
 }
 

@@ -12,6 +12,22 @@ export enum PlayerDirection {
   WEST,
 }
 
+export function nextDirection(direction: PlayerDirection): PlayerDirection {
+  return (direction + 1) % 4;
+}
+
+export function prevDirection(direction: PlayerDirection): PlayerDirection {
+  return (direction + 3) % 4;
+}
+
+export function oppositeDirection(direction: PlayerDirection): PlayerDirection {
+  return (direction + 2) % 4;
+}
+
+export function diffDirection(a: PlayerDirection, b: PlayerDirection): number {
+  return (b - a + 4) % 4;
+}
+
 export enum CardSuit {
   CLUBS = 1,
   DIAMONDS,
@@ -33,6 +49,13 @@ export enum CardRank {
   QUEEN,
   KING,
   ACE,
+}
+
+export function cardToString(card: Card | null): string {
+  if (card === null) return "BACK";
+  const rank = card.rank > 9 ? CardRank[card.rank][0] : card.rank;
+  const suit = CardSuit[card.suit][0];
+  return `${rank}${suit}`;
 }
 
 export enum BidSuit {
@@ -77,6 +100,7 @@ export interface Trick {
 export interface BaseObservation {
   game_stage: GameStage;
   current_player: PlayerDirection;
+  player_direction: PlayerDirection;
 }
 
 export interface BiddingObservation {
@@ -88,14 +112,12 @@ export interface BiddingObservation {
 }
 
 export interface GameObservation {
-  game: {
-    round_player: PlayerDirection;
-    round_cards: Card[];
-    dummy_cards: Card[];
-    tricks: {
-      NS: Trick[];
-      EW: Trick[];
-    };
+  round_player: PlayerDirection;
+  round_cards: Card[];
+  dummy_cards: Card[];
+  tricks: {
+    NS: Trick[];
+    EW: Trick[];
   };
   hand: Card[];
 }

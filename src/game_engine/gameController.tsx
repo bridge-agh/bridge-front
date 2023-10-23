@@ -1,7 +1,14 @@
-import { Card, GameState } from "@/app/game/gameModels";
+import { Card, GameState, cardToString } from "@/app/game/gameModels";
 import { SpringRef, easings, useSpring } from "@react-spring/three";
 import { createContext, useCallback, useEffect, useReducer, useState } from "react";
-import { HORIZONTAL_CARD_Y, getPlayerHand } from "./logic/cardCalculations";
+import { HORIZONTAL_CARD_Y, getBottomHand, getLeftHand, getRightHand, getTopHand } from "./logic/cardRenderCalculator";
+
+// Animation constants
+
+const ANIM_TIME = 450;
+const ANIM_DELAY = 50;
+
+
 
 export const GameContext = createContext<GameControllerContext>(null!);
 
@@ -41,7 +48,7 @@ const reduceCardState = (state: CardState[], action: { index: number, state: Car
   return newState;
 };
 
-const reductCardContext = (state: CardContext[], action: { index: number, state: CardContext }) => {
+const reduceCardContext = (state: CardContext[], action: { index: number, state: CardContext }) => {
   const newState = [...state];
   newState[action.index] = action.state;
   return newState;
@@ -74,6 +81,24 @@ export default function GameController({ serverGameState, children }: { serverGa
     disabled: true
   })));
 
+  const [cardContexts, dispatchCardContext] = useReducer(reduceCardContext, Array(52).fill(null).map((_, index) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [props, api] = useSpring(() => ({
+      position: [0, 0, -index * 0.002 + 0.2],
+      rotation: [0, Math.PI, 0],
+      scale: 1,
+      config: { mass: 3, tension: 400, friction: 500, precision: 0.01, duration: ANIM_TIME, easing: easings.easeInOutCubic },
+    }));
+
+    return {
+      index,
+      card: null,
+      cardFront: "BACK",
+      api,
+      props
+    };
+  }));
+
   // card interactions callbacks
   const onPointerEnter = useCallback((springCard: CardContext) => {
     if (isAnimating || cardStates[springCard.index].disabled) return;
@@ -93,51 +118,39 @@ export default function GameController({ serverGameState, children }: { serverGa
 
   const onClick = useCallback((springCard: CardContext) => {
     if (isAnimating || cardStates[springCard.index].disabled) return;
+
     setIsAnimating(true);
+
     dispatchCardState({ index: springCard.index, state: { disabled: true } });
     springCard.api.start({
-      position: [0, 1, springCard.props.position.get()[2]],
-      rotation: [0, 2 * Math.PI, 0],
-      scale: 0.58,
-      config: { duration: 1000 }
+      position: [0, 0, 0],
+      rotation: [0, 0, 0],
+      scale: 1,
+      config: { duration: 1000, easing: easings.easeInOutCubic }
     });
+
+    // const hand = getBottomHand(serverGameState);
+    // const card = hand.cards[springCard.index];
+    // const index = hand.cards.findIndex((c) => c.card === card.card);
+    // hand.cards.splice(index, 1);
+    // hand.cards.forEach((card, index) => {
+    //   dispatchCardState({ index: index, state: { disabled: false } });
+    //   dispatchCardContext({ index: index, state: { ...cardContexts[index], card: card.card, cardFront: cardToString(card.card) } });
+    //   cardContexts[index].api.start({
+    //     position: card.position,
+    //     rotation: [0, 0, 0]
+    //   });
+    // });
+    // // to animate each card must have its position in table
+
     setTimeout(() => {
       setIsAnimating(false);
     }, 1000);
   }, [cardStates, isAnimating]);
 
-  const [cardContexts, dispatchCardContext] = useReducer(reductCardContext, Array(52).fill(null).map((_, index) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [props, api] = useSpring(() => ({
-      position: [0, 0, 1],
-      rotation: [0, -Math.PI, 0],
-      scale: 0.58,
-      config: { mass: 3, tension: 400, friction: 500, precision: 0.01, duration: 350, easing: easings.easeInOutCubic },
-    }));
-
-    return {
-      index,
-      card: null,
-      cardFront: "BACK",
-      api,
-      props
-    };
-  }));
-
-  const [gameContext, setGameContext] = useState<GameControllerContext>(null!);
-
-  useEffect(() => {
-    setGameContext({
-      cards: cardContexts,
-      onPointerEnter,
-      onPointerLeave,
-      onClick
-    });
-  }, [cardContexts, onPointerEnter, onPointerLeave, onClick]);
-
   // GAME LOGIC
 
-  const [localGameState, setLocalGameState] = useState<GameState>(serverGameState); // state that will be diff with server state
+  const [localGameState, setLocalGameState] = useState<GameState>(serverGameState); // state that will be compared with server state
 
   useEffect(() => {
     if (localGameState !== serverGameState) {
@@ -152,24 +165,80 @@ export default function GameController({ serverGameState, children }: { serverGa
     requestTimeout(() => {
       console.log("run2");
 
-      const playerHand = getPlayerHand(localGameState);
-      playerHand.cards.map((card, index) => {
-        setTimeout(() => {
+      const playerHand = getBottomHand(localGameState);
+      const leftHand = getLeftHand(localGameState);
+      const topHand = getTopHand(localGameState);
+      const rightHand = getRightHand(localGameState);
+
+      playerHand.cards.forEach((card, index) => {
+        requestTimeout(() => {
           dispatchCardState({ index: index, state: { disabled: false } });
-          dispatchCardContext({ index: index, state: { ...cardContexts[index], card: card.card, cardFront: "7S" } });
+          dispatchCardContext({ index: index, state: { ...cardContexts[index], card: card.card, cardFront: cardToString(card.card) } });
           cardContexts[index].api.start({
             position: card.position,
-            rotation: [0, 0, 0]
+            rotation: [0, 0.03, 0]
           });
-        }, 100 * index);
+        }, ANIM_DELAY * index);
+      });
+
+      rightHand.cards.forEach((card, index) => {
+        const tIndex = 13 + index;
+        requestTimeout(() => {
+          dispatchCardState({ index: tIndex, state: { disabled: true } });
+          dispatchCardContext({ index: tIndex, state: { ...cardContexts[tIndex], card: card.card, cardFront: cardToString(card.card) } });
+          cardContexts[tIndex].api.start({
+            position: card.position,
+            rotation: [-0.03, 0, Math.PI / 2]
+          });
+        }, ANIM_DELAY * (index + playerHand.cards.length));
+      });
+
+      topHand.cards.forEach((card, index) => {
+        const tIndex = 26 + index;
+        requestTimeout(() => {
+          dispatchCardState({ index: tIndex, state: { disabled: true } });
+          dispatchCardContext({ index: tIndex, state: { ...cardContexts[tIndex], card: card.card, cardFront: cardToString(card.card) } });
+          cardContexts[tIndex].api.start({
+            position: card.position,
+            rotation: [0, -0.03, 0]
+          });
+        }, ANIM_DELAY * (index + playerHand.cards.length + rightHand.cards.length));
+      });
+
+      leftHand.cards.forEach((card, index) => {
+        const tIndex = 39 + index;
+        requestTimeout(() => {
+          dispatchCardState({ index: tIndex, state: { disabled: true } });
+          dispatchCardContext({ index: tIndex, state: { ...cardContexts[tIndex], card: card.card, cardFront: cardToString(card.card) } });
+          cardContexts[tIndex].api.start({
+            position: card.position,
+            rotation: [0.03, 0, -Math.PI / 2]
+          });
+        }, ANIM_DELAY * (index + playerHand.cards.length + rightHand.cards.length + topHand.cards.length));
       });
 
       requestTimeout(() => {
         setIsAnimating(false);
-      }, 100 * (playerHand.cards.length - 1) + 350 - 100);
+      }, ANIM_DELAY * (playerHand.cards.length + leftHand.cards.length + topHand.cards.length + rightHand.cards.length - 1) + ANIM_TIME);
     }, 250);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // only run once
+  }, []);
+
+  const [gameContext, setGameContext] = useState<GameControllerContext>({
+    cards: cardContexts,
+    onPointerEnter,
+    onPointerLeave,
+    onClick,
+  });
+
+  useEffect(() => {
+    setGameContext({
+      cards: cardContexts,
+      onPointerEnter,
+      onPointerLeave,
+      onClick,
+    });
+  }, [cardContexts, onPointerEnter, onPointerLeave, onClick]);
 
 
   return (

@@ -47,7 +47,6 @@ export function GameCard({ cardFront, position, rotation, scale, onPointerEnter,
     sideRopeMaterial
   ], [backMap, cardMap, sideRopeMaterial]);
 
-  console.log("card");
   return (
     <a.mesh
       geometry={geometry}

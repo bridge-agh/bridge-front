@@ -1,19 +1,20 @@
-import { useEffect, useState } from "react";
+import BiddingBids from "@/app/game/bidding/biddingBids";
+import BiddingPlayers from "@/app/game/bidding/biddingPlayers";
 import {
   BaseObservation,
-  BiddingObservation,
   BidSuit,
+  BiddingObservation,
   GameStage,
   PlayerDirection,
 } from "@/app/game/gameModels";
-import BiddingPlayers from "@/app/game/bidding/biddingPlayers";
-import BiddingBids from "@/app/game/bidding/biddingBids";
+import { useEffect, useState } from "react";
 
 function BiddingPage() {
   // redux here, currently dummy data
   const [baseObservation, setBaseObservation] = useState<BaseObservation>({
     game_stage: GameStage.BIDDING,
     current_player: PlayerDirection.NORTH,
+    player_direction: PlayerDirection.NORTH,
   });
 
   const [biddingObservation, setBiddingObservation] =
@@ -49,6 +50,7 @@ function BiddingPage() {
       setBaseObservation({
         game_stage: GameStage.BIDDING,
         current_player: (baseObservation.current_player + 1) % 4,
+        player_direction: PlayerDirection.NORTH,
       });
       setBiddingObservation({
         first_dealer: biddingObservation.first_dealer,
@@ -72,7 +74,7 @@ function BiddingPage() {
         />
       </div>
       <div>
-        <BiddingBids biddingObservation={biddingObservation}/>
+        <BiddingBids biddingObservation={biddingObservation} />
       </div>
     </div>
   );
