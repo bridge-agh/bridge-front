@@ -1,6 +1,7 @@
 import useSWR from "swr";
 import { API_URL_SESSION } from ".";
 import { useFetch, SWRState, SWRKey } from "..";
+import { PlayerDirection } from "@/app/game/gameModels";
 
 export const API_URL_SESSION_LOBBY = `${API_URL_SESSION}/lobby`;
 
@@ -52,8 +53,8 @@ export function useJoinLobby() {
 // /force-swap
 
 export interface ForceSwapRequest {
-  first_position: string
-  second_position: string
+  first_position: PlayerDirection
+  second_position: PlayerDirection
   session_id: string
 }
 
@@ -101,7 +102,7 @@ export interface GetInfoRequest {
 export interface Player {
   id: string
   ready: boolean
-  position: string
+  position: PlayerDirection
 }
 
 export interface GetInfoResponse {
