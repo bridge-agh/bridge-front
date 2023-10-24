@@ -1,14 +1,10 @@
-import { Card, GameState, cardToString } from "@/app/game/gameModels";
+import { Card, CardRank, CardSuit, GameStage, GameState, PlayerDirection } from "@/app/game/gameModels";
 import { SpringRef, easings, useSpring } from "@react-spring/three";
 import { createContext, useCallback, useEffect, useReducer, useState } from "react";
-import { HORIZONTAL_CARD_Y, getBottomHand, getLeftHand, getRightHand, getTopHand } from "./logic/cardRenderCalculator";
+import { ANIM_DELAY, ANIM_TIME, animateCardPlay, animateHand, requestTimeout } from "./logic/cardAnimator";
+import { HORIZONTAL_CARD_Y, getBottomHand, getHand, getLeftHand, getRightHand, getTopHand } from "./logic/cardRenderCalculator";
 
-// Animation constants
-
-const ANIM_TIME = 450;
-const ANIM_DELAY = 50;
-
-
+// interfaces
 
 export const GameContext = createContext<GameControllerContext>(null!);
 
@@ -20,7 +16,6 @@ type SpringApiRef = SpringRef<{
 
 export interface CardContext {
   index: number;
-  card: Card | null;
   cardFront: string;
   api: SpringApiRef;
   props: {
@@ -41,6 +36,23 @@ export interface GameControllerContext {
   onClick: (springCard: CardContext) => void;
 }
 
+interface CardAssignment {
+  card: Card | null;
+  index: number;
+};
+
+enum AssignmentActionType {
+  ASSIGN_BATCH,
+  MOVE_TO_PLAYED,
+}
+
+interface AssignmentAction {
+  direction: PlayerDirection;
+  type: AssignmentActionType;
+  data: CardAssignment | CardAssignment[];
+}
+
+// state reducers
 
 const reduceCardState = (state: CardState[], action: { index: number, state: CardState }) => {
   const newState = [...state];
@@ -54,37 +66,46 @@ const reduceCardContext = (state: CardContext[], action: { index: number, state:
   return newState;
 };
 
-const requestTimeout = (fn: () => void, delay: number) => {
-  const start = new Date().getTime();
+const PLAYED_ASSIGNMENTS = 4;
+const reduceCardAssignment = (state: (CardAssignment[])[], action: { state: AssignmentAction }) => {
+  const newState = [...state];
+  switch (action.state.type) {
+    case AssignmentActionType.ASSIGN_BATCH:
+      newState[action.state.direction] = action.state.data as CardAssignment[];
+      return newState;
 
-  const loop = () => {
-    const delta = new Date().getTime() - start;
+    // return newState[action.direction] = action.data as CardAssignment;
+    case AssignmentActionType.MOVE_TO_PLAYED:
+      const card = action.state.data as CardAssignment;
+      const index = newState[action.state.direction].findIndex((c) => c === card);
+      newState[action.state.direction].splice(index, 1);
+      newState[PLAYED_ASSIGNMENTS].push(card);
 
-    if (delta >= delay) {
-      fn();
-      return;
-    }
+      return newState;
 
-    const raf = requestAnimationFrame(loop);
-  };
-
-  const raf = requestAnimationFrame(loop);
+    // return newState[action.direction].played.push(newState[action.direction].hand.splice(newState[action.direction].hand.findIndex((c) => c === action.data), 1)[0]);
+  }
 };
 
-export default function GameController({ serverGameState, children }: { serverGameState: GameState, children: React.ReactNode }) {
-  // ANIMATIONS
 
-  const [isAnimating, setIsAnimating] = useState(true); // true if animation should block interactions
+export default function GameController({ serverGameState, setGameState, children }: { serverGameState: GameState, setGameState: (state: GameState) => void, children: any }) {
+  // animation state
+  const [canUserInteract, setCanUserInteract] = useState(false); // true if animation should block interactions
 
   // state of each card
   const [cardStates, dispatchCardState] = useReducer(reduceCardState, Array(52).fill(null).map(() => ({
     disabled: true
   })));
 
+  // state of game
+  const [localGameState, setLocalGameState] = useState<GameState>(serverGameState); // state that will be compared with server state
+
+  const [cardAssignments, dispatchCardAssignments] = useReducer(reduceCardAssignment, Array(5).fill([]) as (CardAssignment[])[]);
+
   const [cardContexts, dispatchCardContext] = useReducer(reduceCardContext, Array(52).fill(null).map((_, index) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [props, api] = useSpring(() => ({
-      position: [0, 0, -index * 0.002 + 0.2],
+      position: [0, 0, -index * 0.002 - 0.7],
       rotation: [0, Math.PI, 0],
       scale: 1,
       config: { mass: 3, tension: 400, friction: 500, precision: 0.01, duration: ANIM_TIME, easing: easings.easeInOutCubic },
@@ -101,125 +122,108 @@ export default function GameController({ serverGameState, children }: { serverGa
 
   // card interactions callbacks
   const onPointerEnter = useCallback((springCard: CardContext) => {
-    if (isAnimating || cardStates[springCard.index].disabled) return;
+    if (!canUserInteract || cardStates[springCard.index].disabled) return;
     springCard.api.start({
       position: [springCard.props.position.get()[0], -HORIZONTAL_CARD_Y + .1, springCard.props.position.get()[2]],
       config: { duration: 150, easing: easings.easeOutCubic }
     });
-  }, [cardStates, isAnimating]);
+  }, [cardStates, canUserInteract]);
 
   const onPointerLeave = useCallback((springCard: CardContext) => {
-    if (isAnimating || cardStates[springCard.index].disabled) return;
+    if (!canUserInteract || cardStates[springCard.index].disabled) return;
     springCard.api.start({
       position: [springCard.props.position.get()[0], -HORIZONTAL_CARD_Y, springCard.props.position.get()[2]],
       config: { duration: 150, easing: easings.easeOutCubic }
     });
-  }, [cardStates, isAnimating]);
+  }, [cardStates, canUserInteract]);
 
   const onClick = useCallback((springCard: CardContext) => {
-    if (isAnimating || cardStates[springCard.index].disabled) return;
+    if (!canUserInteract || cardStates[springCard.index].disabled) return;
 
-    setIsAnimating(true);
+    setCanUserInteract(false);
 
-    dispatchCardState({ index: springCard.index, state: { disabled: true } });
-    springCard.api.start({
-      position: [0, 0, 0],
-      rotation: [0, 0, 0],
-      scale: 1,
-      config: { duration: 1000, easing: easings.easeInOutCubic }
+    const handDirection = localGameState.base.current_player;
+    const userDirection = localGameState.base.user_direction;
+    const springIndex = springCard.index;
+    const cardAssign = cardAssignments[handDirection].find((cardAssignment) => cardAssignment.index === springIndex)!;
+
+    let newGameState = { ...localGameState };
+    if (handDirection === userDirection) {
+      const cardIndex = newGameState.game.hand.findIndex((card) => card === cardAssign.card);
+      const card = newGameState.game.hand.splice(cardIndex, 1)[0];
+      newGameState.game.round_cards.push(card);
+    } else {
+      const cardIndex = newGameState.game.dummy_cards.findIndex((card) => card === cardAssign.card);
+      const card = newGameState.game.dummy_cards.splice(cardIndex, 1)[0];
+      newGameState.game.round_cards.push(card);
+    }
+
+
+    dispatchCardAssignments({
+      state: {
+        direction: handDirection,
+        type: AssignmentActionType.MOVE_TO_PLAYED,
+        data: cardAssign!,
+      }
     });
+    dispatchCardState({ index: springIndex, state: { disabled: true } });
 
-    // const hand = getBottomHand(serverGameState);
-    // const card = hand.cards[springCard.index];
-    // const index = hand.cards.findIndex((c) => c.card === card.card);
-    // hand.cards.splice(index, 1);
-    // hand.cards.forEach((card, index) => {
-    //   dispatchCardState({ index: index, state: { disabled: false } });
-    //   dispatchCardContext({ index: index, state: { ...cardContexts[index], card: card.card, cardFront: cardToString(card.card) } });
-    //   cardContexts[index].api.start({
-    //     position: card.position,
-    //     rotation: [0, 0, 0]
-    //   });
-    // });
-    // // to animate each card must have its position in table
+    const hand = getHand(newGameState, handDirection, userDirection)!;
+
+    animateCardPlay(springCard, userDirection === handDirection ? PlayerDirection.SOUTH : PlayerDirection.NORTH);
+    animateHand(hand, 0, cardAssignments[handDirection]
+      .filter(cardAssignments => cardAssignments !== cardAssign)
+      .map(cardAssignment => cardAssignment.index), dispatchCardContext, cardContexts, 0, easings.easeInOutExpo);
+
 
     setTimeout(() => {
-      setIsAnimating(false);
-    }, 1000);
-  }, [cardStates, isAnimating]);
+      setCanUserInteract(true);
+      setLocalGameState(newGameState);
+    }, ANIM_TIME);
+  }, [canUserInteract, cardStates, localGameState, cardAssignments, cardContexts]);
 
-  // GAME LOGIC
-
-  const [localGameState, setLocalGameState] = useState<GameState>(serverGameState); // state that will be compared with server state
 
   useEffect(() => {
+    if (!canUserInteract) return;
     if (localGameState !== serverGameState) {
       setLocalGameState(serverGameState);
     }
-  }, [localGameState, serverGameState]);
+  }, [canUserInteract, localGameState, serverGameState]);
 
   useEffect(() => {
-    console.log("run");
+    setLocalGameState(serverGameState);
 
-    setIsAnimating(true);
     requestTimeout(() => {
-      console.log("run2");
 
-      const playerHand = getBottomHand(localGameState);
+      const userHand = getBottomHand(localGameState);
       const leftHand = getLeftHand(localGameState);
       const topHand = getTopHand(localGameState);
       const rightHand = getRightHand(localGameState);
 
-      playerHand.cards.forEach((card, index) => {
-        requestTimeout(() => {
-          dispatchCardState({ index: index, state: { disabled: false } });
-          dispatchCardContext({ index: index, state: { ...cardContexts[index], card: card.card, cardFront: cardToString(card.card) } });
-          cardContexts[index].api.start({
-            position: card.position,
-            rotation: [0, 0.03, 0]
-          });
-        }, ANIM_DELAY * index);
-      });
+      let globalIndex = 0;
+      [userHand, leftHand, topHand, rightHand].forEach((hand) => {
+        dispatchCardAssignments({
+          state: {
+            direction: hand.direction,
+            type: AssignmentActionType.ASSIGN_BATCH,
+            data: hand.cards.map((card, index) => ({
+              card: card.card,
+              index: globalIndex + index,
+            }))
+          }
+        });
 
-      rightHand.cards.forEach((card, index) => {
-        const tIndex = 13 + index;
-        requestTimeout(() => {
-          dispatchCardState({ index: tIndex, state: { disabled: true } });
-          dispatchCardContext({ index: tIndex, state: { ...cardContexts[tIndex], card: card.card, cardFront: cardToString(card.card) } });
-          cardContexts[tIndex].api.start({
-            position: card.position,
-            rotation: [-0.03, 0, Math.PI / 2]
-          });
-        }, ANIM_DELAY * (index + playerHand.cards.length));
-      });
+        const assignIndexes = hand.cards.map((_, index) => globalIndex + index);
 
-      topHand.cards.forEach((card, index) => {
-        const tIndex = 26 + index;
-        requestTimeout(() => {
-          dispatchCardState({ index: tIndex, state: { disabled: true } });
-          dispatchCardContext({ index: tIndex, state: { ...cardContexts[tIndex], card: card.card, cardFront: cardToString(card.card) } });
-          cardContexts[tIndex].api.start({
-            position: card.position,
-            rotation: [0, -0.03, 0]
-          });
-        }, ANIM_DELAY * (index + playerHand.cards.length + rightHand.cards.length));
-      });
+        assignIndexes.forEach(i => dispatchCardState({ index: i, state: { disabled: !hand.canPlay } }));
+        animateHand(hand, globalIndex, assignIndexes, dispatchCardContext, cardContexts);
 
-      leftHand.cards.forEach((card, index) => {
-        const tIndex = 39 + index;
-        requestTimeout(() => {
-          dispatchCardState({ index: tIndex, state: { disabled: true } });
-          dispatchCardContext({ index: tIndex, state: { ...cardContexts[tIndex], card: card.card, cardFront: cardToString(card.card) } });
-          cardContexts[tIndex].api.start({
-            position: card.position,
-            rotation: [0.03, 0, -Math.PI / 2]
-          });
-        }, ANIM_DELAY * (index + playerHand.cards.length + rightHand.cards.length + topHand.cards.length));
+        globalIndex += hand.cards.length;
       });
 
       requestTimeout(() => {
-        setIsAnimating(false);
-      }, ANIM_DELAY * (playerHand.cards.length + leftHand.cards.length + topHand.cards.length + rightHand.cards.length - 1) + ANIM_TIME);
+        setCanUserInteract(true);
+      }, ANIM_DELAY * (globalIndex - 1) + ANIM_TIME);
     }, 250);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -241,8 +245,197 @@ export default function GameController({ serverGameState, children }: { serverGa
   }, [cardContexts, onPointerEnter, onPointerLeave, onClick]);
 
 
+  // DEBUG
+
+  const [gameStates] = useState<GameState[]>([
+    {
+      base: {
+        game_stage: GameStage.PLAYING,
+        current_player: PlayerDirection.NORTH,
+        user_direction: PlayerDirection.EAST,
+      },
+      bidding: {
+        first_dealer: PlayerDirection.WEST,
+        bid_history: [],
+        bid: null,
+        declarer: PlayerDirection.SOUTH,
+        multiplier: 1,
+      },
+      game: {
+        round_player: PlayerDirection.WEST,
+        round_cards: [
+          { suit: CardSuit.SPADES, rank: CardRank.ACE }
+        ],
+        dummy_cards: [
+          { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+          { suit: CardSuit.SPADES, rank: CardRank.TWO },
+          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+          { suit: CardSuit.CLUBS, rank: CardRank.SIX },
+          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+          { suit: CardSuit.SPADES, rank: CardRank.JACK },
+          { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+          { suit: CardSuit.HEARTS, rank: CardRank.KING },
+        ],
+        tricks: {
+          NS: [],
+          EW: [],
+        },
+        hand: [
+          { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+          { suit: CardSuit.SPADES, rank: CardRank.TWO },
+          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+          { suit: CardSuit.CLUBS, rank: CardRank.SIX },
+          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+          { suit: CardSuit.SPADES, rank: CardRank.JACK },
+          { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+          { suit: CardSuit.HEARTS, rank: CardRank.KING },
+        ],
+      },
+    },
+    {
+      base: {
+        game_stage: GameStage.PLAYING,
+        current_player: PlayerDirection.EAST,
+        user_direction: PlayerDirection.EAST,
+      },
+      bidding: {
+        first_dealer: PlayerDirection.WEST,
+        bid_history: [],
+        bid: null,
+        declarer: PlayerDirection.SOUTH,
+        multiplier: 1,
+      },
+      game: {
+        round_player: PlayerDirection.WEST,
+        round_cards: [
+          { suit: CardSuit.SPADES, rank: CardRank.ACE },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR }
+        ],
+        dummy_cards: [
+          { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+          { suit: CardSuit.SPADES, rank: CardRank.TWO },
+          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+          { suit: CardSuit.CLUBS, rank: CardRank.SIX },
+          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+          { suit: CardSuit.SPADES, rank: CardRank.JACK },
+          { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+          { suit: CardSuit.HEARTS, rank: CardRank.KING },
+        ],
+        tricks: {
+          NS: [],
+          EW: [],
+        },
+        hand: [
+          { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+          { suit: CardSuit.SPADES, rank: CardRank.TWO },
+          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+          { suit: CardSuit.CLUBS, rank: CardRank.SIX },
+          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+          { suit: CardSuit.SPADES, rank: CardRank.JACK },
+          { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+          { suit: CardSuit.HEARTS, rank: CardRank.KING },
+        ],
+      },
+    },
+    {
+      base: {
+        game_stage: GameStage.PLAYING,
+        current_player: PlayerDirection.SOUTH,
+        user_direction: PlayerDirection.EAST,
+      },
+      bidding: {
+        first_dealer: PlayerDirection.WEST,
+        bid_history: [],
+        bid: null,
+        declarer: PlayerDirection.SOUTH,
+        multiplier: 1,
+      },
+      game: {
+        round_player: PlayerDirection.WEST,
+        round_cards: [
+          { suit: CardSuit.SPADES, rank: CardRank.ACE },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT }
+        ],
+        dummy_cards: [
+          { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+          { suit: CardSuit.SPADES, rank: CardRank.TWO },
+          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+          { suit: CardSuit.CLUBS, rank: CardRank.SIX },
+          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+          { suit: CardSuit.SPADES, rank: CardRank.JACK },
+          { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+          { suit: CardSuit.HEARTS, rank: CardRank.KING },
+        ],
+        tricks: {
+          NS: [],
+          EW: [],
+        },
+        hand: [
+          { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+          { suit: CardSuit.SPADES, rank: CardRank.TWO },
+          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+          { suit: CardSuit.CLUBS, rank: CardRank.SIX },
+          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+          { suit: CardSuit.SPADES, rank: CardRank.JACK },
+          { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+          { suit: CardSuit.HEARTS, rank: CardRank.KING },
+        ],
+      },
+    }
+  ]);
+
+  useEffect(() => {
+    console.log("server game states changed!!!");
+    console.log(serverGameState);
+  }, [serverGameState]);
+
+  const updateGameState = useCallback(() => {
+    console.log(serverGameState);
+    const state = gameStates.shift();
+    if (state) {
+      const tophand = getTopHand(state);
+      animateHand(tophand, 0, cardAssignments[tophand.direction].map(cardAssignment => cardAssignment.index), dispatchCardContext, cardContexts);
+      setGameState(state);
+    }
+    console.log(serverGameState);
+  }, [cardAssignments, cardContexts, gameStates, serverGameState, setGameState]);
+
+
   return (
     <GameContext.Provider value={gameContext}>
+      <div className="absolute z-50 btn btn-primary">
+        <button onClick={updateGameState}>Simulate</button>
+      </div>
       {children}
     </GameContext.Provider>
   );

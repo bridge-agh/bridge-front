@@ -100,7 +100,7 @@ export interface Trick {
 export interface BaseObservation {
   game_stage: GameStage;
   current_player: PlayerDirection;
-  player_direction: PlayerDirection;
+  user_direction: PlayerDirection;
 }
 
 export interface BiddingObservation {

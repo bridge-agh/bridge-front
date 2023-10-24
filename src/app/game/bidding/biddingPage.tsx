@@ -14,7 +14,7 @@ function BiddingPage() {
   const [baseObservation, setBaseObservation] = useState<BaseObservation>({
     game_stage: GameStage.BIDDING,
     current_player: PlayerDirection.NORTH,
-    player_direction: PlayerDirection.NORTH,
+    user_direction: PlayerDirection.NORTH,
   });
 
   const [biddingObservation, setBiddingObservation] =
@@ -50,7 +50,7 @@ function BiddingPage() {
       setBaseObservation({
         game_stage: GameStage.BIDDING,
         current_player: (baseObservation.current_player + 1) % 4,
-        player_direction: PlayerDirection.NORTH,
+        user_direction: PlayerDirection.NORTH,
       });
       setBiddingObservation({
         first_dealer: biddingObservation.first_dealer,

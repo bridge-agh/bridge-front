@@ -114,7 +114,7 @@ export default function GameScene({ width, height, parentRef }: { width: number,
           makeDefault
           fov={cameraFOV}
           aspect={cameraPlaneAspectRatio}
-          position={[0, 0, 4]}
+          position={[0, 0, 4.2]}
           ref={cameraRef}
         />
       </Canvas>
