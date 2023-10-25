@@ -109,6 +109,7 @@ export interface GetInfoResponse {
   host_id: string
   users: Player[]
   started: boolean
+  version: number
 }
 
 async function getLobbyFetcher(request: GetInfoRequest): Promise<GetInfoResponse> {
@@ -120,6 +121,9 @@ async function getLobbyFetcher(request: GetInfoRequest): Promise<GetInfoResponse
 export function useGetLobby(request: SWRKey<GetInfoRequest>): SWRState<GetInfoResponse> {
   const { data, isLoading } = useSWR(request, getLobbyFetcher, { refreshInterval: 1000 });
   return { data, loading: isLoading };
+}
+export function useForceGetLobby() {
+  return useFetch(getLobbyFetcher);
 }
 
 // /ready
