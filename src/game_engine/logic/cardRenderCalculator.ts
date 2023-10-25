@@ -250,3 +250,33 @@ export function getPlayedPosition(direction: PlayerDirection) {
       };
   }
 }
+
+
+
+export function getCleanRoundPosition(direction: PlayerDirection) {
+  let x, y;
+
+  switch (direction) {
+    case PlayerDirection.NORTH:
+      x = 0;
+      y = HORIZONTAL_CARD_Y + CARD_HEIGHT * 2.5;
+      break;
+    case PlayerDirection.EAST:
+      x = VERTICAL_CARD_X + CARD_WIDTH * 2.5;
+      y = 0;
+      break;
+    case PlayerDirection.SOUTH:
+      x = 0;
+      y = -HORIZONTAL_CARD_Y - CARD_HEIGHT * 2.5;
+      break;
+    case PlayerDirection.WEST:
+      x = -VERTICAL_CARD_X - CARD_WIDTH * 2.5;
+      y = 0;
+      break;
+  }
+
+  return {
+    position: [x, y, 0],
+    rotation: [0, 0, -3]
+  };
+}

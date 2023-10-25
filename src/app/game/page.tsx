@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  BidSuit,
+  BidTricks,
   CardRank,
   CardSuit,
   GameStage,
@@ -25,12 +27,15 @@ function Game() {
       bidding: {
         first_dealer: PlayerDirection.WEST,
         bid_history: [],
-        bid: null,
-        declarer: PlayerDirection.SOUTH,
+        bid: {
+          suit: BidSuit.CLUBS,
+          tricks: BidTricks.THREE,
+        },
+        declarer: PlayerDirection.EAST,
         multiplier: 1,
       },
       game: {
-        round_player: PlayerDirection.WEST,
+        round_player: PlayerDirection.EAST,
         round_cards: [],
         dummy_cards: [
           { suit: CardSuit.CLUBS, rank: CardRank.ACE },

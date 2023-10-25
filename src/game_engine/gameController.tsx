@@ -1,7 +1,7 @@
-import { Card, CardRank, CardSuit, GameStage, GameState, PlayerDirection } from "@/app/game/gameModels";
+import { Card, CardRank, CardSuit, GameStage, GameState, PlayerDirection, nextDirection } from "@/app/game/gameModels";
 import { SpringRef, easings, useSpring } from "@react-spring/three";
 import { createContext, useCallback, useEffect, useReducer, useState } from "react";
-import { ANIM_DELAY, ANIM_TIME, animateCardPlay, animateHand, requestTimeout } from "./logic/cardAnimator";
+import { ANIM_DELAY, ANIM_TIME, animateCardPlay, animateCleanRound, animateHand, requestTimeout } from "./logic/cardAnimator";
 import { HORIZONTAL_CARD_Y, getBottomHand, getHand, getLeftHand, getRightHand, getTopHand } from "./logic/cardRenderCalculator";
 
 // interfaces
@@ -87,6 +87,52 @@ const reduceCardAssignment = (state: (CardAssignment[])[], action: { state: Assi
   }
 };
 
+function cleanHand(localGameState: GameState, cardContexts: CardContext[]) {
+  let winningCard = localGameState.game.round_cards[0];
+  let winningPlayerIndex = 0;
+
+  for (let i = 1; i < localGameState.game.round_cards.length; i++) {
+    const card = localGameState.game.round_cards[i];
+
+    if (card.suit === winningCard.suit) {
+      if (card.rank > winningCard.rank) {
+        winningCard = card;
+        winningPlayerIndex = i;
+      }
+    } else if (card.suit.valueOf === localGameState.bidding.bid!.suit.valueOf) {
+      winningCard = card;
+      winningPlayerIndex = i;
+    }
+  }
+
+  let winningPlayer = localGameState.game.round_player;
+  for (let i = 0; i < winningPlayerIndex; i++) {
+    winningPlayer = nextDirection(winningPlayer);
+  }
+
+  const trick = {
+    round_player: localGameState.game.round_player,
+    winner: winningPlayer,
+    cards: localGameState.game.round_cards,
+  };
+
+  if (winningPlayer === PlayerDirection.NORTH || winningPlayer === PlayerDirection.SOUTH) {
+    localGameState.game.tricks.NS.push(trick);
+  } else {
+    localGameState.game.tricks.EW.push(trick);
+  }
+
+  localGameState.game.round_player = winningPlayer;
+  localGameState.game.round_cards = [];
+  localGameState.base.current_player = winningPlayer;
+
+
+  animateCleanRound(cardContexts, winningPlayer);
+
+  console.log(winningPlayer);
+
+  return localGameState;
+}
 
 export default function GameController({ serverGameState, setGameState, children }: { serverGameState: GameState, setGameState: (state: GameState) => void, children: any }) {
   // animation state
@@ -123,19 +169,23 @@ export default function GameController({ serverGameState, setGameState, children
   // card interactions callbacks
   const onPointerEnter = useCallback((springCard: CardContext) => {
     if (!canUserInteract || cardStates[springCard.index].disabled) return;
+
+    const isUserCard = localGameState.base.current_player === localGameState.base.user_direction;
     springCard.api.start({
-      position: [springCard.props.position.get()[0], -HORIZONTAL_CARD_Y + .1, springCard.props.position.get()[2]],
+      position: [springCard.props.position.get()[0], (isUserCard ? -1 : 1) * (HORIZONTAL_CARD_Y - .1), springCard.props.position.get()[2]],
       config: { duration: 150, easing: easings.easeOutCubic }
     });
-  }, [cardStates, canUserInteract]);
+  }, [canUserInteract, cardStates, localGameState.base.current_player, localGameState.base.user_direction]);
 
   const onPointerLeave = useCallback((springCard: CardContext) => {
     if (!canUserInteract || cardStates[springCard.index].disabled) return;
+
+    const isUserCard = localGameState.base.current_player === localGameState.base.user_direction;
     springCard.api.start({
-      position: [springCard.props.position.get()[0], -HORIZONTAL_CARD_Y, springCard.props.position.get()[2]],
+      position: [springCard.props.position.get()[0], (isUserCard ? -1 : 1) * HORIZONTAL_CARD_Y, springCard.props.position.get()[2]],
       config: { duration: 150, easing: easings.easeOutCubic }
     });
-  }, [cardStates, canUserInteract]);
+  }, [canUserInteract, cardStates, localGameState.base.current_player, localGameState.base.user_direction]);
 
   const onClick = useCallback((springCard: CardContext) => {
     if (!canUserInteract || cardStates[springCard.index].disabled) return;
@@ -145,8 +195,11 @@ export default function GameController({ serverGameState, setGameState, children
     const handDirection = localGameState.base.current_player;
     const userDirection = localGameState.base.user_direction;
     const springIndex = springCard.index;
+
+    // join card assignment index with spring index
     const cardAssign = cardAssignments[handDirection].find((cardAssignment) => cardAssignment.index === springIndex)!;
 
+    // move card from hand to round cards (declare new game state)
     let newGameState = { ...localGameState };
     if (handDirection === userDirection) {
       const cardIndex = newGameState.game.hand.findIndex((card) => card === cardAssign.card);
@@ -158,7 +211,7 @@ export default function GameController({ serverGameState, setGameState, children
       newGameState.game.round_cards.push(card);
     }
 
-
+    // update card assignment state to played
     dispatchCardAssignments({
       state: {
         direction: handDirection,
@@ -166,7 +219,12 @@ export default function GameController({ serverGameState, setGameState, children
         data: cardAssign!,
       }
     });
+
+    // disable all cards on hand and played one
     dispatchCardState({ index: springIndex, state: { disabled: true } });
+    cardAssignments[handDirection].forEach((cardAssignment) => {
+      dispatchCardState({ index: cardAssignment.index, state: { disabled: true } });
+    });
 
     const hand = getHand(newGameState, handDirection, userDirection)!;
 
@@ -176,12 +234,24 @@ export default function GameController({ serverGameState, setGameState, children
       .map(cardAssignment => cardAssignment.index), dispatchCardContext, cardContexts, 0, easings.easeInOutExpo);
 
 
-    setTimeout(() => {
-      setCanUserInteract(true);
-      setLocalGameState(newGameState);
+    requestTimeout(() => {
+      if (newGameState.game.round_cards.length === 4) {
+        const assignments = cardAssignments[PLAYED_ASSIGNMENTS].filter((cardAssignment) => newGameState.game.round_cards.includes(cardAssignment.card!));
+        assignments.push(cardAssign);
+
+        const contexts = cardContexts.filter((cardContext) => assignments.map(a => a.index).includes(cardContext.index));
+
+        newGameState = cleanHand(newGameState, contexts);
+      }
+
+      console.log(newGameState);
+
+      requestTimeout(() => {
+        setLocalGameState(newGameState);
+        setCanUserInteract(true);
+      }, (newGameState.game.round_cards.length === 4) ? ANIM_TIME : 0);
     }, ANIM_TIME);
   }, [canUserInteract, cardStates, localGameState, cardAssignments, cardContexts]);
-
 
   useEffect(() => {
     if (!canUserInteract) return;

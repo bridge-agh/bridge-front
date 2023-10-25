@@ -1,7 +1,7 @@
 import { PlayerDirection, cardToString } from "@/app/game/gameModels";
 import { easings } from "@react-spring/three";
 import { CardContext } from "../gameController";
-import { PlayerHand, getPlayedPosition } from "./cardRenderCalculator";
+import { PlayerHand, getCleanRoundPosition, getPlayedPosition } from "./cardRenderCalculator";
 
 // animation constants
 export const ANIM_TIME = 250;
@@ -47,5 +47,17 @@ export function animateCardPlay(cardContext: CardContext, direction: PlayerDirec
     position: playedPosition.position,
     rotation: playedPosition.rotation,
     config: { duration: ANIM_TIME, easing: easings.easeInOutCubic }
+  });
+}
+
+export function animateCleanRound(cardContexts: CardContext[], direction: PlayerDirection) {
+  const playedPosition = getCleanRoundPosition(direction);
+
+  cardContexts.forEach((cardContext) => {
+    cardContext.api.start({
+      position: playedPosition.position,
+      rotation: playedPosition.rotation,
+      config: { duration: ANIM_TIME, easing: easings.easeInOutCubic }
+    });
   });
 }
