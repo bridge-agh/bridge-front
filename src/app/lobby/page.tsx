@@ -47,7 +47,7 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
       className="flex flex-col justify-start items-start items-stretch min-w-[100%]"
     >
       <div className="font-bold text-accent-content w-11 xs:w-14 text-center text-sm xs:text-base">{getPlayerDirectionName(position)}</div>
-      <div className={twMerge("flex flex-row pe-2 rounded-full justify-start items-center bg-base-300 w-[100%] transition-all", exchangeButtonHovered ? "ring-4 ring-primary" : "", position == positionsToSwap[0] ? "ring-4 ring-accent": "")}>
+      <div className={twMerge("flex flex-row pe-2 rounded-full justify-start items-center bg-base-300 w-[100%] transition-all", exchangeButtonHovered ? "ring-4 ring-primary" : "", position == positionsToSwap[0] && !host?.ready ? "ring-4 ring-accent": "")}>
         <div className={`w-11 h-11 xs:w-14 xs:h-14 rounded-full duration-500 ${player?.ready ? "bg-green-600" : "bg-blue-600"} flex flex-col justify-center items-center`}>
           {isPlayer &&
           <BsPersonCircle 
@@ -62,7 +62,7 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
           <span className={twMerge(animation)}>{nameText}</span>
         </div>
 
-        {userId == host?.id && (isPlayer || positionsToSwap.length > 0) && (
+        {userId == host?.id && (isPlayer || positionsToSwap.length > 0 && !host?.ready) && (
           <FaExchangeAlt 
             className={twMerge("w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] ml-auto shrink-0 justify-self-end animate-fade-out", host?.ready ? "opacity-50" : "cursor-pointer")}
             onClick={() => {if (!host?.ready) addPositionToSwap(position);}}
