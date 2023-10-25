@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useFindSession } from "@/api/session";
-import { useGetLobby, useLeaveLobby, useReady, useForceSwap, Player, useForceGetLobby, GetInfoResponse } from "@/api/session/lobby";
+import { useGetLobby, useLeaveLobby, useReady, useForceSwap, Player, GetInfoResponse } from "@/api/session/lobby";
 import protectRoute from "@/logic/protect_route";
 import useUser from "@/logic/use_user";
 import { TiDelete } from "react-icons/ti";
@@ -27,7 +27,7 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
       setTimeout(() => {
         setNameText(newName);
         setAnimation("animate-fade-out");
-      }, 501);
+      }, 300);
     }  
   }, [nameText]);
   
@@ -87,9 +87,7 @@ function Lobby() {
   const leaveLobby = useLeaveLobby();
   const setReady = useReady();  
   const forceSwap = useForceSwap();
-  const forceGetLobby = useForceGetLobby();
   const [positionsToSwap, setPositionsToSwap] = useState<PlayerDirection[]>([]);
-  const [lobby, setLobby] = useState<GetInfoResponse | undefined | null>(null);
 
   const goHome = useCallback(() => {
     router.push("/home");
@@ -108,14 +106,12 @@ function Lobby() {
   const handleReadyClick = useCallback(() => {
     if (!findSession.data || !user || setReady.loading) return;
     setReady.trigger({ user_id: user.uid, session_id: findSession.data.session_id });
-    forceGetLobby.trigger({session_id: findSession.data.session_id }).then((data) => setLobby(data));
-  }, [findSession.data, user, setReady, forceGetLobby]);
+  }, [findSession.data, user, setReady]);
 
   const handleForceSwap = useCallback(() => {
     if (!findSession.data || !user || forceSwap.loading || positionsToSwap.length != 2) return;
     forceSwap.trigger({ first_position: positionsToSwap[0], second_position: positionsToSwap[1], session_id: findSession.data.session_id });
-    forceGetLobby.trigger({session_id: findSession.data.session_id }).then((data) => setLobby(data));
-  }, [findSession.data, user, forceSwap, positionsToSwap, forceGetLobby]);
+  }, [findSession.data, user, forceSwap, positionsToSwap]);
 
   const addPositionToSwap = useCallback((position: PlayerDirection) => {
     setPositionsToSwap((positions) => {
@@ -130,12 +126,10 @@ function Lobby() {
   }, [router]);
 
   useEffect(() => {
-    if (lobby == null) setLobby(getLobby.data);
-    else if (lobby.version < getLobby.data?.version!) setLobby(getLobby.data);
     if (getLobby.data && getLobby.data.users.length === 4 && getLobby.data.users.every(u => u.ready)) {
       router.push("/game");
     }
-  }, [router, getLobby, lobby]);
+  }, [router, getLobby]);
 
   useEffect(() => {
     if (positionsToSwap.length == 2) {
@@ -146,20 +140,21 @@ function Lobby() {
 
   if (!getLobby.data || !user) return null;
   
-  const currentUser = lobby?.users.find(u => u.id === user.uid);
-  const host = lobby?.users.find(u => u.id == lobby?.host_id);
+  const lobby = getLobby.data;
+  const currentUser = lobby.users.find(u => u.id === user.uid);
+  const host = lobby.users.find(u => u.id == lobby.host_id);
   return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 md:col-start-1 md:col-span-6 lg:col-start-2 lg:col-span-6 xl:col-start-4 xl:col-span-6">
       <div className="rounded-xl bg-base-200 p-5 flex flex-col justify-start items-stretch">
         <div className="text-2xl font-bold mb-3 self-center">Lobby</div>
         <div className="flex flex-col gap-4 md:flex-row justify-between items-center mb-3">
           <div className="flex w-[90%] sm:w-[70%] md:w-[43%] flex-col justify-start items-stretch gap-4">
-            <Player player={lobby?.users.find(u => u.position == PlayerDirection.NORTH)} userId={user.uid} host={host} position={PlayerDirection.NORTH} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
-            <Player player={lobby?.users.find(u => u.position == PlayerDirection.SOUTH)} userId={user.uid} host={host} position={PlayerDirection.SOUTH} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
+            <Player player={lobby.users.find(u => u.position == PlayerDirection.NORTH)} userId={user.uid} host={host} position={PlayerDirection.NORTH} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
+            <Player player={lobby.users.find(u => u.position == PlayerDirection.SOUTH)} userId={user.uid} host={host} position={PlayerDirection.SOUTH} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
           </div>
           <div className="flex w-[90%] sm:w-[70%] md:w-[43%] flex-col justify-start items-stretch gap-4">
-            <Player player={lobby?.users.find(u => u.position == PlayerDirection.WEST)} userId={user.uid} host={host} position={PlayerDirection.WEST} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
-            <Player player={lobby?.users.find(u => u.position == PlayerDirection.EAST)} userId={user.uid} host={host} position={PlayerDirection.EAST} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
+            <Player player={lobby.users.find(u => u.position == PlayerDirection.WEST)} userId={user.uid} host={host} position={PlayerDirection.WEST} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
+            <Player player={lobby.users.find(u => u.position == PlayerDirection.EAST)} userId={user.uid} host={host} position={PlayerDirection.EAST} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
           </div>
         </div>
         <div className="flex flex-row justify-evenly sm:justify-between items-center">

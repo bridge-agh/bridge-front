@@ -8,8 +8,8 @@ module.exports = {
   theme: {
     extend: {
       animation: {
-        "fade-in": "fade_in 0.5s linear",
-        "fade-out": "fade_out 0.5s linear"
+        "fade-in": "fade_in 0.3s linear",
+        "fade-out": "fade_out 0.3s linear"
       },
       keyframes: {
         fade_in: {
