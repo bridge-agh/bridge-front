@@ -82,8 +82,8 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
 function Lobby() {
   const router = useRouter();
   const { user } = useUser();
-  const findSession = useFindSession(user ? { user_id: user.uid } : undefined);
-  let getLobby = useGetLobby(findSession.data ? { session_id: findSession.data.session_id } : undefined);
+  const findSession = useFindSession(user ? { userId: user.uid } : undefined);
+  let getLobby = useGetLobby(findSession.data ? { sessionId: findSession.data.sessionId } : undefined);
   const leaveLobby = useLeaveLobby();
   const setReady = useReady();  
   const forceSwap = useForceSwap();
@@ -95,22 +95,22 @@ function Lobby() {
 
   const handleCopyClick = useCallback(() => {
     if (!findSession.data) return;
-    navigator.clipboard.writeText(findSession.data.session_id);
+    navigator.clipboard.writeText(findSession.data.sessionId);
   }, [findSession]);
 
   const handleLeaveClick = useCallback(() => {
     if (!findSession.data || !user || leaveLobby.loading) return;
-    leaveLobby.trigger({ user_id: user.uid, session_id: findSession.data.session_id }).then(goHome);
+    leaveLobby.trigger({ userId: user.uid }).then(goHome);
   }, [leaveLobby, findSession, goHome, user]);
 
   const handleReadyClick = useCallback(() => {
     if (!findSession.data || !user || setReady.loading) return;
-    setReady.trigger({ user_id: user.uid, session_id: findSession.data.session_id });
+    setReady.trigger({ userId: user.uid, ready: true });
   }, [findSession.data, user, setReady]);
 
   const handleForceSwap = useCallback(() => {
     if (!findSession.data || !user || forceSwap.loading || positionsToSwap.length != 2) return;
-    forceSwap.trigger({ first_position: positionsToSwap[0], second_position: positionsToSwap[1], session_id: findSession.data.session_id });
+    forceSwap.trigger({ first: positionsToSwap[0], second: positionsToSwap[1], sessionId: findSession.data.sessionId });
   }, [findSession.data, user, forceSwap, positionsToSwap]);
 
   const addPositionToSwap = useCallback((position: PlayerDirection) => {
@@ -142,7 +142,7 @@ function Lobby() {
   
   const lobby = getLobby.data;
   const currentUser = lobby.users.find(u => u.id === user.uid);
-  const host = lobby.users.find(u => u.id == lobby.host_id);
+  const host = lobby.users.find(u => u.id == lobby.hostId);
   return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 md:col-start-1 md:col-span-6 lg:col-start-2 lg:col-span-6 xl:col-start-4 xl:col-span-6">
       <div className="rounded-xl bg-base-200 p-5 flex flex-col justify-start items-stretch">

@@ -6,8 +6,7 @@ export const API_URL_SESSION = `${API_URL}/session`;
 // /heartbeat
 
 export interface HeartbeatRequest {
-  user_id: string
-  session_id: string
+  userId: string
 }
 
 async function heartbeatFetcher(request: HeartbeatRequest): Promise<void> {
@@ -27,15 +26,15 @@ export function useHeartbeat() {
 // /find
 
 export interface FindSessionRequest {
-  user_id: string
+  userId: string
 }
 
 export interface FindSessionResponse {
-  session_id: string
+  sessionId: string
 }
 
 async function findSessionFetcher(request: FindSessionRequest): Promise<FindSessionResponse> {
-  const res = await fetch(`${API_URL_SESSION}/find?user_id=${request.user_id}`);
+  const res = await fetch(`${API_URL_SESSION}/find?userId=${request.userId}`);
   if (!res.ok) return Promise.reject(res.statusText);
   return res.json();
 }
