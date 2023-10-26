@@ -1,6 +1,7 @@
 import useSWR from "swr";
 import { API_URL_SESSION } from ".";
 import { useFetch, SWRState, SWRKey } from "..";
+import { PlayerDirection } from "@/app/game/gameModels";
 
 export const API_URL_SESSION_LOBBY = `${API_URL_SESSION}/lobby`;
 
@@ -49,6 +50,28 @@ export function useJoinLobby() {
   return useFetch(joinLobbyFetcher);
 }
 
+// /force-swap
+
+export interface ForceSwapRequest {
+  first_position: PlayerDirection
+  second_position: PlayerDirection
+  session_id: string
+}
+
+async function forceSwapFetcher(request: ForceSwapRequest): Promise<void> {
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/force-swap`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(request)
+  });
+  if (!res.ok) return Promise.reject(res.statusText);
+  return Promise.resolve();
+}
+
+export function useForceSwap() {
+  return useFetch(forceSwapFetcher);
+}
+
 // /leave
 
 export interface LeaveLobbyRequest {
@@ -76,10 +99,15 @@ export interface GetInfoRequest {
   session_id: string
 }
 
+export interface Player {
+  id: string
+  ready: boolean
+  position: PlayerDirection
+}
+
 export interface GetInfoResponse {
   host_id: string
-  users: string[]
-  ready: boolean[]
+  users: Player[]
   started: boolean
 }
 
@@ -90,7 +118,7 @@ async function getLobbyFetcher(request: GetInfoRequest): Promise<GetInfoResponse
 }
 
 export function useGetLobby(request: SWRKey<GetInfoRequest>): SWRState<GetInfoResponse> {
-  const { data, isLoading } = useSWR(request, getLobbyFetcher, { refreshInterval: 1000 });
+  const { data, isLoading } = useSWR(request, getLobbyFetcher, { refreshInterval: 100 });
   return { data, loading: isLoading };
 }
 

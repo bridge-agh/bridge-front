@@ -11,6 +11,16 @@ export enum PlayerDirection {
   WEST,
 }
 
+export function getPlayerDirectionFirstLetter(direction: PlayerDirection) {
+  return PlayerDirection[direction][0];
+}
+
+export function getPlayerDirectionName(direction: PlayerDirection) {
+  let first = getPlayerDirectionFirstLetter(direction);
+  let rest = PlayerDirection[direction].slice(1).toLowerCase();
+  return first + rest;
+}
+
 export enum CardSuit {
   CLUBS = "clubs",
   DIAMONDS = "diamonds",
