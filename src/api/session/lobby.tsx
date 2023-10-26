@@ -8,11 +8,11 @@ export const API_URL_SESSION_LOBBY = `${API_URL_SESSION}/lobby`;
 // /create
 
 export interface CreateLobbyRequest {
-  host_id: string
+  hostId: string
 }
 
 export interface CreateLobbyResponse {
-  session_id: string
+  sessionId: string
 }
 
 async function createLobbyFetcher(request: CreateLobbyRequest): Promise<CreateLobbyResponse> {
@@ -32,8 +32,8 @@ export function useCreateLobby() {
 // /join
 
 export interface JoinLobbyRequest {
-  user_id: string
-  session_id: string
+  userId: string
+  sessionId: string
 }
 
 async function joinLobbyFetcher(request: JoinLobbyRequest): Promise<void> {
@@ -53,9 +53,9 @@ export function useJoinLobby() {
 // /force-swap
 
 export interface ForceSwapRequest {
-  first_position: PlayerDirection
-  second_position: PlayerDirection
-  session_id: string
+  first: PlayerDirection
+  second: PlayerDirection
+  sessionId: string
 }
 
 async function forceSwapFetcher(request: ForceSwapRequest): Promise<void> {
@@ -75,8 +75,7 @@ export function useForceSwap() {
 // /leave
 
 export interface LeaveLobbyRequest {
-  user_id: string
-  session_id: string
+  userId: string
 }
 
 async function leaveLobbyFetcher(request: LeaveLobbyRequest): Promise<void> {
@@ -96,7 +95,7 @@ export function useLeaveLobby() {
 // /info
 
 export interface GetInfoRequest {
-  session_id: string
+  sessionId: string
 }
 
 export interface Player {
@@ -106,13 +105,13 @@ export interface Player {
 }
 
 export interface GetInfoResponse {
-  host_id: string
+  hostId: string
   users: Player[]
   started: boolean
 }
 
 async function getLobbyFetcher(request: GetInfoRequest): Promise<GetInfoResponse> {
-  const res = await fetch(`${API_URL_SESSION_LOBBY}/info?session_id=${request.session_id}`);
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/info?sessionId=${request.sessionId}`);
   if (!res.ok) return Promise.reject(res.statusText);
   return res.json();
 }
@@ -125,8 +124,7 @@ export function useGetLobby(request: SWRKey<GetInfoRequest>): SWRState<GetInfoRe
 // /ready
 
 interface ReadyRequest {
-  user_id: string
-  session_id: string
+  userId: string
 }
 
 async function readyFetcher(request: ReadyRequest): Promise<void> {

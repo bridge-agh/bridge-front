@@ -21,14 +21,14 @@ function Home() {
     if (!user || createLobby.loading || joinLobby.loading) {
       return;
     }
-    createLobby.trigger({host_id: user.uid}).then(goToLobby);
+    createLobby.trigger({hostId: user.uid}).then(goToLobby);
   }, [createLobby, joinLobby, goToLobby, user]);
 
   const onClickJoin = useCallback(() => {
     if (!user || !targetLobbyId || createLobby.loading || joinLobby.loading) {
       return;
     }
-    joinLobby.trigger({session_id: targetLobbyId, user_id: user.uid}).then(goToLobby);
+    joinLobby.trigger({sessionId: targetLobbyId, userId: user.uid}).then(goToLobby);
   }, [joinLobby, createLobby, goToLobby, user, targetLobbyId]);
 
   useEffect(() => {
