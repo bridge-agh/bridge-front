@@ -105,7 +105,7 @@ function Lobby() {
 
   const handleReadyClick = useCallback(() => {
     if (!findSession.data || !user || setReady.loading) return;
-    setReady.trigger({ userId: user.uid });
+    setReady.trigger({ userId: user.uid, ready: true });
   }, [findSession.data, user, setReady]);
 
   const handleForceSwap = useCallback(() => {

@@ -125,6 +125,7 @@ export function useGetLobby(request: SWRKey<GetInfoRequest>): SWRState<GetInfoRe
 
 interface ReadyRequest {
   userId: string
+  ready: boolean
 }
 
 async function readyFetcher(request: ReadyRequest): Promise<void> {
@@ -134,7 +135,7 @@ async function readyFetcher(request: ReadyRequest): Promise<void> {
     body: JSON.stringify(request)
   });
   if (!res.ok) return Promise.reject(res.statusText);
-  return res.json();
+  return Promise.resolve();
 }
 
 export function useReady() {
