@@ -1,6 +1,5 @@
-import useSWR from "swr";
 import { API_URL_SESSION } from ".";
-import { useFetch, SWRState, SWRKey } from "..";
+import { useFetch, useWebSocketReceive, SWRState, SWRKey } from "..";
 import { PlayerDirection } from "@/app/game/gameModels";
 
 export const API_URL_SESSION_LOBBY = `${API_URL_SESSION}/lobby`;
@@ -110,15 +109,8 @@ export interface GetInfoResponse {
   started: boolean
 }
 
-async function getLobbyFetcher(request: GetInfoRequest): Promise<GetInfoResponse> {
-  const res = await fetch(`${API_URL_SESSION_LOBBY}/info?sessionId=${request.sessionId}`);
-  if (!res.ok) return Promise.reject(res.statusText);
-  return res.json();
-}
-
-export function useGetLobby(request: SWRKey<GetInfoRequest>): SWRState<GetInfoResponse> {
-  const { data, isLoading } = useSWR(request, getLobbyFetcher, { refreshInterval: 100 });
-  return { data, loading: isLoading };
+export function useGetLobby(request: GetInfoRequest | null | undefined): SWRState<GetInfoResponse> {
+  return useWebSocketReceive<GetInfoResponse>(request ? `${API_URL_SESSION_LOBBY}/info?sessionId=${request.sessionId}` : "");
 }
 
 // /ready

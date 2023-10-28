@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -34,4 +34,22 @@ export function useFetch<T, U>(fetcher: (request: T) => Promise<U>): FetchState<
   }, [fetcher, loading]);
 
   return { trigger, data, loading };
+}
+
+export function useWebSocketReceive<T>(url: string): SWRState<T> {
+  const [data, setData] = useState<T | undefined>(undefined);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const socket = new WebSocket(url);
+    socket.onmessage = (event) => {
+      setData(JSON.parse(event.data));
+      setLoading(false);
+    };
+    return () => {
+      socket.close();
+    };
+  }, [url]);
+
+  return { data, loading };
 }
