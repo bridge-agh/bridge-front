@@ -28,8 +28,18 @@ export function diffDirection(a: PlayerDirection, b: PlayerDirection): number {
   return (b - a + 4) % 4;
 }
 
+export function realDirectionToPlayerDirection(realDirection: PlayerDirection, userDirection: PlayerDirection): PlayerDirection {
+  const diff = diffDirection(PlayerDirection.SOUTH, userDirection);
+  return (realDirection + diff) % 4;
+}
+
+export function playerDirectionToRealDirection(playerDirection: PlayerDirection, userDirection: PlayerDirection): PlayerDirection {
+  const diff = diffDirection(PlayerDirection.SOUTH, userDirection);
+  return (playerDirection + 4 - diff) % 4;
+}
+
 export enum CardSuit {
-  CLUBS = 1,
+  CLUBS,
   DIAMONDS,
   HEARTS,
   SPADES,

@@ -1,5 +1,6 @@
 "use client";
 
+import GameController from "@/game_engine/gameController";
 import {
   BidSuit,
   BidTricks,
@@ -8,8 +9,7 @@ import {
   GameStage,
   GameState,
   PlayerDirection
-} from "@/app/game/gameModels";
-import GameController from "@/game_engine/gameController";
+} from "@/game_engine/gameModels";
 import protectRoute from "@/logic/protect_route";
 import { Suspense, useState } from "react";
 import PlayingPage from "./playingPage";
@@ -31,37 +31,15 @@ function Game() {
           suit: BidSuit.CLUBS,
           tricks: BidTricks.THREE,
         },
-        declarer: PlayerDirection.EAST,
+        declarer: PlayerDirection.NORTH,
         multiplier: 1,
       },
       game: {
         round_player: PlayerDirection.EAST,
         round_cards: [],
-        dummy_cards: [
-          { suit: CardSuit.CLUBS, rank: CardRank.ACE },
-          { suit: CardSuit.SPADES, rank: CardRank.TWO },
-          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
-          { suit: CardSuit.CLUBS, rank: CardRank.SIX },
-          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
-          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
-          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
-          { suit: CardSuit.SPADES, rank: CardRank.JACK },
-          { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-          { suit: CardSuit.HEARTS, rank: CardRank.KING },
-        ],
+        dummy_cards: [],
         tricks: {
-          NS: [
-            // {
-            //   round_player: PlayerDirection.NORTH,
-            //   winner: PlayerDirection.NORTH,
-            //   cards: [
-            //     { suit: CardSuit.CLUBS, rank: CardRank.ACE }
-            //   ],
-            // }
-          ],
+          NS: [],
           EW: [],
         },
         hand: [

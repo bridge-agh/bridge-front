@@ -1,13 +1,13 @@
+import ClubSymbol from "@/components/cards/symbols/clubs";
+import DiamondsSymbol from "@/components/cards/symbols/diamonds";
+import HeartsSymbol from "@/components/cards/symbols/hearts";
+import SpadesSymbol from "@/components/cards/symbols/spades";
 import {
   BidSuit,
   BidTricks,
   BiddingObservation,
   TrickBid,
-} from "@/app/game/gameModels";
-import ClubSymbol from "@/components/cards/symbols/clubs";
-import DiamondsSymbol from "@/components/cards/symbols/diamonds";
-import HeartsSymbol from "@/components/cards/symbols/hearts";
-import SpadesSymbol from "@/components/cards/symbols/spades";
+} from "@/game_engine/gameModels";
 import { twMerge } from "tailwind-merge";
 
 function suitToSymbol(suit: BidSuit) {

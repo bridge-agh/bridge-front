@@ -6,7 +6,7 @@ import {
   BiddingObservation,
   GameStage,
   PlayerDirection,
-} from "@/app/game/gameModels";
+} from "@/game_engine/gameModels";
 import { useEffect, useState } from "react";
 
 function BiddingPage() {

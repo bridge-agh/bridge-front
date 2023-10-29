@@ -1,11 +1,13 @@
-import { PlayerDirection, cardToString } from "@/app/game/gameModels";
+import { PlayerDirection, cardToString } from "@/game_engine/gameModels";
 import { easings } from "@react-spring/three";
 import { CardContext } from "../gameController";
-import { PlayerHand, getCleanRoundPosition, getPlayedPosition } from "./cardRenderCalculator";
+import { PlayerHand, getCleanRoundPosition, getDummyShowUpPosition, getPlayedPosition } from "./cardRenderCalculator";
 
 // animation constants
-export const ANIM_TIME = 250;
+export const ANIM_TIME = 800;
 export const ANIM_DELAY = 30;
+export const ANIM_HAND_DELAY = 150;
+export const ANIM_POST_DELAY = 200;
 
 // setTimeout but for animations
 export const requestTimeout = (fn: () => void, delay: number) => {
@@ -57,7 +59,20 @@ export function animateCleanRound(cardContexts: CardContext[], direction: Player
     cardContext.api.start({
       position: playedPosition.position,
       rotation: playedPosition.rotation,
+      config: { duration: ANIM_TIME, easing: easings.easeOutCubic }
+    });
+  });
+}
+
+export function animateDummyShowUp(cardContexts: CardContext[], direction: PlayerDirection) {
+  const playedPosition = getDummyShowUpPosition(direction);
+
+  console.log(cardContexts);
+  cardContexts.forEach((cardContext) => {
+    cardContext.api.start({
+      rotation: [cardContext.props.rotation.get()[0] + playedPosition.rotation[0], cardContext.props.rotation.get()[1] + playedPosition.rotation[1], cardContext.props.rotation.get()[2]],
       config: { duration: ANIM_TIME, easing: easings.easeInOutCubic }
     });
   });
+
 }

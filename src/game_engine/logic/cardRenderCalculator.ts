@@ -1,4 +1,4 @@
-import { Card, GameStage, GameState, PlayerDirection, diffDirection, nextDirection, oppositeDirection, prevDirection } from "@/app/game/gameModels";
+import { Card, GameStage, GameState, PlayerDirection, diffDirection, nextDirection, oppositeDirection, prevDirection } from "@/game_engine/gameModels";
 import { CARD_HEIGHT, CARD_WIDTH } from "../components/gameCard";
 
 // public constants
@@ -8,6 +8,7 @@ export const VERTICAL_CARD_SPACING = .45 * CARD_WIDTH; // TODO: calculate for mo
 export const HORIZONTAL_CARD_Y = 1.45; // TODO: calculate for mobile
 export const VERTICAL_CARD_X = 2.5; // TODO: calculate for mobile
 const MIDDLE_CARD_SHIFT = 0.03;
+const CARD_ROTATION = 0.03;
 
 // interfaces
 
@@ -21,7 +22,7 @@ export interface PlayerHandState {
 
 // support methods
 
-function compareCards(a: Card, b: Card) {
+export function compareCards(a: Card, b: Card) {
   if (a.suit === b.suit) {
     return a.rank < b.rank ? -1 : 1;
   } else {
@@ -37,20 +38,17 @@ function getHandHeight(cardCount: number) {
   return CARD_WIDTH + (cardCount - 1) * VERTICAL_CARD_SPACING;
 }
 
-function getHandCount(player: PlayerDirection, gameState: GameState) {
+export function getHandCount(direction: PlayerDirection, gameState: GameState) {
   if (gameState.base.game_stage === GameStage.BIDDING) return 13;
-  if (player === gameState.base.user_direction) return gameState.game.hand.length;
+  if (direction === gameState.base.user_direction) return gameState.game.hand.length;
   // if (player === oppositeDirection(gameState.bidding.declarer!)) return gameState.game.dummy_cards.length;
 
   const tricksLeft = 13 - gameState.game.tricks.NS.length - gameState.game.tricks.EW.length;
 
-  return tricksLeft - (gameState.game.round_cards.length >= (diffDirection(gameState.game.round_player, player) + 1) ? 1 : 0);
+  return tricksLeft - (gameState.game.round_cards.length >= (diffDirection(gameState.game.round_player, direction) + 1) ? 1 : 0);
 }
 
-function realDirectionToPlayerDirection(realDirection: PlayerDirection, userDirection: PlayerDirection) {
-  const diff = diffDirection(PlayerDirection.SOUTH, userDirection);
-  return (realDirection + 4 - diff) % 4;
-}
+
 
 
 // public methods
@@ -66,9 +64,8 @@ export interface PlayerHand {
 }
 
 
-export function getHand(gameState: GameState, direction: PlayerDirection, userDirection: PlayerDirection) {
-  const realDirection = realDirectionToPlayerDirection(direction, userDirection);
-  switch (realDirection) {
+export function getHand(gameState: GameState, direction: PlayerDirection) {
+  switch (direction) {
     case PlayerDirection.NORTH:
       return getTopHand(gameState);
     case PlayerDirection.EAST:
@@ -96,14 +93,14 @@ export function getBottomHand(gameState: GameState): PlayerHand {
     return {
       card,
       position: [x, y, z],
-      rotation: [0, 0.03, 0]
+      rotation: [0, CARD_ROTATION, 0]
     };
   });
 
-  console.log("bottom hand");
-  console.log(cardCount);
-  console.log(cards);
-  console.log(canPlay);
+  // console.log("bottom hand");
+  // console.log(cardCount);
+  // console.log(cards);
+  // console.log(canPlay);
 
 
   return {
@@ -136,14 +133,14 @@ export function getTopHand(gameState: GameState): PlayerHand {
     return {
       card,
       position: [x, y, z],
-      rotation: [0, card == null ? Math.PI - 0.03 : -0.03, 0]
+      rotation: [0, card == null ? Math.PI - CARD_ROTATION : -CARD_ROTATION, 0]
     };
   });
 
-  console.log("top hand");
-  console.log(cardCount);
-  console.log(cards);
-  console.log(canPlay);
+  // console.log("top hand");
+  // console.log(cardCount);
+  // console.log(cards);
+  // console.log(canPlay);
 
   return {
     cards,
@@ -172,13 +169,13 @@ export function getLeftHand(gameState: GameState): PlayerHand {
     return {
       card,
       position: [x, y, z],
-      rotation: [0.03, Math.PI, -Math.PI / 2]
+      rotation: [card == null ? CARD_ROTATION : Math.PI + CARD_ROTATION, Math.PI, Math.PI / 2]
     };
   });
 
-  console.log("left hand");
-  console.log(cardCount);
-  console.log(cards);
+  // console.log("left hand");
+  // console.log(cardCount);
+  // console.log(cards);
 
 
   return {
@@ -199,7 +196,7 @@ export function getRightHand(gameState: GameState): PlayerHand {
 
   // if game started, and declarer is facing left hand, and played at least one card, then show dummy cards
   let pregenCards = (declarerDirection != null && (declarerDirection === oppositeDirection(handDirection))
-    && getHandCount(nextDirection(declarerDirection), gameState) < 13) ? [...gameState.game.dummy_cards].sort(compareCards) : Array(cardCount).fill(null);
+    && getHandCount(nextDirection(declarerDirection), gameState) < 13) ? [...gameState.game.dummy_cards].sort(compareCards).reverse() : Array(cardCount).fill(null);
   const cards = pregenCards.map((card, index) => {
     const x = VERTICAL_CARD_X;
     const y = -height / 2 + (cardCount - index - 1) * VERTICAL_CARD_SPACING + CARD_WIDTH / 2;
@@ -208,14 +205,13 @@ export function getRightHand(gameState: GameState): PlayerHand {
     return {
       card,
       position: [x, y, z],
-      // rotation: [card == null ? Math.PI / 2 - 0.03 : -0.03, Math.PI / 2, -Math.PI / 2]
-      rotation: [-0.03, Math.PI, Math.PI / 2]
+      rotation: [card == null ? -CARD_ROTATION : Math.PI - CARD_ROTATION, Math.PI, -Math.PI / 2]
     };
   });
 
-  console.log("right hand");
-  console.log(cardCount);
-  console.log(cards);
+  // console.log("right hand");
+  // console.log(cardCount);
+  // console.log(cards);
 
 
   return {
@@ -236,7 +232,7 @@ export function getPlayedPosition(direction: PlayerDirection) {
     case PlayerDirection.EAST:
       return {
         position: [CARD_HEIGHT / 2 + MIDDLE_CARD_SHIFT, CARD_WIDTH / 2 + MIDDLE_CARD_SHIFT, 0],
-        rotation: [0, 0, Math.PI / 2],
+        rotation: [Math.PI, Math.PI, -Math.PI / 2],
       };
     case PlayerDirection.SOUTH:
       return {
@@ -246,11 +242,10 @@ export function getPlayedPosition(direction: PlayerDirection) {
     case PlayerDirection.WEST:
       return {
         position: [-CARD_HEIGHT / 2 - MIDDLE_CARD_SHIFT, -CARD_WIDTH / 2 - MIDDLE_CARD_SHIFT, 0],
-        rotation: [0, 0, -Math.PI / 2],
+        rotation: [Math.PI, Math.PI, Math.PI / 2],
       };
   }
 }
-
 
 
 export function getCleanRoundPosition(direction: PlayerDirection) {
@@ -276,7 +271,42 @@ export function getCleanRoundPosition(direction: PlayerDirection) {
   }
 
   return {
-    position: [x, y, 0],
-    rotation: [0, 0, -3]
+    position: [x, y, -3],
+    rotation: [0, 0, 0]
+  };
+}
+
+
+export function getDummyShowUpPosition(direction: PlayerDirection) {
+  let x = 0, y = 0, z = 0;
+  let xR = 0, yR = 0, zR = 0;
+
+  switch (direction) {
+    case PlayerDirection.NORTH:
+      // x = -width / 2 + index * HORIZONTAL_CARD_SPACING + CARD_WIDTH / 2;
+      // y = HORIZONTAL_CARD_Y;
+      // z = 0;
+      yR = -Math.PI;
+      break;
+    case PlayerDirection.EAST:
+      // x = VERTICAL_CARD_X + CARD_WIDTH * 2.5;
+      // y = 0;
+      xR = Math.PI;
+      break;
+    case PlayerDirection.SOUTH:
+      // x = 0;
+      // y = -HORIZONTAL_CARD_Y - CARD_HEIGHT * 2.5;
+      break;
+    case PlayerDirection.WEST:
+      // x = -VERTICAL_CARD_X;
+      // y = -getHandHeight(13) / 2 + CARD_WIDTH / 2;
+      // z = 0;
+      xR = Math.PI;
+      break;
+  }
+
+  return {
+    position: [x, y, z],
+    rotation: [xR, yR, zR]
   };
 }

@@ -2,7 +2,7 @@ import {
   BaseObservation,
   BiddingObservation,
   PlayerDirection,
-} from "@/app/game/gameModels";
+} from "@/game_engine/gameModels";
 import { twMerge } from "tailwind-merge";
 
 function BiddingPlayers({
