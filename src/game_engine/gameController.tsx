@@ -280,10 +280,21 @@ export default function GameController({ serverGameState, setGameState, children
           serverGameState.game.tricks.EW[serverGameState.game.tricks.EW.length - 1].cards;
       }
 
+      const localCardCount = localGameState.game.round_cards.length + 4 * (serverGameState.game.tricks.NS.length + serverGameState.game.tricks.EW.length);
+      const serverCardCount = serverGameState.game.round_cards.length + 4 * (serverGameState.game.tricks.NS.length + serverGameState.game.tricks.EW.length);
+
       // case 1 - local > server
-      if (localGameState.game.round_cards.length > serverCardsToCompare.length) {
+      if (localCardCount > serverCardCount) {
         // retry sending request to server
         console.log("not synchronized - retrying request");
+        return;
+      }
+
+      console.log("local: ", localCardCount, " server: ", serverCardCount);
+      console.log("local: ", localGameState.game.round_cards, " server: ", serverCardsToCompare);
+
+      if (_.isEqual(localGameState.game.round_cards[localGameState.game.round_cards.length], serverCardsToCompare[localGameState.game.round_cards.length])) {
+        console.log("desync issue");
         return;
       }
 
