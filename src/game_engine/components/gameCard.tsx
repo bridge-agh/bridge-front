@@ -57,7 +57,7 @@ export function GameCard({ cardFront, position, rotation, scale, onPointerEnter,
       rotation={rotation.to((x, y, z) => [x, y, z])}
       scale={scale}
 
-      onPointerOver={(e) => {
+      onPointerEnter={(e) => {
         e.stopPropagation();
         onPointerEnter();
       }}

@@ -1,4 +1,4 @@
-import { BidSuit, BidTricks, Card, CardRank, CardSuit, GameStage, GameState, PlayerDirection, cardToString, nextDirection, oppositeDirection, playerDirectionToRealDirection } from "@/game_engine/gameModels";
+import { BidSuit, BidTricks, Card, CardRank, CardSuit, GameStage, GameState, PlayerDirection, Trick, cardToString, nextDirection, oppositeDirection, playerDirectionToRealDirection } from "@/game_engine/gameModels";
 import { SpringRef, easings, useSpring } from "@react-spring/three";
 import _ from "lodash";
 import { createContext, useCallback, useEffect, useReducer, useState } from "react";
@@ -48,7 +48,7 @@ enum AssignmentActionType {
 }
 
 interface AssignmentAction {
-  direction: PlayerDirection;
+  direction: PlayerDirection | typeof PLAYED_ASSIGNMENTS;
   type: AssignmentActionType;
   data: CardAssignment | CardAssignment[];
 }
@@ -280,21 +280,22 @@ export default function GameController({ serverGameState, setGameState, children
           serverGameState.game.tricks.EW[serverGameState.game.tricks.EW.length - 1].cards;
       }
 
-      const localCardCount = localGameState.game.round_cards.length + 4 * (serverGameState.game.tricks.NS.length + serverGameState.game.tricks.EW.length);
+      const localCardCount = localGameState.game.round_cards.length + 4 * (localGameState.game.tricks.NS.length + localGameState.game.tricks.EW.length);
       const serverCardCount = serverGameState.game.round_cards.length + 4 * (serverGameState.game.tricks.NS.length + serverGameState.game.tricks.EW.length);
 
       // case 1 - local > server
       if (localCardCount > serverCardCount) {
         // retry sending request to server
-        console.log("not synchronized - retrying request");
+        console.warn("not synchronized - retrying request");
+        setIsAnimating(false);
         return;
       }
 
       console.log("local: ", localCardCount, " server: ", serverCardCount);
-      console.log("local: ", localGameState.game.round_cards, " server: ", serverCardsToCompare);
+      console.log("local: ", localGameState.game.round_cards[localGameState.game.round_cards.length - 1], " server: ", serverCardsToCompare[localGameState.game.round_cards.length - 1]);
 
-      if (_.isEqual(localGameState.game.round_cards[localGameState.game.round_cards.length], serverCardsToCompare[localGameState.game.round_cards.length])) {
-        console.log("desync issue");
+      if (!_.isEqual(localGameState.game.round_cards[localGameState.game.round_cards.length - 1], serverCardsToCompare[localGameState.game.round_cards.length - 1])) {
+        console.error("desync issue");
         return;
       }
 
@@ -483,6 +484,7 @@ export default function GameController({ serverGameState, setGameState, children
 
     requestTimeout(() => {
 
+      // play hands
       const userHand = getBottomHand(localGameState);
       const leftHand = getLeftHand(localGameState);
       const topHand = getTopHand(localGameState);
@@ -508,6 +510,66 @@ export default function GameController({ serverGameState, setGameState, children
 
         globalIndex += hand.cards.length;
       });
+
+
+      let assigns: CardAssignment[] = [];
+
+      // play round cards
+      let direction = localGameState.game.round_player;
+      localGameState.game.round_cards.forEach((card, index) => {
+        const assign = {
+          card: card,
+          index: globalIndex + index,
+        };
+        assigns.push(assign);
+
+        console.log(assign);
+
+        dispatchCardContext({
+          index: assign.index, state: { ...cardContexts[assign.index], cardFront: cardToString(assign.card!) }
+        });
+
+        const realDirection = playerDirectionToRealDirection(direction, localGameState.base.user_direction);
+
+        requestTimeout(() => {
+          animateCardPlay(cardContexts[assign.index], realDirection);
+        }, ANIM_DELAY * (globalIndex - 1));
+
+        direction = nextDirection(direction);
+      });
+
+      globalIndex += localGameState.game.round_cards.length;
+
+
+      // remove played tricks from view
+      const hideTrick = (trick: Trick) => {
+        trick.cards.forEach((card, index) => {
+          const assign = {
+            card: card,
+            index: globalIndex + index,
+          };
+          assigns.push(assign);
+
+          cardContexts[assign.index].api.start({
+            scale: 0,
+            config: { duration: 0 }
+          });
+        });
+
+        globalIndex += trick.cards.length;
+      };
+      localGameState.game.tricks.NS.forEach(hideTrick);
+      localGameState.game.tricks.EW.forEach(hideTrick);
+
+
+      dispatchCardAssignments({
+        state: {
+          direction: PLAYED_ASSIGNMENTS,
+          type: AssignmentActionType.ASSIGN_BATCH,
+          data: assigns,
+        }
+      });
+
 
       requestTimeout(() => {
         if (localGameState.base.current_player === localGameState.base.user_direction) { // also allow when user can play dummys card
@@ -541,7 +603,7 @@ export default function GameController({ serverGameState, setGameState, children
 
   // DEBUG
 
-  const [gameStates] = useState<GameState[]>([
+  const [gameStates, setGameStates] = useState<GameState[]>([
     // {
     //   base: {
     //     game_stage: GameStage.PLAYING,
@@ -652,6 +714,77 @@ export default function GameController({ serverGameState, setGameState, children
     //     ],
     //   },
     // },
+    // {
+    //   base: {
+    //     game_stage: GameStage.PLAYING,
+    //     current_player: PlayerDirection.NORTH,
+    //     user_direction: PlayerDirection.EAST,
+    //   },
+    //   bidding: {
+    //     first_dealer: PlayerDirection.WEST,
+    //     bid_history: [],
+    //     bid: {
+    //       suit: BidSuit.CLUBS,
+    //       tricks: BidTricks.THREE,
+    //     },
+    //     declarer: PlayerDirection.NORTH,
+    //     multiplier: 1,
+    //   },
+    //   game: {
+    //     round_player: PlayerDirection.WEST,
+    //     round_cards: [
+    //       { suit: CardSuit.SPADES, rank: CardRank.FOUR },
+    //     ],
+    //     dummy_cards: [
+    //       { suit: CardSuit.CLUBS, rank: CardRank.SIX },
+    //       { suit: CardSuit.SPADES, rank: CardRank.TWO },
+    //       { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+    //       { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+    //       { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+    //       { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+    //       { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+    //       { suit: CardSuit.SPADES, rank: CardRank.JACK },
+    //       { suit: CardSuit.HEARTS, rank: CardRank.KING },
+    //     ],
+    //     tricks: {
+    //       NS: [{
+    //         round_player: PlayerDirection.EAST,
+    //         winner: PlayerDirection.SOUTH,
+    //         cards: [
+    //           { suit: CardSuit.CLUBS, rank: CardRank.SIX },
+    //           { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+    //           { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+    //           { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+    //         ]
+    //       }],
+    //       EW: [{
+    //         round_player: PlayerDirection.SOUTH,
+    //         winner: PlayerDirection.WEST,
+    //         cards: [
+    //           { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+    //           { suit: CardSuit.CLUBS, rank: CardRank.SEVEN },
+    //           { suit: CardSuit.DIAMONDS, rank: CardRank.THREE },
+    //           { suit: CardSuit.HEARTS, rank: CardRank.KING },
+    //         ]
+    //       }],
+    //     },
+    //     hand: [
+    //       { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+    //       { suit: CardSuit.SPADES, rank: CardRank.TWO },
+    //       { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+    //       { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+    //       { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+    //       { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+    //       { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+    //       { suit: CardSuit.SPADES, rank: CardRank.JACK },
+    //       { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+    //     ],
+    //   },
+    // },
     {
       base: {
         game_stage: GameStage.PLAYING,
@@ -669,11 +802,10 @@ export default function GameController({ serverGameState, setGameState, children
         multiplier: 1,
       },
       game: {
-        round_player: PlayerDirection.SOUTH,
+        round_player: PlayerDirection.WEST,
         round_cards: [
-          { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-          { suit: CardSuit.CLUBS, rank: CardRank.SEVEN },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.THREE },
+          { suit: CardSuit.SPADES, rank: CardRank.FOUR },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.JACK },
         ],
         dummy_cards: [
           { suit: CardSuit.CLUBS, rank: CardRank.SIX },
@@ -699,7 +831,16 @@ export default function GameController({ serverGameState, setGameState, children
               { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
             ]
           }],
-          EW: [],
+          EW: [{
+            round_player: PlayerDirection.SOUTH,
+            winner: PlayerDirection.WEST,
+            cards: [
+              { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+              { suit: CardSuit.CLUBS, rank: CardRank.SEVEN },
+              { suit: CardSuit.DIAMONDS, rank: CardRank.THREE },
+              { suit: CardSuit.HEARTS, rank: CardRank.KING },
+            ]
+          }],
         },
         hand: [
           { suit: CardSuit.CLUBS, rank: CardRank.ACE },
@@ -713,18 +854,95 @@ export default function GameController({ serverGameState, setGameState, children
           { suit: CardSuit.HEARTS, rank: CardRank.TEN },
           { suit: CardSuit.SPADES, rank: CardRank.JACK },
           { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+        ],
+      },
+    },
+    {
+      base: {
+        game_stage: GameStage.PLAYING,
+        current_player: PlayerDirection.EAST,
+        user_direction: PlayerDirection.EAST,
+      },
+      bidding: {
+        first_dealer: PlayerDirection.WEST,
+        bid_history: [],
+        bid: {
+          suit: BidSuit.CLUBS,
+          tricks: BidTricks.THREE,
+        },
+        declarer: PlayerDirection.NORTH,
+        multiplier: 1,
+      },
+      game: {
+        round_player: PlayerDirection.EAST,
+        round_cards: [
+        ],
+        dummy_cards: [
+          { suit: CardSuit.CLUBS, rank: CardRank.SIX },
+          { suit: CardSuit.SPADES, rank: CardRank.TWO },
+          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
           { suit: CardSuit.HEARTS, rank: CardRank.KING },
+        ],
+        tricks: {
+          NS: [{
+            round_player: PlayerDirection.EAST,
+            winner: PlayerDirection.SOUTH,
+            cards: [
+              { suit: CardSuit.CLUBS, rank: CardRank.SIX },
+              { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+              { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+              { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+            ]
+          }],
+          EW: [
+            {
+              round_player: PlayerDirection.SOUTH,
+              winner: PlayerDirection.WEST,
+              cards: [
+                { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+                { suit: CardSuit.CLUBS, rank: CardRank.SEVEN },
+                { suit: CardSuit.DIAMONDS, rank: CardRank.THREE },
+                { suit: CardSuit.HEARTS, rank: CardRank.KING },
+              ]
+            },
+            {
+              round_player: PlayerDirection.WEST,
+              winner: PlayerDirection.EAST,
+              cards: [
+                { suit: CardSuit.SPADES, rank: CardRank.FOUR },
+                { suit: CardSuit.DIAMONDS, rank: CardRank.JACK },
+                { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+                { suit: CardSuit.SPADES, rank: CardRank.JACK },
+              ]
+            }
+          ],
+        },
+        hand: [
+          { suit: CardSuit.SPADES, rank: CardRank.TWO },
+          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+          { suit: CardSuit.SPADES, rank: CardRank.JACK },
+          { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
         ],
       },
     },
   ]);
 
-  useEffect(() => {
-    console.log("server game states changed!!!");
-  }, [serverGameState]);
-
   const updateGameState = useCallback(() => {
     const state = gameStates.shift();
+    console.log("new state: ", state);
+    setGameStates(gameStates.slice());
     if (state) {
       setGameState(state);
     }

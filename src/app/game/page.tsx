@@ -35,11 +35,36 @@ function Game() {
         multiplier: 1,
       },
       game: {
-        round_player: PlayerDirection.EAST,
-        round_cards: [],
-        dummy_cards: [],
+        round_player: PlayerDirection.SOUTH,
+        round_cards: [
+          { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+          { suit: CardSuit.CLUBS, rank: CardRank.SEVEN },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.THREE },
+        ],
+        dummy_cards: [
+          { suit: CardSuit.CLUBS, rank: CardRank.SIX },
+          { suit: CardSuit.SPADES, rank: CardRank.TWO },
+          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+          { suit: CardSuit.SPADES, rank: CardRank.JACK },
+          { suit: CardSuit.HEARTS, rank: CardRank.KING },
+        ],
         tricks: {
-          NS: [],
+          NS: [{
+            round_player: PlayerDirection.EAST,
+            winner: PlayerDirection.SOUTH,
+            cards: [
+              { suit: CardSuit.CLUBS, rank: CardRank.SIX },
+              { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+              { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+              { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+            ]
+          }],
           EW: [],
         },
         hand: [
@@ -48,7 +73,6 @@ function Game() {
           { suit: CardSuit.CLUBS, rank: CardRank.THREE },
           { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
           { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
-          { suit: CardSuit.CLUBS, rank: CardRank.SIX },
           { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
           { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
           { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
@@ -58,7 +82,7 @@ function Game() {
           { suit: CardSuit.HEARTS, rank: CardRank.KING },
         ],
       },
-    }
+    },
   );
 
   return (

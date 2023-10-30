@@ -97,12 +97,6 @@ export function getBottomHand(gameState: GameState): PlayerHand {
     };
   });
 
-  // console.log("bottom hand");
-  // console.log(cardCount);
-  // console.log(cards);
-  // console.log(canPlay);
-
-
   return {
     cards,
     canPlay,
@@ -137,11 +131,6 @@ export function getTopHand(gameState: GameState): PlayerHand {
     };
   });
 
-  // console.log("top hand");
-  // console.log(cardCount);
-  // console.log(cards);
-  // console.log(canPlay);
-
   return {
     cards,
     canPlay,
@@ -173,11 +162,6 @@ export function getLeftHand(gameState: GameState): PlayerHand {
     };
   });
 
-  // console.log("left hand");
-  // console.log(cardCount);
-  // console.log(cards);
-
-
   return {
     cards,
     canPlay: false,
@@ -208,11 +192,6 @@ export function getRightHand(gameState: GameState): PlayerHand {
       rotation: [card == null ? -CARD_ROTATION : Math.PI - CARD_ROTATION, Math.PI, -Math.PI / 2]
     };
   });
-
-  // console.log("right hand");
-  // console.log(cardCount);
-  // console.log(cards);
-
 
   return {
     cards,
@@ -254,24 +233,24 @@ export function getCleanRoundPosition(direction: PlayerDirection) {
   switch (direction) {
     case PlayerDirection.NORTH:
       x = 0;
-      y = HORIZONTAL_CARD_Y + CARD_HEIGHT * 2.5;
+      y = HORIZONTAL_CARD_Y + CARD_HEIGHT * 2;
       break;
     case PlayerDirection.EAST:
-      x = VERTICAL_CARD_X + CARD_WIDTH * 2.5;
+      x = VERTICAL_CARD_X + CARD_WIDTH * 2;
       y = 0;
       break;
     case PlayerDirection.SOUTH:
       x = 0;
-      y = -HORIZONTAL_CARD_Y - CARD_HEIGHT * 2.5;
+      y = -HORIZONTAL_CARD_Y - CARD_HEIGHT * 2;
       break;
     case PlayerDirection.WEST:
-      x = -VERTICAL_CARD_X - CARD_WIDTH * 2.5;
+      x = -VERTICAL_CARD_X - CARD_WIDTH * 2;
       y = 0;
       break;
   }
 
   return {
-    position: [x, y, -3],
+    position: [x, y, -0.3],
     rotation: [0, 0, 0]
   };
 }
