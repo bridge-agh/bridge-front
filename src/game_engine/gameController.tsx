@@ -1,4 +1,5 @@
 import { BidSuit, BidTricks, Card, CardRank, CardSuit, GameStage, GameState, PlayerDirection, Trick, cardToString, nextDirection, oppositeDirection, playerDirectionToRealDirection } from "@/game_engine/gameModels";
+import { logger } from "@/logic/logger";
 import { SpringRef, easings, useSpring } from "@react-spring/three";
 import _ from "lodash";
 import { createContext, useCallback, useEffect, useReducer, useState } from "react";
@@ -92,7 +93,9 @@ function cleanRound(localGameState: GameState) {
   let winningCard = localGameState.game.round_cards[0];
   let winningPlayerIndex = 0;
 
-  console.log("winningpl: ", winningPlayerIndex, " and winnindcr: ", winningCard);
+  logger.debug("Calculating winner of round.");
+
+  logger.debug(`winning player index: ${winningPlayerIndex} | winning card: ${cardToString(winningCard)}`);
 
   for (let i = 1; i < localGameState.game.round_cards.length; i++) {
     const card = localGameState.game.round_cards[i];
@@ -107,7 +110,7 @@ function cleanRound(localGameState: GameState) {
       winningPlayerIndex = i;
     }
 
-    console.log("winningpl: ", winningPlayerIndex, " and winnindcr: ", winningCard);
+    logger.debug(`winning player index: ${winningPlayerIndex} | winning card: ${cardToString(winningCard)}`);
   }
 
   let winningDirection = localGameState.game.round_player;
@@ -196,6 +199,8 @@ export default function GameController({ serverGameState, setGameState, children
     setIsAnimating(true);
     setCanUserInteract(false);
 
+    logger.debug("Locking user interface.");
+
     const handDirection = localGameState.base.current_player;
     const userDirection = localGameState.base.user_direction;
     const springIndex = springCard.index;
@@ -239,10 +244,12 @@ export default function GameController({ serverGameState, setGameState, children
         .map(assign => assign.index), dispatchCardContext, cardContexts, 0, easings.easeInOutExpo);
     }, ANIM_HAND_DELAY);
 
+    logger.debug(`Played card ${cardToString(cardAssign.card!)} by ${handDirection}`);
 
     requestTimeout(() => {
       localGameState.base.current_player = nextDirection(localGameState.base.current_player);
-      console.log(localGameState);
+
+      logger.debug("State after play: ", _.cloneDeep(localGameState));
 
       setLocalGameState(localGameState);
       setIsAnimating(false);
@@ -256,17 +263,14 @@ export default function GameController({ serverGameState, setGameState, children
     let animTimeCount = 0;
     let loop = 0;
 
-    console.log("processing difference");
-    console.log(serverGameState);
-    console.log(localGameState);
+    logger.info("Parsing difference...");
 
     while (!_.isEqual(serverGameState, localGameState)) {
-      console.log("loop nr: ", loop);
       loop++;
-      if (loop > 10) {
-        console.log("looping too much");
-        console.log(serverGameState);
-        console.log(localGameState);
+      if (loop > 100) {
+        logger.error("Loop limit reached in parsing process!");
+        logger.error("server state: ", _.cloneDeep(serverGameState));
+        logger.error("local state: ", _.cloneDeep(localGameState));
         break;
       }
 
@@ -286,22 +290,25 @@ export default function GameController({ serverGameState, setGameState, children
       // case 1 - local > server
       if (localCardCount > serverCardCount) {
         // retry sending request to server
-        console.warn("not synchronized - retrying request");
+        logger.warn("State not synchronized. User's state is ahead of server's state. Retry sending move request to server or request updated state from server.");
         setIsAnimating(false);
         return;
       }
 
-      console.log("local: ", localCardCount, " server: ", serverCardCount);
-      console.log("local: ", localGameState.game.round_cards[localGameState.game.round_cards.length - 1], " server: ", serverCardsToCompare[localGameState.game.round_cards.length - 1]);
+      logger.debug(`localCardCount: ${localCardCount} | serverCardCount: ${serverCardCount}`);
+      const localLastCard = localGameState.game.round_cards[localGameState.game.round_cards.length - 1];
+      const serverLastCard = serverCardsToCompare[localGameState.game.round_cards.length - 1];
+      logger.debug(`localLastCard: ${localLastCard ? cardToString(localLastCard) : "not played"} | serverLastCard: ${serverLastCard ? cardToString(serverLastCard) : "not played"}`);
 
       if (!_.isEqual(localGameState.game.round_cards[localGameState.game.round_cards.length - 1], serverCardsToCompare[localGameState.game.round_cards.length - 1])) {
-        console.error("desync issue");
+        logger.error("Desync detected! Card played by user is not the same on the server.");
         return;
       }
 
       // case 2 - dummy cards
       if (localGameState.game.tricks.NS.length + localGameState.game.tricks.EW.length <= 1 && localGameState.game.dummy_cards.length === 0 && localGameState.game.round_cards.length > 0) {
-        console.log("dummy case fired");
+        logger.debug("Dummy cards case fired.");
+
         localGameState.game.dummy_cards = [...serverGameState.game.dummy_cards];
 
         if (localGameState.game.dummy_cards.length !== 13) {
@@ -328,9 +335,10 @@ export default function GameController({ serverGameState, setGameState, children
 
         const assigns = [...cardAssignmentsCopy[dummyHand]];
 
-        console.log(cardContextsCopy);
-        console.log(cardAssignmentsCopy);
         setTimeout(() => {
+
+          logger.debug("Showing dummy cards.");
+
           // update real card context state
           contexts.forEach((context) => {
             dispatchCardContext({
@@ -353,11 +361,13 @@ export default function GameController({ serverGameState, setGameState, children
         }, animTimeCount);
 
         animTimeCount += (ANIM_TIME + ANIM_POST_DELAY);
+
+        logger.debug("State after dummy showcase: ", _.cloneDeep(localGameState));
       }
 
       // case 3 - local < server
       if (localGameState.game.round_cards.length < serverCardsToCompare.length) {
-        console.log("local < server case fired");
+        logger.debug("local < server case fired");
 
         // next card played by server
         const card = serverCardsToCompare[localGameState.game.round_cards.length];
@@ -380,8 +390,6 @@ export default function GameController({ serverGameState, setGameState, children
           cardAssign.card = card;
         }
 
-        console.log(cardAssign);
-
         localGameState.game.round_cards.push(cardAssign!.card!);
 
         // update card and assignment context
@@ -394,6 +402,8 @@ export default function GameController({ serverGameState, setGameState, children
         const assigns = [...cardAssignmentsCopy[handDirection]];
 
         requestTimeout(() => {
+          logger.debug(`Played card ${cardToString(cardAssign!.card!)} by ${PlayerDirection[handDirection]}`);
+
           // update real card context state
           dispatchCardContext({
             index: cardAssign!.index, state: { ...cardContexts[cardAssign!.index], cardFront: cardContextsCopy[cardAssign!.index].cardFront }
@@ -422,35 +432,43 @@ export default function GameController({ serverGameState, setGameState, children
 
         // update next player
         localGameState.base.current_player = nextDirection(localGameState.base.current_player);
+
+        logger.debug(`State after ${PlayerDirection[handDirection]}'s play: `, _.cloneDeep(localGameState));
       }
 
       // case 4 - 4 cards
       if (localGameState.game.round_cards.length === 4 && localGameState.game.round_cards.length === serverCardsToCompare.length) {
-        console.log("4 cards case fired");
+        logger.debug("4 cards case fired");
 
         const assigns = cardAssignmentsCopy[PLAYED_ASSIGNMENTS].filter((assign) => _.some(localGameState.game.round_cards, (card) => _.isEqual(card, assign.card!)));
         const contexts = cardContexts.filter((context) => assigns.map(a => a.index).includes(context.index));
-
-        console.log(assigns);
-        console.log(contexts);
 
         localGameState = cleanRound(localGameState);
 
         const winningDirection = localGameState.game.round_player;
 
+
         requestTimeout(() => {
+          logger.info(`Round finished. Winner of round is ${PlayerDirection[winningDirection]}`);
+
           animateCleanRound(contexts, playerDirectionToRealDirection(winningDirection, localGameState.base.user_direction));
         }, animTimeCount);
 
         animTimeCount += (ANIM_TIME + ANIM_POST_DELAY);
+
+        logger.debug(`State after ${PlayerDirection[winningDirection]} winning the round: `, _.cloneDeep(localGameState));
       }
     }
 
     requestTimeout(() => {
+      logger.info("State synchronization finished.");
+
       setLocalGameState(localGameState);
       setIsAnimating(false);
 
       if (localGameState.base.current_player === localGameState.base.user_direction) {// also allow when user can play dummys card
+        logger.debug("Unlocking user interface.");
+
         cardAssignmentsCopy[localGameState.base.user_direction].forEach((cardAssignment) => {
           dispatchCardState({ index: cardAssignment.index, state: { disabled: false } });
         });
@@ -459,19 +477,16 @@ export default function GameController({ serverGameState, setGameState, children
 
         // enable specific cards
       }
-
-      console.log("finished processing difference - unlocking interface");
     }, animTimeCount);
   }, [cardAssignments, cardContexts]);
 
   useEffect(() => {
     if (canUserInteract || isAnimating) return;
-    console.log("fired");
 
     if (!_.isEqual(serverGameState, localGameState)) {
-      console.log("found game state difference - parsing...");
-      console.log(serverGameState);
-      console.log(localGameState);
+      logger.info("Detetected difference between server and local game state.");
+      logger.debug("server state: ", _.cloneDeep(serverGameState));
+      logger.debug("local state: ", _.cloneDeep(localGameState));
 
       setIsAnimating(true);
       processDifference(serverGameState, localGameState);
@@ -481,6 +496,8 @@ export default function GameController({ serverGameState, setGameState, children
   // initial game state
   useEffect(() => {
     setLocalGameState(serverGameState);
+
+    logger.info("Initializing game...");
 
     requestTimeout(() => {
 
@@ -492,6 +509,9 @@ export default function GameController({ serverGameState, setGameState, children
 
       let globalIndex = 0;
       [userHand, leftHand, topHand, rightHand].forEach((hand) => {
+
+        logger.debug(`Assigning hand ${PlayerDirection[hand.direction]} with ${hand.cards.length} cards | ${hand.cards.map(o => cardToString(o.card)).join(", ")}`);
+
         dispatchCardAssignments({
           state: {
             direction: hand.direction,
@@ -516,14 +536,13 @@ export default function GameController({ serverGameState, setGameState, children
 
       // play round cards
       let direction = localGameState.game.round_player;
+      logger.debug(`Assigning round cards ${localGameState.game.round_cards.map(cardToString).join(", ")}`);
       localGameState.game.round_cards.forEach((card, index) => {
         const assign = {
           card: card,
           index: globalIndex + index,
         };
         assigns.push(assign);
-
-        console.log(assign);
 
         dispatchCardContext({
           index: assign.index, state: { ...cardContexts[assign.index], cardFront: cardToString(assign.card!) }
@@ -543,6 +562,9 @@ export default function GameController({ serverGameState, setGameState, children
 
       // remove played tricks from view
       const hideTrick = (trick: Trick) => {
+
+        logger.debug(`Removing ${PlayerDirection[trick.winner]}'s trick of ${trick.cards.map(cardToString).join(", ")} from view`);
+
         trick.cards.forEach((card, index) => {
           const assign = {
             card: card,
@@ -573,12 +595,16 @@ export default function GameController({ serverGameState, setGameState, children
 
       requestTimeout(() => {
         if (localGameState.base.current_player === localGameState.base.user_direction) { // also allow when user can play dummys card
+          logger.debug("Unlocking user interface.");
+
           setCanUserInteract(true);
 
           // enable specific cards
         }
 
         setIsAnimating(false);
+
+        logger.info("Game initialized");
       }, ANIM_DELAY * (globalIndex - 1) + ANIM_TIME);
     }, 250);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -604,187 +630,6 @@ export default function GameController({ serverGameState, setGameState, children
   // DEBUG
 
   const [gameStates, setGameStates] = useState<GameState[]>([
-    // {
-    //   base: {
-    //     game_stage: GameStage.PLAYING,
-    //     current_player: PlayerDirection.SOUTH,
-    //     user_direction: PlayerDirection.EAST,
-    //   },
-    //   bidding: {
-    //     first_dealer: PlayerDirection.WEST,
-    //     bid_history: [],
-    //     bid: {
-    //       suit: BidSuit.CLUBS,
-    //       tricks: BidTricks.THREE,
-    //     },
-    //     declarer: PlayerDirection.NORTH,
-    //     multiplier: 1,
-    //   },
-    //   game: {
-    //     round_player: PlayerDirection.EAST,
-    //     round_cards: [{ suit: CardSuit.CLUBS, rank: CardRank.ACE }],
-    //     dummy_cards: [
-    //       { suit: CardSuit.CLUBS, rank: CardRank.ACE },
-    //       { suit: CardSuit.SPADES, rank: CardRank.TWO },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.THREE },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.SIX },
-    //       { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
-    //       { suit: CardSuit.HEARTS, rank: CardRank.TEN },
-    //       { suit: CardSuit.SPADES, rank: CardRank.JACK },
-    //       { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-    //       { suit: CardSuit.HEARTS, rank: CardRank.KING },
-    //     ],
-    //     tricks: {
-    //       NS: [],
-    //       EW: [],
-    //     },
-    //     hand: [
-    //       { suit: CardSuit.SPADES, rank: CardRank.TWO },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.THREE },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.SIX },
-    //       { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
-    //       { suit: CardSuit.HEARTS, rank: CardRank.TEN },
-    //       { suit: CardSuit.SPADES, rank: CardRank.JACK },
-    //       { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-    //       { suit: CardSuit.HEARTS, rank: CardRank.KING },
-    //     ],
-    //   },
-    // },
-    // {
-    //   base: {
-    //     game_stage: GameStage.PLAYING,
-    //     current_player: PlayerDirection.WEST,
-    //     user_direction: PlayerDirection.EAST,
-    //   },
-    //   bidding: {
-    //     first_dealer: PlayerDirection.WEST,
-    //     bid_history: [],
-    //     bid: {
-    //       suit: BidSuit.CLUBS,
-    //       tricks: BidTricks.THREE,
-    //     },
-    //     declarer: PlayerDirection.NORTH,
-    //     multiplier: 1,
-    //   },
-    //   game: {
-    //     round_player: PlayerDirection.EAST,
-    //     round_cards: [
-    //       { suit: CardSuit.CLUBS, rank: CardRank.ACE },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.SIX },
-    //     ],
-    //     dummy_cards: [
-    //       { suit: CardSuit.CLUBS, rank: CardRank.ACE },
-    //       { suit: CardSuit.SPADES, rank: CardRank.TWO },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.THREE },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
-    //       { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
-    //       { suit: CardSuit.HEARTS, rank: CardRank.TEN },
-    //       { suit: CardSuit.SPADES, rank: CardRank.JACK },
-    //       { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-    //       { suit: CardSuit.HEARTS, rank: CardRank.KING },
-    //     ],
-    //     tricks: {
-    //       NS: [],
-    //       EW: [],
-    //     },
-    //     hand: [
-    //       { suit: CardSuit.SPADES, rank: CardRank.TWO },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.THREE },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.SIX },
-    //       { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
-    //       { suit: CardSuit.HEARTS, rank: CardRank.TEN },
-    //       { suit: CardSuit.SPADES, rank: CardRank.JACK },
-    //       { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-    //       { suit: CardSuit.HEARTS, rank: CardRank.KING },
-    //     ],
-    //   },
-    // },
-    // {
-    //   base: {
-    //     game_stage: GameStage.PLAYING,
-    //     current_player: PlayerDirection.NORTH,
-    //     user_direction: PlayerDirection.EAST,
-    //   },
-    //   bidding: {
-    //     first_dealer: PlayerDirection.WEST,
-    //     bid_history: [],
-    //     bid: {
-    //       suit: BidSuit.CLUBS,
-    //       tricks: BidTricks.THREE,
-    //     },
-    //     declarer: PlayerDirection.NORTH,
-    //     multiplier: 1,
-    //   },
-    //   game: {
-    //     round_player: PlayerDirection.WEST,
-    //     round_cards: [
-    //       { suit: CardSuit.SPADES, rank: CardRank.FOUR },
-    //     ],
-    //     dummy_cards: [
-    //       { suit: CardSuit.CLUBS, rank: CardRank.SIX },
-    //       { suit: CardSuit.SPADES, rank: CardRank.TWO },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.THREE },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
-    //       { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
-    //       { suit: CardSuit.HEARTS, rank: CardRank.TEN },
-    //       { suit: CardSuit.SPADES, rank: CardRank.JACK },
-    //       { suit: CardSuit.HEARTS, rank: CardRank.KING },
-    //     ],
-    //     tricks: {
-    //       NS: [{
-    //         round_player: PlayerDirection.EAST,
-    //         winner: PlayerDirection.SOUTH,
-    //         cards: [
-    //           { suit: CardSuit.CLUBS, rank: CardRank.SIX },
-    //           { suit: CardSuit.CLUBS, rank: CardRank.ACE },
-    //           { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-    //           { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-    //         ]
-    //       }],
-    //       EW: [{
-    //         round_player: PlayerDirection.SOUTH,
-    //         winner: PlayerDirection.WEST,
-    //         cards: [
-    //           { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-    //           { suit: CardSuit.CLUBS, rank: CardRank.SEVEN },
-    //           { suit: CardSuit.DIAMONDS, rank: CardRank.THREE },
-    //           { suit: CardSuit.HEARTS, rank: CardRank.KING },
-    //         ]
-    //       }],
-    //     },
-    //     hand: [
-    //       { suit: CardSuit.CLUBS, rank: CardRank.ACE },
-    //       { suit: CardSuit.SPADES, rank: CardRank.TWO },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.THREE },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
-    //       { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
-    //       { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-    //       { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
-    //       { suit: CardSuit.HEARTS, rank: CardRank.TEN },
-    //       { suit: CardSuit.SPADES, rank: CardRank.JACK },
-    //       { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-    //     ],
-    //   },
-    // },
     {
       base: {
         game_stage: GameStage.PLAYING,
@@ -941,13 +786,14 @@ export default function GameController({ serverGameState, setGameState, children
 
   const updateGameState = useCallback(() => {
     const state = gameStates.shift();
-    console.log("new state: ", state);
+
+    logger.debug("Simulating game state", state);
+
     setGameStates(gameStates.slice());
     if (state) {
       setGameState(state);
     }
-    console.log(serverGameState);
-  }, [gameStates, serverGameState, setGameState]);
+  }, [gameStates, setGameState]);
 
 
   return (
