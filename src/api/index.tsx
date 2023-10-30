@@ -1,13 +1,13 @@
-import { API_URL, useFetch } from "@/api/utils";
+import { useFetch } from "@/api/utils";
 import getIdToken from "@/logic/get_id_token";
 
-export const API_URL_SESSION = `${API_URL}/session`;
+export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // /heartbeat
 
-async function heartbeatFetcher(ignored: undefined): Promise<void> {
+async function heartbeatFetcher(unused: void): Promise<void> {
   const token = await getIdToken();
-  const res = await fetch(`${API_URL_SESSION}/heartbeat`, {
+  const res = await fetch(`${API_URL}/heartbeat`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -15,7 +15,7 @@ async function heartbeatFetcher(ignored: undefined): Promise<void> {
     },
   });
   if (!res.ok) return Promise.reject(res.statusText);
-  return res.json();
+  return Promise.resolve();
 }
 
 export function useHeartbeat() {

@@ -11,7 +11,7 @@ export interface CreateLobbyResponse {
   sessionId: string
 }
 
-async function createLobbyFetcher(unused: undefined): Promise<CreateLobbyResponse> {
+async function createLobbyFetcher(unused: void): Promise<CreateLobbyResponse> {
   const token = await getIdToken();
   const res = await fetch(`${API_URL_SESSION_LOBBY}/create`, {
     method: "POST",
