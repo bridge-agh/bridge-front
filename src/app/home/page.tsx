@@ -3,14 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { useCreateLobby, useJoinLobby } from "@/api/session/lobby";
-import useUser from "@/logic/use_user";
 import protectRoute from "@/logic/protect_route";
 
 function Home() {
   const router = useRouter();
   const createLobby = useCreateLobby();
   const joinLobby = useJoinLobby();
-  const { user } = useUser();
   const [targetLobbyId, setTargetLobbyId] = useState<string>("");
 
   const goToLobby = useCallback(() => {
@@ -18,18 +16,18 @@ function Home() {
   }, [router]);
 
   const onClickCreate = useCallback(() => {
-    if (!user || createLobby.loading || joinLobby.loading) {
+    if (createLobby.loading || joinLobby.loading) {
       return;
     }
-    createLobby.trigger({hostId: user.uid}).then(goToLobby);
-  }, [createLobby, joinLobby, goToLobby, user]);
+    createLobby.trigger(undefined).then(goToLobby);
+  }, [createLobby, joinLobby, goToLobby]);
 
   const onClickJoin = useCallback(() => {
-    if (!user || !targetLobbyId || createLobby.loading || joinLobby.loading) {
+    if (!targetLobbyId || createLobby.loading || joinLobby.loading) {
       return;
     }
-    joinLobby.trigger({sessionId: targetLobbyId, userId: user.uid}).then(goToLobby);
-  }, [joinLobby, createLobby, goToLobby, user, targetLobbyId]);
+    joinLobby.trigger({sessionId: targetLobbyId}).then(goToLobby);
+  }, [joinLobby, createLobby, goToLobby, targetLobbyId]);
 
   useEffect(() => {
     router.prefetch("/lobby");
