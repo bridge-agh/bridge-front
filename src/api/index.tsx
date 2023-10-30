@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -41,7 +41,11 @@ export function useWebSocketReceive<T>(url: string): SWRState<T> {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const socket = new WebSocket(url);
+    if (!url) return;
+
+    let new_url = url.replace(/^http/, "ws");
+
+    const socket = new WebSocket(new_url);
     socket.onmessage = (event) => {
       setData(JSON.parse(event.data));
       setLoading(false);
