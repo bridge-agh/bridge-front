@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import useWebSocket from "react-use-websocket";
 import getIdToken from "@/logic/get_id_token";
 
 export interface FetchState<T, U> {
@@ -36,27 +37,22 @@ export function useFetch<T, U>(fetcher: (request: T) => Promise<U>): FetchState<
 export function useSocket<T>(url: string | undefined): SocketState<T> {
   url = url?.replace(/^http/, "ws");
 
-  const [authUrl, setAuthUrl] = useState<string | undefined>(undefined);
   const [data, setData] = useState<T | undefined>(undefined);
   const loading = data === undefined;
 
-  useEffect(() => {
-    if (!url) return;
-    getIdToken().then(token => {
-      setAuthUrl(`${url}?access_token=${token}`);
+  const getAuthUrl = useCallback(() => {
+    return getIdToken().then(token => {
+      return `${url}?access_token=${token}`;
     });
   }, [url]);
 
-  useEffect(() => {
-    if (!authUrl) return;
-    const socket = new WebSocket(authUrl);
-    socket.onmessage = (event) => {
+  useWebSocket(url ? getAuthUrl : null, {
+    shouldReconnect: () => true,
+    onMessage: (event) => {
       setData(JSON.parse(event.data));
-    };
-    return () => {
-      socket.close();
-    };
-  }, [authUrl]);
+    },
+    reconnectInterval: 500,
+  });
 
   return { data, loading };
 }
