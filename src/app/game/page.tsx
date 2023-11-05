@@ -28,46 +28,17 @@ function Game() {
         first_dealer: PlayerDirection.WEST,
         bid_history: [],
         bid: {
-          suit: BidSuit.CLUBS,
+          suit: BidSuit.SPADES,
           tricks: BidTricks.THREE,
         },
-        declarer: PlayerDirection.NORTH,
+        declarer: PlayerDirection.WEST,
         multiplier: 1,
       },
       game: {
-        round_player: PlayerDirection.SOUTH,
+        round_player: PlayerDirection.EAST,
         round_cards: [
-          { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-          { suit: CardSuit.CLUBS, rank: CardRank.SEVEN },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.THREE },
         ],
         dummy_cards: [
-          { suit: CardSuit.CLUBS, rank: CardRank.SIX },
-          { suit: CardSuit.SPADES, rank: CardRank.TWO },
-          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
-          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
-          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
-          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
-          { suit: CardSuit.SPADES, rank: CardRank.JACK },
-          { suit: CardSuit.HEARTS, rank: CardRank.KING },
-        ],
-        tricks: {
-          NS: [{
-            round_player: PlayerDirection.EAST,
-            winner: PlayerDirection.SOUTH,
-            cards: [
-              { suit: CardSuit.CLUBS, rank: CardRank.SIX },
-              { suit: CardSuit.CLUBS, rank: CardRank.ACE },
-              { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-              { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-            ]
-          }],
-          EW: [],
-        },
-        hand: [
           { suit: CardSuit.CLUBS, rank: CardRank.ACE },
           { suit: CardSuit.SPADES, rank: CardRank.TWO },
           { suit: CardSuit.CLUBS, rank: CardRank.THREE },
@@ -76,7 +47,36 @@ function Game() {
           { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
           { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
           { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+          { suit: CardSuit.HEARTS, rank: CardRank.FIVE },
+          { suit: CardSuit.SPADES, rank: CardRank.JACK },
+          { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+          { suit: CardSuit.HEARTS, rank: CardRank.KING },
+        ],
+        tricks: {
+          NS: [],
+          EW: [
+            {
+              round_player: PlayerDirection.NORTH,
+              winner: PlayerDirection.EAST,
+              cards: [
+                { suit: CardSuit.DIAMONDS, rank: CardRank.TWO },
+                { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+                { suit: CardSuit.DIAMONDS, rank: CardRank.QUEEN },
+                { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+              ]
+            }
+          ],
+        },
+        hand: [
+          { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+          { suit: CardSuit.SPADES, rank: CardRank.TWO },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
           { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+          { suit: CardSuit.HEARTS, rank: CardRank.FIVE },
           { suit: CardSuit.SPADES, rank: CardRank.JACK },
           { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
           { suit: CardSuit.HEARTS, rank: CardRank.KING },

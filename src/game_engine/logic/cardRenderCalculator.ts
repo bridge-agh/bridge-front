@@ -1,4 +1,4 @@
-import { Card, GameStage, GameState, PlayerDirection, diffDirection, nextDirection, oppositeDirection, prevDirection } from "@/game_engine/gameModels";
+import { Card, GameStage, GameState, PlayerDirection, diffDirection, nextDirection, oppositeDirection, playerDirectionToRealDirection, prevDirection } from "@/game_engine/gameModels";
 import { CARD_HEIGHT, CARD_WIDTH } from "../components/gameCard";
 
 // public constants
@@ -63,9 +63,23 @@ export interface PlayerHand {
   direction: PlayerDirection;
 }
 
+export function getCanPlay(gameState: GameState, direction: PlayerDirection) {
+  const realDirection = playerDirectionToRealDirection(direction, gameState.base.user_direction);
 
-export function getHand(gameState: GameState, direction: PlayerDirection) {
-  switch (direction) {
+  switch (realDirection) {
+    case PlayerDirection.NORTH:
+      // if its partner's turn, and you are declarer
+      return (gameState.base.current_player === direction) && (gameState.bidding.declarer === gameState.base.user_direction);
+    case PlayerDirection.SOUTH:
+      // partner isn't declarer, and its your turn
+      return (gameState.bidding.declarer !== oppositeDirection(gameState.base.user_direction)) && (gameState.base.current_player === gameState.base.user_direction);
+    default:
+      return false;
+  }
+}
+
+export function getHand(gameState: GameState, realDirection: PlayerDirection) {
+  switch (realDirection) {
     case PlayerDirection.NORTH:
       return getTopHand(gameState);
     case PlayerDirection.EAST:
@@ -79,9 +93,8 @@ export function getHand(gameState: GameState, direction: PlayerDirection) {
 
 export function getBottomHand(gameState: GameState): PlayerHand {
   const userDirection = gameState.base.user_direction;
-  const declarerDirection = gameState.bidding.declarer;
 
-  const canPlay = (declarerDirection !== oppositeDirection(userDirection)) && (gameState.base.current_player === userDirection);
+  const canPlay = getCanPlay(gameState, userDirection);
   const cardCount = getHandCount(userDirection, gameState);
 
   const width = getHandWidth(cardCount);
@@ -110,15 +123,14 @@ export function getTopHand(gameState: GameState): PlayerHand {
   const handDirection = oppositeDirection(userDirection);
   const declarerDirection = gameState.bidding.declarer;
 
-  // if its partner's turn, and you are declarer
-  const canPlay = (gameState.base.current_player === handDirection) && (declarerDirection === userDirection);
+  const canPlay = getCanPlay(gameState, handDirection);
   const cardCount = getHandCount(handDirection, gameState);
 
   const width = getHandWidth(cardCount);
 
   // if game started, and declarer is you or your partner, then show dummy cards (if partner is declarer user can see partner's cards but not play game)
-  let pregenCards = (declarerDirection != null && (declarerDirection === oppositeDirection(handDirection) || declarerDirection === handDirection))
-    ? [...gameState.game.dummy_cards].sort(compareCards).reverse() : Array(cardCount).fill(null);
+  let pregenCards = (declarerDirection !== null && (declarerDirection === oppositeDirection(handDirection) || declarerDirection === handDirection)
+    && getHandCount(nextDirection(declarerDirection), gameState) < 13) ? [...gameState.game.dummy_cards].sort(compareCards).reverse() : Array(cardCount).fill(null);
   const cards = pregenCards.map((card, index) => {
     const x = -width / 2 + index * HORIZONTAL_CARD_SPACING + CARD_WIDTH / 2;
     const y = HORIZONTAL_CARD_Y;
@@ -250,7 +262,7 @@ export function getCleanRoundPosition(direction: PlayerDirection) {
   }
 
   return {
-    position: [x, y, -0.3],
+    position: [x, y, -1],
     rotation: [0, 0, 0]
   };
 }

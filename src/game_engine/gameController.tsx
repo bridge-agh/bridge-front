@@ -4,7 +4,7 @@ import { SpringRef, easings, useSpring } from "@react-spring/three";
 import _ from "lodash";
 import { createContext, useCallback, useEffect, useReducer, useState } from "react";
 import { ANIM_DELAY, ANIM_HAND_DELAY, ANIM_POST_DELAY, ANIM_TIME, animateCardPlay, animateCleanRound, animateDummyShowUp, animateHand, requestTimeout } from "./logic/cardAnimator";
-import { HORIZONTAL_CARD_Y, compareCards, getBottomHand, getHand, getHandCount, getLeftHand, getRightHand, getTopHand } from "./logic/cardRenderCalculator";
+import { HORIZONTAL_CARD_Y, compareCards, getBottomHand, getCanPlay, getHand, getHandCount, getLeftHand, getRightHand, getTopHand } from "./logic/cardRenderCalculator";
 
 // interfaces
 
@@ -139,8 +139,12 @@ function cleanRound(localGameState: GameState) {
 
 
 export default function GameController({ serverGameState, setGameState, children }: { serverGameState: GameState, setGameState: (state: GameState) => void, children: any }) {
+  // initial state
+  const [isGameInitialized, setIsGameInitialized] = useState(false); // true if game is initialized
+
   // animation state
   const [isAnimating, setIsAnimating] = useState(true); // true if animation is running
+
   // interface state
   const [canUserInteract, setCanUserInteract] = useState(false); // true if user can interact with cards
 
@@ -257,6 +261,26 @@ export default function GameController({ serverGameState, setGameState, children
   }, [canUserInteract, cardStates, localGameState, cardAssignments, cardContexts]);
 
 
+  const updateUserInterface = useCallback((localGameState: GameState) => {
+    const currentPlayer = localGameState.base.current_player;
+
+    if (currentPlayer === localGameState.base.user_direction || // user turn
+      currentPlayer === oppositeDirection(localGameState.base.user_direction)) { // partner turn
+
+      if (getCanPlay(localGameState, currentPlayer)) {
+        logger.debug("Unlocking user interface.");
+
+        // calculate cards that can be played
+        cardAssignments[currentPlayer].forEach((cardAssignment) => {
+          dispatchCardState({ index: cardAssignment.index, state: { disabled: false } });
+        });
+
+        setCanUserInteract(true);
+      }
+    }
+  }, [cardAssignments]);
+
+
   const processDifference = useCallback((serverGameState: GameState, localGameState: GameState) => {
     let cardAssignmentsCopy = _.cloneDeep(cardAssignments);
     let cardContextsCopy = _.cloneDeep(cardContexts.map((c) => ({ ...c, api: undefined })));
@@ -279,9 +303,21 @@ export default function GameController({ serverGameState, setGameState, children
         serverGameState.game.tricks.EW.length === localGameState.game.tricks.EW.length) { // comparing same trick
         serverCardsToCompare = serverGameState.game.round_cards;
       } else { // server is in the next trick, we need to compare with last won trick
-        serverCardsToCompare = (serverGameState.game.round_player === PlayerDirection.NORTH || serverGameState.game.round_player === PlayerDirection.SOUTH) ?
-          serverGameState.game.tricks.NS[serverGameState.game.tricks.NS.length - 1].cards :
-          serverGameState.game.tricks.EW[serverGameState.game.tricks.EW.length - 1].cards;
+        // backward tricks analysis
+
+        let trick: Trick = { round_player: serverGameState.game.round_player, cards: [] as Card[], winner: serverGameState.game.round_player };
+        let NSTricks = [...serverGameState.game.tricks.NS];
+        let EWTricks = [...serverGameState.game.tricks.EW];
+
+        while (localGameState.game.tricks.NS.length + localGameState.game.tricks.EW.length < NSTricks.length + EWTricks.length) {
+          if ([PlayerDirection.NORTH, PlayerDirection.SOUTH].includes(trick.round_player)) {
+            trick = NSTricks.pop()!;
+          } else {
+            trick = EWTricks.pop()!;
+          }
+        }
+
+        serverCardsToCompare = trick.cards;
       }
 
       const localCardCount = localGameState.game.round_cards.length + 4 * (localGameState.game.tricks.NS.length + localGameState.game.tricks.EW.length);
@@ -290,17 +326,17 @@ export default function GameController({ serverGameState, setGameState, children
       // case 1 - local > server
       if (localCardCount > serverCardCount) {
         // retry sending request to server
+        logger.debug(`localCardCount: ${localCardCount} | serverCardCount: ${serverCardCount}`);
         logger.warn("State not synchronized. User's state is ahead of server's state. Retry sending move request to server or request updated state from server.");
         setIsAnimating(false);
         return;
       }
 
-      logger.debug(`localCardCount: ${localCardCount} | serverCardCount: ${serverCardCount}`);
-      const localLastCard = localGameState.game.round_cards[localGameState.game.round_cards.length - 1];
-      const serverLastCard = serverCardsToCompare[localGameState.game.round_cards.length - 1];
-      logger.debug(`localLastCard: ${localLastCard ? cardToString(localLastCard) : "not played"} | serverLastCard: ${serverLastCard ? cardToString(serverLastCard) : "not played"}`);
-
       if (!_.isEqual(localGameState.game.round_cards[localGameState.game.round_cards.length - 1], serverCardsToCompare[localGameState.game.round_cards.length - 1])) {
+        const localLastCard = localGameState.game.round_cards[localGameState.game.round_cards.length - 1];
+        const serverLastCard = serverCardsToCompare[localGameState.game.round_cards.length - 1];
+        logger.debug(`localLastCard: ${localLastCard ? cardToString(localLastCard) : "not played"} | serverLastCard: ${serverLastCard ? cardToString(serverLastCard) : "not played"}`);
+
         logger.error("Desync detected! Card played by user is not the same on the server.");
         return;
       }
@@ -324,16 +360,16 @@ export default function GameController({ serverGameState, setGameState, children
         const dummy_cards = [...localGameState.game.dummy_cards].sort(compareCards).reverse();
 
 
-        const dummyHand = oppositeDirection(localGameState.bidding.declarer!);
-        const contexts = cardContextsCopy.filter((context) => cardAssignmentsCopy[dummyHand].map(assign => assign.index).includes(context.index));
+        const dummyDirection = oppositeDirection(localGameState.bidding.declarer!) === localGameState.base.user_direction ? oppositeDirection(localGameState.base.user_direction) : oppositeDirection(localGameState.bidding.declarer!);
+        const contexts = cardContextsCopy.filter((context) => cardAssignmentsCopy[dummyDirection].map(assign => assign.index).includes(context.index));
 
         // update card context and assignment state
-        cardAssignmentsCopy[dummyHand].forEach((assign, index) => {
+        cardAssignmentsCopy[dummyDirection].forEach((assign, index) => {
           assign.card = dummy_cards[index];
           cardContextsCopy[assign.index].cardFront = cardToString(assign.card!);
         });
 
-        const assigns = [...cardAssignmentsCopy[dummyHand]];
+        const assigns = [...cardAssignmentsCopy[dummyDirection]];
 
         setTimeout(() => {
 
@@ -349,7 +385,7 @@ export default function GameController({ serverGameState, setGameState, children
           // update real card assignment state
           dispatchCardAssignments({
             state: {
-              direction: dummyHand,
+              direction: dummyDirection,
               type: AssignmentActionType.ASSIGN_BATCH,
               data: assigns,
             }
@@ -357,7 +393,7 @@ export default function GameController({ serverGameState, setGameState, children
 
           // animate dummy cards
           animateDummyShowUp(cardContexts.filter((context) => assigns.map(a => a.index).includes(context.index)),
-            playerDirectionToRealDirection(dummyHand, localGameState.base.user_direction));
+            playerDirectionToRealDirection(dummyDirection, localGameState.base.user_direction));
         }, animTimeCount);
 
         animTimeCount += (ANIM_TIME + ANIM_POST_DELAY);
@@ -380,14 +416,22 @@ export default function GameController({ serverGameState, setGameState, children
           cardAssign = cardAssignmentsCopy[handDirection].find((assign) => _.isEqual(assign.card, card))!;
 
           localGameState.game.hand.splice(localGameState.game.hand.findIndex((card) => _.isEqual(card, cardAssign!.card)), 1);
-        } else if (oppositeDirection(handDirection) === localGameState.bidding.declarer) { // exact card in dummy hand
+
+          logger.debug(`playing card from user's hand: ${cardToString(cardAssign!.card!)}`);
+        } else if (oppositeDirection(handDirection) === localGameState.bidding.declarer || // exact card in dummy hand 
+          (oppositeDirection(userDirection) === localGameState.bidding.declarer && handDirection === oppositeDirection(userDirection))) { // or partner hand
           cardAssign = cardAssignmentsCopy[handDirection].find((assign) => _.isEqual(assign.card, card))!;
 
           localGameState.game.dummy_cards.splice(localGameState.game.dummy_cards.findIndex((card) => _.isEqual(card, cardAssign!.card)), 1);
+
+          console.log(cardAssign);
+          logger.debug(`playing card from dummys (or partner if declarer) hand: ${cardToString(cardAssign!.card!)}`);
         } else { // random card from hand
           const randomIndex = Math.floor(Math.random() * getHandCount(handDirection, localGameState));
           cardAssign = cardAssignmentsCopy[handDirection][randomIndex];
           cardAssign.card = card;
+
+          logger.debug(`playing card from ${PlayerDirection[handDirection]} hand (hidden card): ${cardToString(cardAssign!.card!)}`);
         }
 
         localGameState.game.round_cards.push(cardAssign!.card!);
@@ -466,19 +510,9 @@ export default function GameController({ serverGameState, setGameState, children
       setLocalGameState(localGameState);
       setIsAnimating(false);
 
-      if (localGameState.base.current_player === localGameState.base.user_direction) {// also allow when user can play dummys card
-        logger.debug("Unlocking user interface.");
-
-        cardAssignmentsCopy[localGameState.base.user_direction].forEach((cardAssignment) => {
-          dispatchCardState({ index: cardAssignment.index, state: { disabled: false } });
-        });
-
-        setCanUserInteract(true);
-
-        // enable specific cards
-      }
+      updateUserInterface(localGameState);
     }, animTimeCount);
-  }, [cardAssignments, cardContexts]);
+  }, [cardAssignments, cardContexts, updateUserInterface]);
 
   useEffect(() => {
     if (canUserInteract || isAnimating) return;
@@ -495,6 +529,9 @@ export default function GameController({ serverGameState, setGameState, children
 
   // initial game state
   useEffect(() => {
+    if (isGameInitialized) return;
+    setIsGameInitialized(true);
+
     setLocalGameState(serverGameState);
 
     logger.info("Initializing game...");
@@ -594,21 +631,15 @@ export default function GameController({ serverGameState, setGameState, children
 
 
       requestTimeout(() => {
-        if (localGameState.base.current_player === localGameState.base.user_direction) { // also allow when user can play dummys card
-          logger.debug("Unlocking user interface.");
-
-          setCanUserInteract(true);
-
-          // enable specific cards
-        }
+        updateUserInterface(localGameState);
 
         setIsAnimating(false);
 
         logger.info("Game initialized");
       }, ANIM_DELAY * (globalIndex - 1) + ANIM_TIME);
     }, 250);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [cardContexts, isGameInitialized, localGameState, serverGameState, updateUserInterface]);
+
 
   const [gameContext, setGameContext] = useState<GameControllerContext>({
     cards: cardContexts,
@@ -633,152 +664,162 @@ export default function GameController({ serverGameState, setGameState, children
     {
       base: {
         game_stage: GameStage.PLAYING,
-        current_player: PlayerDirection.EAST,
+        current_player: PlayerDirection.SOUTH,
         user_direction: PlayerDirection.EAST,
       },
       bidding: {
         first_dealer: PlayerDirection.WEST,
         bid_history: [],
         bid: {
-          suit: BidSuit.CLUBS,
+          suit: BidSuit.SPADES,
           tricks: BidTricks.THREE,
         },
-        declarer: PlayerDirection.NORTH,
+        declarer: PlayerDirection.WEST,
         multiplier: 1,
       },
       game: {
-        round_player: PlayerDirection.WEST,
-        round_cards: [
-          { suit: CardSuit.SPADES, rank: CardRank.FOUR },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.JACK },
-        ],
-        dummy_cards: [
-          { suit: CardSuit.CLUBS, rank: CardRank.SIX },
-          { suit: CardSuit.SPADES, rank: CardRank.TWO },
-          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
-          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
-          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
-          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
-          { suit: CardSuit.SPADES, rank: CardRank.JACK },
-          { suit: CardSuit.HEARTS, rank: CardRank.KING },
-        ],
-        tricks: {
-          NS: [{
-            round_player: PlayerDirection.EAST,
-            winner: PlayerDirection.SOUTH,
-            cards: [
-              { suit: CardSuit.CLUBS, rank: CardRank.SIX },
-              { suit: CardSuit.CLUBS, rank: CardRank.ACE },
-              { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-              { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-            ]
-          }],
-          EW: [{
-            round_player: PlayerDirection.SOUTH,
-            winner: PlayerDirection.WEST,
-            cards: [
-              { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-              { suit: CardSuit.CLUBS, rank: CardRank.SEVEN },
-              { suit: CardSuit.DIAMONDS, rank: CardRank.THREE },
-              { suit: CardSuit.HEARTS, rank: CardRank.KING },
-            ]
-          }],
-        },
-        hand: [
-          { suit: CardSuit.CLUBS, rank: CardRank.ACE },
-          { suit: CardSuit.SPADES, rank: CardRank.TWO },
-          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
-          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
-          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
-          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
-          { suit: CardSuit.SPADES, rank: CardRank.JACK },
-          { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-        ],
-      },
-    },
-    {
-      base: {
-        game_stage: GameStage.PLAYING,
-        current_player: PlayerDirection.EAST,
-        user_direction: PlayerDirection.EAST,
-      },
-      bidding: {
-        first_dealer: PlayerDirection.WEST,
-        bid_history: [],
-        bid: {
-          suit: BidSuit.CLUBS,
-          tricks: BidTricks.THREE,
-        },
-        declarer: PlayerDirection.NORTH,
-        multiplier: 1,
-      },
-      game: {
-        round_player: PlayerDirection.EAST,
+        round_player: PlayerDirection.SOUTH,
         round_cards: [
         ],
         dummy_cards: [
-          { suit: CardSuit.CLUBS, rank: CardRank.SIX },
-          { suit: CardSuit.SPADES, rank: CardRank.TWO },
-          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
-          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
-          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
-          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
-          { suit: CardSuit.HEARTS, rank: CardRank.KING },
         ],
         tricks: {
-          NS: [{
-            round_player: PlayerDirection.EAST,
-            winner: PlayerDirection.SOUTH,
-            cards: [
-              { suit: CardSuit.CLUBS, rank: CardRank.SIX },
-              { suit: CardSuit.CLUBS, rank: CardRank.ACE },
-              { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-              { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-            ]
-          }],
-          EW: [
+          NS: [
             {
-              round_player: PlayerDirection.SOUTH,
-              winner: PlayerDirection.WEST,
+              round_player: PlayerDirection.WEST,
+              winner: PlayerDirection.NORTH,
               cards: [
+                { suit: CardSuit.SPADES, rank: CardRank.JACK },
                 { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
-                { suit: CardSuit.CLUBS, rank: CardRank.SEVEN },
-                { suit: CardSuit.DIAMONDS, rank: CardRank.THREE },
                 { suit: CardSuit.HEARTS, rank: CardRank.KING },
+                { suit: CardSuit.HEARTS, rank: CardRank.FIVE },
+              ]
+            },
+            {
+              round_player: PlayerDirection.NORTH,
+              winner: PlayerDirection.NORTH,
+              cards: [
+                { suit: CardSuit.SPADES, rank: CardRank.ACE },
+                { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+                { suit: CardSuit.CLUBS, rank: CardRank.FOUR },
+                { suit: CardSuit.HEARTS, rank: CardRank.FIVE },
               ]
             },
             {
               round_player: PlayerDirection.WEST,
+              winner: PlayerDirection.NORTH,
+              cards: [
+                { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+                { suit: CardSuit.DIAMONDS, rank: CardRank.SIX },
+                { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+                { suit: CardSuit.DIAMONDS, rank: CardRank.TWO },
+              ]
+            },
+            {
+              round_player: PlayerDirection.EAST,
+              winner: PlayerDirection.SOUTH,
+              cards: [
+                { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+                { suit: CardSuit.SPADES, rank: CardRank.ACE },
+                { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+                { suit: CardSuit.CLUBS, rank: CardRank.FIVE },
+              ]
+            },
+            {
+              round_player: PlayerDirection.SOUTH,
+              winner: PlayerDirection.SOUTH,
+              cards: [
+                { suit: CardSuit.DIAMONDS, rank: CardRank.ACE },
+                { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
+                { suit: CardSuit.DIAMONDS, rank: CardRank.EIGHT },
+                { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
+              ]
+            },
+            {
+              round_player: PlayerDirection.SOUTH,
+              winner: PlayerDirection.NORTH,
+              cards: [
+                { suit: CardSuit.DIAMONDS, rank: CardRank.QUEEN },
+                { suit: CardSuit.CLUBS, rank: CardRank.ACE },
+                { suit: CardSuit.SPADES, rank: CardRank.TEN },
+                { suit: CardSuit.HEARTS, rank: CardRank.TEN },
+              ]
+            },
+            {
+              round_player: PlayerDirection.NORTH,
+              winner: PlayerDirection.SOUTH,
+              cards: [
+                { suit: CardSuit.CLUBS, rank: CardRank.SEVEN },
+                { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+                { suit: CardSuit.CLUBS, rank: CardRank.JACK },
+                { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
+              ]
+            },
+          ],
+          EW: [
+            {
+              round_player: PlayerDirection.NORTH,
               winner: PlayerDirection.EAST,
               cards: [
-                { suit: CardSuit.SPADES, rank: CardRank.FOUR },
-                { suit: CardSuit.DIAMONDS, rank: CardRank.JACK },
-                { suit: CardSuit.CLUBS, rank: CardRank.ACE },
-                { suit: CardSuit.SPADES, rank: CardRank.JACK },
+                { suit: CardSuit.DIAMONDS, rank: CardRank.TWO },
+                { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+                { suit: CardSuit.DIAMONDS, rank: CardRank.QUEEN },
+                { suit: CardSuit.HEARTS, rank: CardRank.TEN },
               ]
-            }
+            },
+            {
+              round_player: PlayerDirection.EAST,
+              winner: PlayerDirection.WEST,
+              cards: [
+                { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+                { suit: CardSuit.SPADES, rank: CardRank.FOUR },
+                { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+                { suit: CardSuit.HEARTS, rank: CardRank.TWO },
+              ]
+            },
+            {
+              round_player: PlayerDirection.NORTH,
+              winner: PlayerDirection.WEST,
+              cards: [
+                { suit: CardSuit.HEARTS, rank: CardRank.FIVE },
+                { suit: CardSuit.HEARTS, rank: CardRank.FIVE },
+                { suit: CardSuit.CLUBS, rank: CardRank.FOUR },
+                { suit: CardSuit.HEARTS, rank: CardRank.KING },
+              ]
+            },
+            {
+              round_player: PlayerDirection.NORTH,
+              winner: PlayerDirection.EAST,
+              cards: [
+                { suit: CardSuit.HEARTS, rank: CardRank.JACK },
+                { suit: CardSuit.SPADES, rank: CardRank.TWO },
+                { suit: CardSuit.CLUBS, rank: CardRank.THREE },
+                { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+              ]
+            },
+            {
+              round_player: PlayerDirection.EAST,
+              winner: PlayerDirection.EAST,
+              cards: [
+                { suit: CardSuit.SPADES, rank: CardRank.JACK },
+                { suit: CardSuit.SPADES, rank: CardRank.THREE },
+                { suit: CardSuit.SPADES, rank: CardRank.TWO },
+                { suit: CardSuit.SPADES, rank: CardRank.FOUR },
+              ]
+            },
+            {
+              round_player: PlayerDirection.EAST,
+              winner: PlayerDirection.EAST,
+              cards: [
+                { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
+                { suit: CardSuit.DIAMONDS, rank: CardRank.TWO },
+                { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
+                { suit: CardSuit.SPADES, rank: CardRank.FIVE },
+              ]
+            },
           ],
         },
         hand: [
-          { suit: CardSuit.SPADES, rank: CardRank.TWO },
-          { suit: CardSuit.CLUBS, rank: CardRank.THREE },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
-          { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
-          { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
-          { suit: CardSuit.HEARTS, rank: CardRank.TEN },
-          { suit: CardSuit.SPADES, rank: CardRank.JACK },
-          { suit: CardSuit.SPADES, rank: CardRank.QUEEN },
         ],
       },
     },

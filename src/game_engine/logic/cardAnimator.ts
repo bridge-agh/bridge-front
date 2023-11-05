@@ -59,6 +59,7 @@ export function animateCleanRound(cardContexts: CardContext[], direction: Player
     cardContext.api.start({
       position: playedPosition.position,
       rotation: playedPosition.rotation,
+      scale: 0,
       config: { duration: ANIM_TIME, easing: easings.easeOutCubic }
     });
   });
@@ -67,7 +68,6 @@ export function animateCleanRound(cardContexts: CardContext[], direction: Player
 export function animateDummyShowUp(cardContexts: CardContext[], direction: PlayerDirection) {
   const playedPosition = getDummyShowUpPosition(direction);
 
-  console.log(cardContexts);
   cardContexts.forEach((cardContext) => {
     cardContext.api.start({
       rotation: [cardContext.props.rotation.get()[0] + playedPosition.rotation[0], cardContext.props.rotation.get()[1] + playedPosition.rotation[1], cardContext.props.rotation.get()[2]],
