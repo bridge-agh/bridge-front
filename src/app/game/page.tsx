@@ -21,7 +21,7 @@ function Game() {
     {
       base: {
         game_stage: GameStage.PLAYING,
-        current_player: PlayerDirection.EAST,
+        current_player: PlayerDirection.WEST,
         user_direction: PlayerDirection.EAST,
       },
       bidding: {
@@ -31,12 +31,14 @@ function Game() {
           suit: BidSuit.SPADES,
           tricks: BidTricks.THREE,
         },
-        declarer: PlayerDirection.WEST,
+        declarer: PlayerDirection.EAST,
         multiplier: 1,
       },
       game: {
         round_player: PlayerDirection.EAST,
         round_cards: [
+          { suit: CardSuit.DIAMONDS, rank: CardRank.SIX },
+          { suit: CardSuit.DIAMONDS, rank: CardRank.FOUR },
         ],
         dummy_cards: [
           { suit: CardSuit.CLUBS, rank: CardRank.ACE },
@@ -74,7 +76,7 @@ function Game() {
           { suit: CardSuit.DIAMONDS, rank: CardRank.FIVE },
           { suit: CardSuit.SPADES, rank: CardRank.SEVEN },
           { suit: CardSuit.CLUBS, rank: CardRank.EIGHT },
-          { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
+          // { suit: CardSuit.DIAMONDS, rank: CardRank.NINE },
           { suit: CardSuit.HEARTS, rank: CardRank.TEN },
           { suit: CardSuit.HEARTS, rank: CardRank.FIVE },
           { suit: CardSuit.SPADES, rank: CardRank.JACK },

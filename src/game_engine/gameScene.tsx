@@ -1,4 +1,4 @@
-import { OrbitControls, PerspectiveCamera, Stats, useTexture } from "@react-three/drei";
+import { PerspectiveCamera, Stats, useTexture } from "@react-three/drei";
 import { Canvas, useLoader } from "@react-three/fiber";
 import { RefObject, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { MathUtils, TextureLoader } from "three";
@@ -106,7 +106,7 @@ export default function GameScene({ width, height, parentRef }: { width: number,
         })}
         {/* </Suspense> */}
         {/* <Preload all /> */}
-        <OrbitControls />
+        {/* <OrbitControls /> */}
         {/* <gridHelper /> */}
         {/* <axesHelper /> */}
         <Stats />

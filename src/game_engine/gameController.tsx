@@ -89,6 +89,49 @@ const reduceCardAssignment = (state: (CardAssignment[])[], action: { state: Assi
   }
 };
 
+function updateUserInterface(localGameState: GameState, cardAssignments: CardAssignment[][], dispatchCardState: any, setCanUserInteract: any) {
+  const currentPlayer = localGameState.base.current_player;
+
+  logger.debug("", cardAssignments);
+
+  if (currentPlayer === localGameState.base.user_direction || // user turn
+    currentPlayer === oppositeDirection(localGameState.base.user_direction)) { // partner turn
+
+    if (getCanPlay(localGameState, currentPlayer)) {
+      logger.debug("Unlocking user interface.");
+      console.log("hellobefore");
+
+      // calculate cards that can be played
+      cardAssignments[currentPlayer].filter((card) => {
+        logger.debug("hello");
+        logger.debug("", localGameState.game.round_player === localGameState.base.user_direction);
+        logger.debug("", localGameState.game.round_cards[0].suit === card.card!.suit);
+        logger.debug("", !_.some(localGameState.game.hand, (c: Card) => c.suit === localGameState.game.round_cards[0].suit));
+
+        // first card can be any card
+        if (localGameState.game.round_player === localGameState.base.current_player)
+          return true;
+
+        // card must follow suit
+        else if (localGameState.game.round_cards[0].suit === card.card!.suit)
+          return true;
+
+        // if player has no cards in the same suit as the first card
+        // then any card can be played
+        else if (!_.some(localGameState.game.hand, (c: Card) => c.suit === localGameState.game.round_cards[0].suit))
+          return true;
+
+        return false;
+
+      }).forEach((cardAssignment) => {
+        dispatchCardState({ index: cardAssignment.index, state: { disabled: false } });
+      });
+
+      setCanUserInteract(true);
+    }
+  }
+};
+
 function cleanRound(localGameState: GameState) {
   let winningCard = localGameState.game.round_cards[0];
   let winningPlayerIndex = 0;
@@ -261,24 +304,7 @@ export default function GameController({ serverGameState, setGameState, children
   }, [canUserInteract, cardStates, localGameState, cardAssignments, cardContexts]);
 
 
-  const updateUserInterface = useCallback((localGameState: GameState) => {
-    const currentPlayer = localGameState.base.current_player;
 
-    if (currentPlayer === localGameState.base.user_direction || // user turn
-      currentPlayer === oppositeDirection(localGameState.base.user_direction)) { // partner turn
-
-      if (getCanPlay(localGameState, currentPlayer)) {
-        logger.debug("Unlocking user interface.");
-
-        // calculate cards that can be played
-        cardAssignments[currentPlayer].forEach((cardAssignment) => {
-          dispatchCardState({ index: cardAssignment.index, state: { disabled: false } });
-        });
-
-        setCanUserInteract(true);
-      }
-    }
-  }, [cardAssignments]);
 
 
   const processDifference = useCallback((serverGameState: GameState, localGameState: GameState) => {
@@ -508,11 +534,12 @@ export default function GameController({ serverGameState, setGameState, children
       logger.info("State synchronization finished.");
 
       setLocalGameState(localGameState);
+
       setIsAnimating(false);
 
-      updateUserInterface(localGameState);
+      updateUserInterface(localGameState, cardAssignmentsCopy, dispatchCardState, setCanUserInteract);
     }, animTimeCount);
-  }, [cardAssignments, cardContexts, updateUserInterface]);
+  }, [cardAssignments, cardContexts]);
 
   useEffect(() => {
     if (canUserInteract || isAnimating) return;
@@ -536,6 +563,8 @@ export default function GameController({ serverGameState, setGameState, children
 
     logger.info("Initializing game...");
 
+    const cardAssignmentsCopy = _.cloneDeep(cardAssignments);
+
     requestTimeout(() => {
 
       // play hands
@@ -549,20 +578,22 @@ export default function GameController({ serverGameState, setGameState, children
 
         logger.debug(`Assigning hand ${PlayerDirection[hand.direction]} with ${hand.cards.length} cards | ${hand.cards.map(o => cardToString(o.card)).join(", ")}`);
 
+        cardAssignmentsCopy[hand.direction] = hand.cards.map((card, index) => ({
+          card: card.card,
+          index: globalIndex + index,
+        }));
+
         dispatchCardAssignments({
           state: {
             direction: hand.direction,
             type: AssignmentActionType.ASSIGN_BATCH,
-            data: hand.cards.map((card, index) => ({
-              card: card.card,
-              index: globalIndex + index,
-            }))
+            data: cardAssignmentsCopy[hand.direction],
           }
         });
 
         const assignIndexes = hand.cards.map((_, index) => globalIndex + index);
 
-        assignIndexes.forEach(i => dispatchCardState({ index: i, state: { disabled: !hand.canPlay } }));
+        assignIndexes.forEach(i => dispatchCardState({ index: i, state: { disabled: true } }));
         animateHand(hand, globalIndex, assignIndexes, dispatchCardContext, cardContexts);
 
         globalIndex += hand.cards.length;
@@ -621,6 +652,8 @@ export default function GameController({ serverGameState, setGameState, children
       localGameState.game.tricks.EW.forEach(hideTrick);
 
 
+      cardAssignmentsCopy[PLAYED_ASSIGNMENTS] = assigns;
+
       dispatchCardAssignments({
         state: {
           direction: PLAYED_ASSIGNMENTS,
@@ -631,14 +664,14 @@ export default function GameController({ serverGameState, setGameState, children
 
 
       requestTimeout(() => {
-        updateUserInterface(localGameState);
+        updateUserInterface(localGameState, cardAssignmentsCopy, dispatchCardState, setCanUserInteract);
 
         setIsAnimating(false);
 
         logger.info("Game initialized");
       }, ANIM_DELAY * (globalIndex - 1) + ANIM_TIME);
     }, 250);
-  }, [cardContexts, isGameInitialized, localGameState, serverGameState, updateUserInterface]);
+  }, [cardAssignments, cardContexts, isGameInitialized, localGameState, serverGameState]);
 
 
   const [gameContext, setGameContext] = useState<GameControllerContext>({
