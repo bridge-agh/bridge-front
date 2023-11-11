@@ -77,6 +77,71 @@ export function useForceSwap() {
   return useFetch(forceSwapFetcher);
 }
 
+<<<<<<< HEAD
+=======
+// /promote-host
+
+export interface PromoteHostRequest {
+  userId: string
+}
+
+async function setHostFetcher(request: PromoteHostRequest): Promise<void> {
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/set-host`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(request)
+  });
+  if (!res.ok) return Promise.reject(res.statusText);
+  return Promise.resolve();
+}
+
+export function usePromoteHost() {
+  return useFetch(setHostFetcher);
+}
+
+// /leave
+
+export interface LeaveLobbyRequest {
+  userId: string
+}
+
+async function leaveLobbyFetcher(request: LeaveLobbyRequest): Promise<void> {
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/leave`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(request)
+  });
+  if (!res.ok) return Promise.reject(res.statusText);
+  return Promise.resolve();
+}
+
+export function useLeaveLobby() {
+  return useFetch(leaveLobbyFetcher);
+}
+
+// /info
+
+export interface GetInfoRequest {
+  sessionId: string
+}
+
+export interface Player {
+  id: string
+  ready: boolean
+  position: PlayerDirection
+}
+
+export interface GetInfoResponse {
+  hostId: string
+  users: Player[]
+  started: boolean
+}
+
+export function useGetLobby(request: GetInfoRequest | null | undefined): SWRState<GetInfoResponse> {
+  return useWebSocketReceive<GetInfoResponse>(request ? `${API_URL_SESSION_LOBBY}/info?sessionId=${request.sessionId}` : "");
+}
+
+>>>>>>> e12d7ec (initial promote host ui)
 // /ready
 
 interface ReadyRequest {

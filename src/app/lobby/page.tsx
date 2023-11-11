@@ -8,18 +8,20 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { BsPersonCircle, BsQuestionCircle } from "react-icons/bs";
 import { FaExchangeAlt } from "react-icons/fa";
+import { PiCrownSimpleDuotone, PiCrownSimpleFill } from "react-icons/pi";
+import { RiVipCrownFill, RiVipCrownLine } from "react-icons/ri";
 import { TiDelete } from "react-icons/ti";
 import { twMerge } from "tailwind-merge";
 import { PlayerDirection, getPlayerDirectionName } from "@/game_engine/gameModels";
 
 
-function Player({ player, userId, host, position, addPositionToSwap, positionsToSwap }: { player: Player | undefined | null, userId: string, host: Player | undefined, position: PlayerDirection, addPositionToSwap: (position: PlayerDirection) => void, positionsToSwap: PlayerDirection[] }) {
+function Player({ player, userId, host, position, addPositionToSwap, positionsToSwap, promoteHost }: { player: Player | undefined | null, userId: string, host: Player | undefined, position: PlayerDirection, addPositionToSwap: (position: PlayerDirection) => void, positionsToSwap: PlayerDirection[], promoteHost: (userId: string) => void }) {
   const [nameText, setNameText] = useState(player?.id);
   const [isPlayer, setIsPlayer] = useState(false);
   const [animation, setAnimation] = useState("");
   const [exchangeButtonHovered, setExchangeButtonHovered] = useState(false);
   const [kickButtonHovered, setKickButtonHovered] = useState(false);
-
+  const [crownButtonHovered, setCrownButtonHovered] = useState(false);
   const changeNameText = useCallback((newName: string) => {
     if (nameText == null) setNameText(newName);
     else if (nameText != newName) {
@@ -46,9 +48,41 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
     <div
       className="flex flex-col justify-start items-start items-stretch min-w-[100%]"
     >
-      <div className="font-bold text-accent-content w-11 xs:w-14 text-center text-sm xs:text-base mb-1">{getPlayerDirectionName(position)}</div>
-      <div className={twMerge("flex flex-row pe-2 rounded-full justify-start items-center bg-base-300 w-[100%] transition-all", exchangeButtonHovered ? "ring-4 ring-primary" : "", position == positionsToSwap[0] && !host?.ready ? "ring-4 ring-accent" : "", kickButtonHovered ? "ring-4 ring-error" : "" )}>
-        <div className={`w-11 h-11 xs:w-14 xs:h-14 rounded-full duration-500 ${player?.ready ? "bg-green-600" : "bg-blue-600"} flex flex-col justify-center items-center`}>
+      <div className="w-[100%] min-w-[100%] font-bold text-accent-content text-center text-sm xs:text-base mb-1 flex flex-row place-content-center">
+        <div>{getPlayerDirectionName(position)}</div>
+        {userId == host?.id && (isPlayer || positionsToSwap.length > 0 && !host?.ready) && (
+          <FaExchangeAlt
+            className={twMerge(animation, "ml-2 w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] shrink-0", host?.ready ? "opacity-50" : "cursor-pointer")}
+            onClick={() => { if (!host?.ready) addPositionToSwap(position); }}
+            onMouseEnter={() => { if (!host?.ready) setExchangeButtonHovered(true); }}
+            onMouseLeave={() => { if (!host?.ready) setExchangeButtonHovered(false); }}
+            onAnimationStart={() => { if (!host?.ready) setExchangeButtonHovered(false); }}
+          />
+        )}
+        {player?.id != userId && userId == host?.id && isPlayer && (
+          <RiVipCrownLine 
+            className={twMerge("w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] ml-2 shrink-0 text-yellow-500 animate-fade-out", host?.ready ? "opacity-50" : "cursor-pointer")}
+            onClick={() => {if (!host?.ready && player != null) promoteHost(player.id);}}
+            onMouseEnter={() => { if (!host?.ready) setCrownButtonHovered(true); }}
+            onMouseLeave={() => { if (!host?.ready) setCrownButtonHovered(false); }}
+          />
+        )}
+        {player?.id != userId && userId == host?.id && isPlayer && (
+          <TiDelete 
+            className={twMerge("w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] ml-2 shrink-0 text-error animate-fade-out", host?.ready ? "opacity-50" : "cursor-pointer")}
+            onMouseEnter={() => { if (!host?.ready) setKickButtonHovered(true); }}
+            onMouseLeave={() => { if (!host?.ready) setKickButtonHovered(false); }}
+          />
+        )}
+      </div>
+      <div className={twMerge("flex flex-row pe-2 rounded-full justify-start items-center bg-base-300 w-[100%] transition-all", exchangeButtonHovered ? "ring-4 ring-primary" : "", position == positionsToSwap[0] && !host?.ready ? "ring-4 ring-accent" : "", kickButtonHovered ? "ring-4 ring-error" : "", crownButtonHovered ? "ring-4 ring-yellow-300" : "" )}>
+        <div className={`w-11 h-11 xs:w-14 xs:h-14 rounded-full duration-500 ${player?.ready ? "bg-green-600" : "bg-blue-600"} flex flex-col justify-center items-center relative`}>
+          {player?.id == host?.id &&
+            <img
+              src={"/png/icons/crown.png"}
+              className={`absolute w-[100%] h-[80%] bottom-[60%] text-yellow-500`}
+            />
+          }
           {isPlayer &&
             <BsPersonCircle
               className="w-11 h-11 xs:w-14 xs:h-14"
@@ -61,23 +95,6 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
         >
           <span className={twMerge(animation)}>{nameText}</span>
         </div>
-
-        {userId == host?.id && (isPlayer || positionsToSwap.length > 0 && !host?.ready) && (
-          <FaExchangeAlt
-            className={twMerge(animation, "w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] ml-auto shrink-0 justify-self-end", host?.ready ? "opacity-50" : "cursor-pointer")}
-            onClick={() => { if (!host?.ready) addPositionToSwap(position); }}
-            onMouseEnter={() => { if (!host?.ready) setExchangeButtonHovered(true); }}
-            onMouseLeave={() => { if (!host?.ready) setExchangeButtonHovered(false); }}
-            onAnimationStart={() => { if (!host?.ready) setExchangeButtonHovered(false); }}
-          />
-        )}
-        {player?.id != userId && userId == host?.id && isPlayer && (
-          <TiDelete 
-            className="w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] ml-2 shrink-0 justify-self-end text-error cursor-pointer animate-fade-out"
-            onMouseEnter={() => { if (!host?.ready) setKickButtonHovered(true); }}
-            onMouseLeave={() => { if (!host?.ready) setKickButtonHovered(false); }}
-          />
-        )}
       </div>
     </div>
   );
@@ -89,6 +106,7 @@ function Lobby() {
   const sessionInfo = useSessionInfo();
   const leaveSession = useLeaveSession();
   const setReady = useReady();
+  const promoteHost = usePromoteHost();
   const forceSwap = useForceSwap();
   const [positionsToSwap, setPositionsToSwap] = useState<PlayerDirection[]>([]);
 
@@ -124,6 +142,11 @@ function Lobby() {
     });
   }, []);
 
+  const handleSetHost = useCallback(() => {
+    if (!findSession.data || !user || promoteHost.loading) return;
+    promoteHost.trigger({ userId: user.uid });
+  }, [findSession.data, promoteHost, user]);
+
   useEffect(() => {
     router.prefetch("/game");
   }, [router]);
@@ -152,12 +175,12 @@ function Lobby() {
         <div className="text-2xl font-bold mb-3 self-center">Lobby</div>
         <div className="flex flex-col gap-4 md:flex-row justify-between items-center mb-3">
           <div className="flex w-[90%] sm:w-[70%] md:w-[43%] flex-col justify-start items-stretch gap-4">
-            <Player player={lobby.users.find(u => u.position == PlayerDirection.NORTH)} userId={user.uid} host={host} position={PlayerDirection.NORTH} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
-            <Player player={lobby.users.find(u => u.position == PlayerDirection.SOUTH)} userId={user.uid} host={host} position={PlayerDirection.SOUTH} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
+            <Player player={lobby.users.find(u => u.position == PlayerDirection.NORTH)} userId={user.uid} host={host} position={PlayerDirection.NORTH} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} promoteHost={handleSetHost} />
+            <Player player={lobby.users.find(u => u.position == PlayerDirection.SOUTH)} userId={user.uid} host={host} position={PlayerDirection.SOUTH} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} promoteHost={handleSetHost} />
           </div>
           <div className="flex w-[90%] sm:w-[70%] md:w-[43%] flex-col justify-start items-stretch gap-4">
-            <Player player={lobby.users.find(u => u.position == PlayerDirection.EAST)} userId={user.uid} host={host} position={PlayerDirection.EAST} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
-            <Player player={lobby.users.find(u => u.position == PlayerDirection.WEST)} userId={user.uid} host={host} position={PlayerDirection.WEST} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} />
+            <Player player={lobby.users.find(u => u.position == PlayerDirection.EAST)} userId={user.uid} host={host} position={PlayerDirection.EAST} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} promoteHost={handleSetHost} />
+            <Player player={lobby.users.find(u => u.position == PlayerDirection.WEST)} userId={user.uid} host={host} position={PlayerDirection.WEST} addPositionToSwap={addPositionToSwap} positionsToSwap={positionsToSwap} promoteHost={handleSetHost} />
           </div>
         </div>
         <div className="flex flex-row justify-evenly sm:justify-between items-center">
