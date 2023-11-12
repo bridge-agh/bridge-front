@@ -67,7 +67,7 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
             />
           )}
         </div>
-        <div className="tooltip tooltip-warning" data-tip="Promote user to a host">
+        <div className="tooltip tooltip-warning" data-tip="Promote player to a host">
           {isPlayer && player?.id != userId && userId == host?.id && (
             <RiVipCrownLine 
               className={twMerge("w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] text-yellow-500 animate-fade-out mr-3", host?.ready ? "opacity-50" : "cursor-pointer")}
@@ -77,7 +77,7 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
             />
           )}
         </div>
-        <div className="tooltip tooltip-error" data-tip="Kick user from the lobby">
+        <div className="tooltip tooltip-error" data-tip="Kick player from the lobby">
           {player?.id != userId && userId == host?.id && isPlayer && (
             <TiDelete 
               className={twMerge("w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] mr-3 shrink-0 text-error animate-fade-out", host?.ready ? "opacity-50" : "cursor-pointer")}
