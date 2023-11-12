@@ -1,7 +1,7 @@
 "use client";
 
-import { useFindSession } from "@/api/session";
-import { Player, useForceSwap, useGetLobby, useLeaveLobby, useReady } from "@/api/session/lobby";
+import { useForceSwap, useReady } from "@/api/session/lobby";
+import { Player, useSessionInfo, useLeaveSession } from "@/api/session";
 import protectRoute from "@/logic/protect_route";
 import useUser from "@/logic/use_user";
 import { useRouter } from "next/navigation";
@@ -86,9 +86,8 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
 function Lobby() {
   const router = useRouter();
   const { user } = useUser();
-  const findSession = useFindSession(user ? { userId: user.uid } : undefined);
-  let getLobby = useGetLobby(findSession.data ? { sessionId: findSession.data.sessionId } : undefined);
-  const leaveLobby = useLeaveLobby();
+  const sessionInfo = useSessionInfo();
+  const leaveSession = useLeaveSession();
   const setReady = useReady();
   const forceSwap = useForceSwap();
   const [positionsToSwap, setPositionsToSwap] = useState<PlayerDirection[]>([]);
@@ -98,24 +97,24 @@ function Lobby() {
   }, [router]);
 
   const handleCopyClick = useCallback(() => {
-    if (!findSession.data) return;
-    navigator.clipboard.writeText(findSession.data.sessionId);
-  }, [findSession]);
+    if (!sessionInfo.data) return;
+    navigator.clipboard.writeText(sessionInfo.data.sessionId);
+  }, [sessionInfo.data]);
 
   const handleLeaveClick = useCallback(() => {
-    if (!findSession.data || !user || leaveLobby.loading) return;
-    leaveLobby.trigger({ userId: user.uid }).then(goHome);
-  }, [leaveLobby, findSession, goHome, user]);
+    if (leaveSession.loading) return;
+    leaveSession.trigger(undefined).then(goHome);
+  }, [leaveSession, goHome]);
 
   const handleReadyClick = useCallback(() => {
-    if (!findSession.data || !user || setReady.loading) return;
-    setReady.trigger({ userId: user.uid, ready: true });
-  }, [findSession.data, user, setReady]);
+    if (setReady.loading) return;
+    setReady.trigger({ ready: true });
+  }, [setReady]);
 
   const handleForceSwap = useCallback(() => {
-    if (!findSession.data || !user || forceSwap.loading || positionsToSwap.length != 2) return;
-    forceSwap.trigger({ first: positionsToSwap[0], second: positionsToSwap[1], sessionId: findSession.data.sessionId });
-  }, [findSession.data, user, forceSwap, positionsToSwap]);
+    if (forceSwap.loading || positionsToSwap.length != 2) return;
+    forceSwap.trigger({ first: positionsToSwap[0], second: positionsToSwap[1] });
+  }, [forceSwap, positionsToSwap]);
 
   const addPositionToSwap = useCallback((position: PlayerDirection) => {
     setPositionsToSwap((positions) => {
@@ -130,10 +129,10 @@ function Lobby() {
   }, [router]);
 
   useEffect(() => {
-    if (getLobby.data && getLobby.data.users.length === 4 && getLobby.data.users.every(u => u.ready)) {
+    if (sessionInfo.data && sessionInfo.data.users.length === 4 && sessionInfo.data.users.every(u => u.ready)) {
       router.push("/game");
     }
-  }, [router, getLobby]);
+  }, [router, sessionInfo.data]);
 
   useEffect(() => {
     if (positionsToSwap.length == 2) {
@@ -142,9 +141,9 @@ function Lobby() {
     }
   }, [positionsToSwap, handleForceSwap]);
 
-  if (!getLobby.data || !user) return null;
+  if (!sessionInfo.data || !user) return null;
 
-  const lobby = getLobby.data;
+  const lobby = sessionInfo.data;
   const currentUser = lobby.users.find(u => u.id === user.uid);
   const host = lobby.users.find(u => u.id == lobby.hostId);
   return (

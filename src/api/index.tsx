@@ -1,59 +1,23 @@
-import { useCallback, useEffect, useState } from "react";
+import { useFetch } from "@/api/utils";
+import getIdToken from "@/logic/get_id_token";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export interface FetchState<T, U> {
-  trigger: (request: T) => Promise<U>;
-  data: U | undefined;
-  loading: boolean;
+// /heartbeat
+
+async function heartbeatFetcher(unused: void): Promise<void> {
+  const token = await getIdToken();
+  const res = await fetch(`${API_URL}/heartbeat`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+  });
+  if (!res.ok) return Promise.reject(res.statusText);
+  return Promise.resolve();
 }
 
-export interface SWRState<U> {
-  data: U | undefined;
-  loading: boolean;
-}
-
-export type SWRKey<T> = T | null | undefined | (() => T | null | undefined);
-
-export function useFetch<T, U>(fetcher: (request: T) => Promise<U>): FetchState<T, U> {
-  const [data, setData] = useState<U | undefined>(undefined);
-  const [loading, setLoading] = useState<boolean>(false);
-
-  const trigger = useCallback((request: T) => {
-    if (loading) return Promise.reject();
-    setData(undefined);
-    setLoading(true);
-    return fetcher(request)
-      .then(data => {
-        setData(data);
-        return data;
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [fetcher, loading]);
-
-  return { trigger, data, loading };
-}
-
-export function useWebSocketReceive<T>(url: string): SWRState<T> {
-  const [data, setData] = useState<T | undefined>(undefined);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    if (!url) return;
-
-    let new_url = url.replace(/^http/, "ws");
-
-    const socket = new WebSocket(new_url);
-    socket.onmessage = (event) => {
-      setData(JSON.parse(event.data));
-      setLoading(false);
-    };
-    return () => {
-      socket.close();
-    };
-  }, [url]);
-
-  return { data, loading };
+export function useHeartbeat() {
+  return useFetch(heartbeatFetcher);
 }
