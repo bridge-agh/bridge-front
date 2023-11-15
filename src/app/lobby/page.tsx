@@ -1,6 +1,6 @@
 "use client";
 
-import { useForceSwap, useReady } from "@/api/session/lobby";
+import { useForceSwap, useReady, usePromoteHost } from "@/api/session/lobby";
 import { Player, useSessionInfo, useLeaveSession } from "@/api/session";
 import protectRoute from "@/logic/protect_route";
 import useUser from "@/logic/use_user";
@@ -70,7 +70,7 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
         <div className="tooltip tooltip-warning" data-tip="Promote player to a host">
           {isPlayer && player?.id != userId && userId == host?.id && (
             <RiVipCrownLine 
-              className={twMerge("w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] text-yellow-500 animate-fade-out mr-3", host?.ready ? "opacity-50" : "cursor-pointer")}
+              className={twMerge(animation, "w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] text-yellow-500 animate-fade-out mr-3", host?.ready ? "opacity-50" : "cursor-pointer")}
               onClick={() => {if (!host?.ready && player != null) promoteHost(player.id);}}
               onMouseEnter={() => { if (!host?.ready) setCrownButtonHovered(true); }}
               onMouseLeave={() => { if (!host?.ready) setCrownButtonHovered(false); }}
@@ -80,7 +80,7 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
         <div className="tooltip tooltip-error" data-tip="Kick player from the lobby">
           {player?.id != userId && userId == host?.id && isPlayer && (
             <TiDelete 
-              className={twMerge("w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] mr-3 shrink-0 text-error animate-fade-out", host?.ready ? "opacity-50" : "cursor-pointer")}
+              className={twMerge(animation, "w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] mr-3 shrink-0 text-error animate-fade-out", host?.ready ? "opacity-50" : "cursor-pointer")}
               onMouseEnter={() => { if (!host?.ready) setKickButtonHovered(true); }}
               onMouseLeave={() => { if (!host?.ready) setKickButtonHovered(false); }}
             />
@@ -150,9 +150,9 @@ function Lobby() {
   }, []);
 
   const handleSetHost = useCallback(() => {
-    if (!findSession.data || !user || promoteHost.loading) return;
+    if (!user || promoteHost.loading) return;
     promoteHost.trigger({ userId: user.uid });
-  }, [findSession.data, promoteHost, user]);
+  }, [promoteHost, user]);
 
   useEffect(() => {
     router.prefetch("/game");
