@@ -1,7 +1,7 @@
 import { useFetch, SocketState, useSocket } from "@/api/utils";
 import { API_URL } from "@/api";
 import getIdToken from "@/logic/get_id_token";
-import { PlayerDirection } from "@/game_engine/gameModels";
+import { PlayerDirection, GameState } from "@/game_engine/gameModels";
 
 export const API_URL_SESSION = `${API_URL}/session`;
 
@@ -18,6 +18,7 @@ export interface GetInfoResponse {
   hostId: string
   users: Player[]
   started: boolean
+  gameState: GameState | null
 }
 
 export function useSessionInfo(): SocketState<GetInfoResponse> {
