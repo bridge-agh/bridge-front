@@ -99,6 +99,7 @@ export interface TrickBid {
 export enum SpecialBid {
   PASS,
   DOUBLE,
+  REDOUBLE,
 }
 
 export interface Trick {
