@@ -38,6 +38,16 @@ export function playerDirectionToRealDirection(playerDirection: PlayerDirection,
   return (playerDirection + 4 - diff) % 4;
 }
 
+export function getPlayerDirectionFirstLetter(direction: PlayerDirection) {
+  return PlayerDirection[direction][0];
+}
+
+export function getPlayerDirectionName(direction: PlayerDirection) {
+  let first = getPlayerDirectionFirstLetter(direction);
+  let rest = PlayerDirection[direction].slice(1).toLowerCase();
+  return first + rest;
+}
+
 export enum CardSuit {
   CLUBS,
   DIAMONDS,
