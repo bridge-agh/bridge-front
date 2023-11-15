@@ -10,7 +10,7 @@ import { BsPersonCircle, BsQuestionCircle } from "react-icons/bs";
 import { FaExchangeAlt } from "react-icons/fa";
 import { TiDelete } from "react-icons/ti";
 import { twMerge } from "tailwind-merge";
-import { PlayerDirection, getPlayerDirectionName } from "../game/gameModels";
+import { PlayerDirection, getPlayerDirectionName } from "@/game_engine/gameModels";
 
 
 function Player({ player, userId, host, position, addPositionToSwap, positionsToSwap }: { player: Player | undefined | null, userId: string, host: Player | undefined, position: PlayerDirection, addPositionToSwap: (position: PlayerDirection) => void, positionsToSwap: PlayerDirection[] }) {
