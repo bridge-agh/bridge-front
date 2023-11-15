@@ -133,7 +133,7 @@ export interface BiddingObservation {
 }
 
 export interface GameObservation {
-  round_player: PlayerDirection | null;
+  round_player: PlayerDirection;
   round_cards: Card[];
   dummy_cards: Card[];
   tricks: {

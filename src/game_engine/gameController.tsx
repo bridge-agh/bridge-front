@@ -1,3 +1,4 @@
+import { useDouble, usePass, usePlay } from "@/api/session/game";
 import { BidSuit, BidTricks, Card, CardRank, CardSuit, GameStage, GameState, PlayerDirection, Trick, cardToString, nextDirection, oppositeDirection, playerDirectionToRealDirection } from "@/game_engine/gameModels";
 import { logger } from "@/logic/logger";
 import { SpringRef, easings, useSpring } from "@react-spring/three";
@@ -181,7 +182,12 @@ function cleanRound(localGameState: GameState) {
 }
 
 
-export default function GameController({ serverGameState, setGameState, children }: { serverGameState: GameState, setGameState: (state: GameState) => void, children: any }) {
+export default function GameController({ serverGameState, children }: { serverGameState: GameState, children: any }) {
+  const playCardAction = usePlay();
+  const passAction = usePass();
+  const doubleAction = useDouble();
+
+
   // initial state
   const [isGameInitialized, setIsGameInitialized] = useState(false); // true if game is initialized
 
@@ -282,6 +288,7 @@ export default function GameController({ serverGameState, setGameState, children
     const hand = getHand(localGameState, realDirection);
 
     // play card to middle
+    playCardAction.trigger(cardAssign.card!);
     animateCardPlay(springCard, realDirection);
 
     // center hand
@@ -301,9 +308,7 @@ export default function GameController({ serverGameState, setGameState, children
       setLocalGameState(localGameState);
       setIsAnimating(false);
     }, ANIM_TIME + ANIM_HAND_DELAY + ANIM_POST_DELAY);
-  }, [canUserInteract, cardStates, localGameState, cardAssignments, cardContexts]);
-
-
+  }, [canUserInteract, cardStates, localGameState, cardAssignments, playCardAction, cardContexts]);
 
 
 
@@ -669,6 +674,7 @@ export default function GameController({ serverGameState, setGameState, children
         setIsAnimating(false);
 
         logger.info("Game initialized");
+        logger.info("Current game state: ", localGameState);
       }, ANIM_DELAY * (globalIndex - 1) + ANIM_TIME);
     }, 250);
   }, [cardAssignments, cardContexts, isGameInitialized, localGameState, serverGameState]);
@@ -858,22 +864,10 @@ export default function GameController({ serverGameState, setGameState, children
     },
   ]);
 
-  const updateGameState = useCallback(() => {
-    const state = gameStates.shift();
-
-    logger.debug("Simulating game state", state);
-
-    setGameStates(gameStates.slice());
-    if (state) {
-      setGameState(state);
-    }
-  }, [gameStates, setGameState]);
-
-
   return (
     <GameContext.Provider value={gameContext}>
       <div className="absolute z-50 btn btn-primary">
-        <button onClick={updateGameState}>Simulate</button>
+        Hello :D
       </div>
       {children}
     </GameContext.Provider>
