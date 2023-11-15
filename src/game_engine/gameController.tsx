@@ -100,14 +100,9 @@ function updateUserInterface(localGameState: GameState, cardAssignments: CardAss
 
     if (getCanPlay(localGameState, currentPlayer)) {
       logger.debug("Unlocking user interface.");
-      console.log("hellobefore");
 
       // calculate cards that can be played
       cardAssignments[currentPlayer].filter((card) => {
-        logger.debug("hello");
-        logger.debug("", localGameState.game.round_player === localGameState.base.user_direction);
-        logger.debug("", localGameState.game.round_cards[0].suit === card.card!.suit);
-        logger.debug("", !_.some(localGameState.game.hand, (c: Card) => c.suit === localGameState.game.round_cards[0].suit));
 
         // first card can be any card
         if (localGameState.game.round_player === localGameState.base.current_player)
