@@ -1,6 +1,6 @@
 import { API_URL_SESSION } from "@/api/session";
 import { useFetch } from "@/api/utils";
-import { PlayerDirection } from "@/app/game/gameModels";
+import { PlayerDirection } from "@/game_engine/gameModels";
 import getIdToken from "@/logic/get_id_token";
 
 export const API_URL_SESSION_LOBBY = `${API_URL_SESSION}/lobby`;
