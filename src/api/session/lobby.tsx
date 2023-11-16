@@ -77,6 +77,26 @@ export function useForceSwap() {
   return useFetch(forceSwapFetcher);
 }
 
+// /promote-host
+
+export interface PromoteHostRequest {
+  userId: string
+}
+
+async function setHostFetcher(request: PromoteHostRequest): Promise<void> {
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/set-host`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(request)
+  });
+  if (!res.ok) return Promise.reject(res.statusText);
+  return Promise.resolve();
+}
+
+export function usePromoteHost() {
+  return useFetch(setHostFetcher);
+}
+
 // /ready
 
 interface ReadyRequest {
