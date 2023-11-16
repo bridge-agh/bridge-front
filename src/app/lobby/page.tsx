@@ -56,7 +56,7 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
           )}
           <div>{getPlayerDirectionName(position)}</div>
         </div>
-        <div className={twMerge("tooltip", position == positionsToSwap[0] && !host?.ready ? "tooltip-accent" : "tooltip-primary")} data-tip="Change player's position">
+        <div className={twMerge("tooltip before:max-w-[5rem] xs:before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]", position == positionsToSwap[0] && !host?.ready ? "tooltip-accent" : "tooltip-primary")} data-tip="Change player's position">
           {userId == host?.id && (isPlayer || positionsToSwap.length > 0 && !host?.ready) && (
             <FaExchangeAlt
               className={twMerge(animation, "mr-3 w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] shrink-0", host?.ready ? "opacity-50" : "cursor-pointer")}
@@ -67,7 +67,7 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
             />
           )}
         </div>
-        <div className="tooltip tooltip-warning" data-tip="Promote player to a host">
+        <div className="tooltip  tooltip-warning before:max-w-[5rem] xs:before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]" data-tip="Promote player to a host">
           {isPlayer && player?.id != userId && userId == host?.id && (
             <RiVipCrownLine 
               className={twMerge(animation, "w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] text-yellow-500 animate-fade-out mr-3", host?.ready ? "opacity-50" : "cursor-pointer")}
@@ -75,9 +75,10 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
               onMouseEnter={() => { if (!host?.ready) setCrownButtonHovered(true); }}
               onMouseLeave={() => { if (!host?.ready) setCrownButtonHovered(false); }}
             />
-          )}
+          )} 
+          {/* zoba jak z szerokością parenta */}
         </div>
-        <div className="tooltip tooltip-error" data-tip="Kick player from the lobby">
+        <div className="tooltip  tooltip-error before:max-w-[5rem] xs:before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]" data-tip="Kick player from the lobby">
           {player?.id != userId && userId == host?.id && isPlayer && (
             <TiDelete 
               className={twMerge(animation, "w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] mr-3 shrink-0 text-error animate-fade-out", host?.ready ? "opacity-50" : "cursor-pointer")}
@@ -86,7 +87,7 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
             />
           )}
         </div>
-
+        
       </div>
       <div className={twMerge("flex flex-row pe-2 rounded-full justify-start items-center bg-base-300 w-[100%] transition-all", exchangeButtonHovered ? "ring-4 ring-primary" : "", position == positionsToSwap[0] && !host?.ready ? "ring-4 ring-accent" : "", kickButtonHovered ? "ring-4 ring-error" : "", crownButtonHovered ? "ring-4 ring-yellow-300" : "" )}>
         <div className={`w-11 h-11 xs:w-14 xs:h-14 rounded-full duration-500 ${player?.ready ? "bg-green-600" : "bg-blue-600"} flex flex-col justify-center items-center relative`}>
@@ -176,7 +177,7 @@ function Lobby() {
   const lobby = sessionInfo.data;
   const currentUser = lobby.users.find(u => u.id === user.uid);
   const host = lobby.users.find(u => u.id == lobby.hostId);
-  return (
+  return (                                   
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 md:col-start-1 md:col-span-6 lg:col-start-2 lg:col-span-6 xl:col-start-4 xl:col-span-6">
       <div className="rounded-xl bg-base-200 p-5 flex flex-col justify-start items-stretch">
         <div className="text-2xl font-bold mb-3 self-center">Lobby</div>
