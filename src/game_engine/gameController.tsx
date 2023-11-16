@@ -101,6 +101,8 @@ function updateUserInterface(localGameState: GameState, cardAssignments: CardAss
     if (getCanPlay(localGameState, currentPlayer)) {
       logger.debug("Unlocking user interface.");
 
+      const playerHand = currentPlayer === localGameState.base.user_direction ? localGameState.game.hand : localGameState.game.dummy_cards;
+
       // calculate cards that can be played
       cardAssignments[currentPlayer].filter((card) => {
 
@@ -114,7 +116,7 @@ function updateUserInterface(localGameState: GameState, cardAssignments: CardAss
 
         // if player has no cards in the same suit as the first card
         // then any card can be played
-        else if (!_.some(localGameState.game.hand, (c: Card) => c.suit === localGameState.game.round_cards[0].suit))
+        else if (!_.some(playerHand, (c: Card) => c.suit === localGameState.game.round_cards[0].suit))
           return true;
 
         return false;
