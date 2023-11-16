@@ -56,7 +56,7 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
           )}
           <div>{getPlayerDirectionName(position)}</div>
         </div>
-        <div className={twMerge("tooltip before:max-w-[5rem] xs:before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]", position == positionsToSwap[0] && !host?.ready ? "tooltip-accent" : "tooltip-primary")} data-tip="Change player's position">
+        <div className={twMerge("tooltip  tooltip-left xs:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]", position == positionsToSwap[0] && !host?.ready ? "tooltip-accent" : "tooltip-primary")} data-tip="Change player's position">
           {userId == host?.id && (isPlayer || positionsToSwap.length > 0 && !host?.ready) && (
             <FaExchangeAlt
               className={twMerge(animation, "mr-3 w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] shrink-0", host?.ready ? "opacity-50" : "cursor-pointer")}
@@ -67,7 +67,7 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
             />
           )}
         </div>
-        <div className="tooltip  tooltip-warning before:max-w-[5rem] xs:before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]" data-tip="Promote player to a host">
+        <div className="tooltip  tooltip-warning tooltip-left xs:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]" data-tip="Promote player to a host">
           {isPlayer && player?.id != userId && userId == host?.id && (
             <RiVipCrownLine 
               className={twMerge(animation, "w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] text-yellow-500 animate-fade-out mr-3", host?.ready ? "opacity-50" : "cursor-pointer")}
@@ -78,7 +78,7 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
           )} 
           {/* zoba jak z szerokością parenta */}
         </div>
-        <div className="tooltip  tooltip-error before:max-w-[5rem] xs:before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]" data-tip="Kick player from the lobby">
+        <div className="tooltip  tooltip-error  tooltip-left xs:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]" data-tip="Kick player from the lobby">
           {player?.id != userId && userId == host?.id && isPlayer && (
             <TiDelete 
               className={twMerge(animation, "w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] mr-3 shrink-0 text-error animate-fade-out", host?.ready ? "opacity-50" : "cursor-pointer")}
