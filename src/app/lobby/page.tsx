@@ -70,18 +70,17 @@ function Player({ player, userId, host, position, addPositionToSwap, positionsTo
         <div className="tooltip  tooltip-warning tooltip-left xs:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]" data-tip="Promote player to a host">
           {isPlayer && player?.id != userId && userId == host?.id && (
             <RiVipCrownLine 
-              className={twMerge(animation, "w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] text-yellow-500 animate-fade-out mr-3", host?.ready ? "opacity-50" : "cursor-pointer")}
+              className={twMerge(animation, "w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] text-yellow-500 mr-3", host?.ready ? "opacity-50" : "cursor-pointer")}
               onClick={() => {if (!host?.ready && player != null) promoteHost(player.id);}}
               onMouseEnter={() => { if (!host?.ready) setCrownButtonHovered(true); }}
               onMouseLeave={() => { if (!host?.ready) setCrownButtonHovered(false); }}
             />
           )} 
-          {/* zoba jak z szerokością parenta */}
         </div>
         <div className="tooltip  tooltip-error  tooltip-left xs:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]" data-tip="Kick player from the lobby">
           {player?.id != userId && userId == host?.id && isPlayer && (
             <TiDelete 
-              className={twMerge(animation, "w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] mr-3 shrink-0 text-error animate-fade-out", host?.ready ? "opacity-50" : "cursor-pointer")}
+              className={twMerge(animation, "w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] mr-3 shrink-0 text-error ", host?.ready ? "opacity-50" : "cursor-pointer")}
               onMouseEnter={() => { if (!host?.ready) setKickButtonHovered(true); }}
               onMouseLeave={() => { if (!host?.ready) setKickButtonHovered(false); }}
             />
