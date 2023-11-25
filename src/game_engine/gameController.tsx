@@ -1,4 +1,4 @@
-import { useDouble, usePass, usePlay } from "@/api/session/game";
+import { usePlay } from "@/api/session/game";
 import { BidSuit, BidTricks, Card, CardRank, CardSuit, GameStage, GameState, PlayerDirection, Trick, cardToString, nextDirection, oppositeDirection, playerDirectionToRealDirection } from "@/game_engine/gameModels";
 import { logger } from "@/logic/logger";
 import { SpringRef, easings, useSpring } from "@react-spring/three";
@@ -180,9 +180,9 @@ function cleanRound(localGameState: GameState) {
 
 
 export default function GameController({ serverGameState, children }: { serverGameState: GameState, children: any }) {
-  const playCardAction = usePlay();
-  const passAction = usePass();
-  const doubleAction = useDouble();
+  const { trigger: playCardAction } = usePlay();
+  // const passAction = usePass();
+  // const doubleAction = useDouble();
 
 
   // initial state
@@ -285,7 +285,7 @@ export default function GameController({ serverGameState, children }: { serverGa
     const hand = getHand(localGameState, realDirection);
 
     // play card to middle
-    playCardAction.trigger(cardAssign.card!);
+    playCardAction(cardAssign.card!);
     animateCardPlay(springCard, realDirection);
 
     // center hand
