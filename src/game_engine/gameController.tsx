@@ -1,4 +1,4 @@
-import { useDouble, usePass, usePlay } from "@/api/session/game";
+import { usePlay } from "@/api/session/game";
 import { BidSuit, BidTricks, Card, CardRank, CardSuit, GameStage, GameState, PlayerDirection, Trick, cardToString, nextDirection, oppositeDirection, playerDirectionToRealDirection } from "@/game_engine/gameModels";
 import { logger } from "@/logic/logger";
 import { SpringRef, easings, useSpring } from "@react-spring/three";
@@ -77,16 +77,12 @@ const reduceCardAssignment = (state: (CardAssignment[])[], action: { state: Assi
       newState[action.state.direction] = action.state.data as CardAssignment[];
       return newState;
 
-    // return newState[action.direction] = action.data as CardAssignment;
     case AssignmentActionType.MOVE_TO_PLAYED:
       const cardAssign = action.state.data as CardAssignment;
-      const index = newState[action.state.direction].findIndex((c) => c === cardAssign);
-      newState[action.state.direction].splice(index, 1);
+      _.remove(newState[action.state.direction], (assign) => assign.index === cardAssign.index);
       newState[PLAYED_ASSIGNMENTS].push(cardAssign);
 
       return newState;
-
-    // return newState[action.direction].played.push(newState[action.direction].hand.splice(newState[action.direction].hand.findIndex((c) => c === action.data), 1)[0]);
   }
 };
 
@@ -180,9 +176,9 @@ function cleanRound(localGameState: GameState) {
 
 
 export default function GameController({ serverGameState, children }: { serverGameState: GameState, children: any }) {
-  const playCardAction = usePlay();
-  const passAction = usePass();
-  const doubleAction = useDouble();
+  const { trigger: playCardAction } = usePlay();
+  // const passAction = usePass();
+  // const doubleAction = useDouble();
 
 
   // initial state
@@ -285,7 +281,7 @@ export default function GameController({ serverGameState, children }: { serverGa
     const hand = getHand(localGameState, realDirection);
 
     // play card to middle
-    playCardAction.trigger(cardAssign.card!);
+    playCardAction(cardAssign.card!);
     animateCardPlay(springCard, realDirection);
 
     // center hand
@@ -295,7 +291,7 @@ export default function GameController({ serverGameState, children }: { serverGa
         .map(assign => assign.index), dispatchCardContext, cardContexts, 0, easings.easeInOutExpo);
     }, ANIM_HAND_DELAY);
 
-    logger.debug(`Played card ${cardToString(cardAssign.card!)} by ${handDirection}`);
+    logger.debug(`Played card ${cardToString(cardAssign.card!)} by ${PlayerDirection[handDirection]}`);
 
     requestTimeout(() => {
       localGameState.base.current_player = nextDirection(localGameState.base.current_player);
