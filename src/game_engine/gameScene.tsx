@@ -1,8 +1,9 @@
-import { PerspectiveCamera, Stats, useTexture } from "@react-three/drei";
+import { OrbitControls, PerspectiveCamera, Stats, useTexture } from "@react-three/drei";
 import { Canvas, useLoader } from "@react-three/fiber";
 import { RefObject, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { MathUtils, TextureLoader } from "three";
 import { GameCard } from "./components/gameCard";
+import { GamePosition } from "./components/gamePosition";
 import { GameContext } from "./gameController";
 
 const textureFilePaths = [
@@ -91,7 +92,7 @@ export default function GameScene({ width, height, parentRef }: { width: number,
       <Canvas ref={canvasRef}>
         <ambientLight intensity={1.5} />
         <directionalLight position={[0, 0, 4]} color={0xffffff} intensity={1.5} />
-        {/* <Suspense fallback={null}> */}
+
         {gameContext.cards.map((_, index) => {
           return (
             <GameCard
@@ -104,9 +105,22 @@ export default function GameScene({ width, height, parentRef }: { width: number,
               onPointerLeave={() => gameContext.onPointerLeave(gameContext.cards[index])}
               onClick={() => gameContext.onClick(gameContext.cards[index])} />);
         })}
+
+        {gameContext.positions.map((_, index) => {
+          return (
+            <GamePosition
+              key={index}
+              direction={gameContext.positions[index].direction}
+              position={gameContext.positions[index].position}
+              scale={gameContext.positions[index].scale}
+              visible={gameContext.positions[index].visible}
+              selected={gameContext.positions[index].selected}
+            />
+          );
+        })}
         {/* </Suspense> */}
         {/* <Preload all /> */}
-        {/* <OrbitControls /> */}
+        <OrbitControls />
         {/* <gridHelper /> */}
         {/* <axesHelper /> */}
         <Stats />

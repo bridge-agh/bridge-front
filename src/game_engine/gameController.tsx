@@ -1,75 +1,33 @@
 import { usePlay } from "@/api/session/game";
 import { BidSuit, BidTricks, Card, CardRank, CardSuit, GameStage, GameState, PlayerDirection, Trick, cardToString, nextDirection, oppositeDirection, playerDirectionToRealDirection } from "@/game_engine/gameModels";
 import { logger } from "@/logic/logger";
-import { SpringRef, easings, useSpring } from "@react-spring/three";
+import { easings, useSpring } from "@react-spring/three";
 import _ from "lodash";
 import { createContext, useCallback, useEffect, useReducer, useState } from "react";
+import { AssignmentAction, AssignmentActionType, CardAssignment, CardContext, CardState, GameControllerContext, PLAYED_ASSIGNMENTS, PositionContext } from "./gameTypes";
 import { ANIM_DELAY, ANIM_HAND_DELAY, ANIM_POST_DELAY, ANIM_TIME, animateCardPlay, animateCleanRound, animateDummyShowUp, animateHand, requestTimeout } from "./logic/cardAnimator";
 import { HORIZONTAL_CARD_Y, compareCards, getBottomHand, getCanPlay, getHand, getHandCount, getLeftHand, getRightHand, getTopHand } from "./logic/cardRenderCalculator";
+import { setSelectedPosition, showPositions } from "./logic/positionAnimator";
+import { getPosition } from "./logic/positionRenderCalculator";
 
-// interfaces
 
 export const GameContext = createContext<GameControllerContext>(null!);
 
-type SpringApiRef = SpringRef<{
-  position: any;
-  scale: any;
-  rotation: any;
-}>
-
-export interface CardContext {
-  index: number;
-  cardFront: string;
-  api: SpringApiRef;
-  props: {
-    position: any;
-    scale: any;
-    rotation: any;
-  };
-}
-
-interface CardState {
-  disabled: boolean;
-}
-
-export interface GameControllerContext {
-  cards: CardContext[];
-  onPointerEnter: (springCard: CardContext) => void;
-  onPointerLeave: (springCard: CardContext) => void;
-  onClick: (springCard: CardContext) => void;
-}
-
-interface CardAssignment {
-  card: Card | null;
-  index: number;
-};
-
-enum AssignmentActionType {
-  ASSIGN_BATCH,
-  MOVE_TO_PLAYED,
-}
-
-interface AssignmentAction {
-  direction: PlayerDirection | typeof PLAYED_ASSIGNMENTS;
-  type: AssignmentActionType;
-  data: CardAssignment | CardAssignment[];
-}
-
 // state reducers
 
-const reduceCardState = (state: CardState[], action: { index: number, state: CardState }) => {
+function reduceState<T>(state: T[], action: { index: number, state: T }) {
   const newState = [...state];
   newState[action.index] = action.state;
   return newState;
-};
+}
 
-const reduceCardContext = (state: CardContext[], action: { index: number, state: CardContext }) => {
-  const newState = [...state];
-  newState[action.index] = action.state;
-  return newState;
-};
+const reduceCardState = (state: CardState[], action: { index: number, state: CardState }) => reduceState<CardState>(state, action);
 
-const PLAYED_ASSIGNMENTS = 4;
+const reduceCardContext = (state: CardContext[], action: { index: number, state: CardContext }) => reduceState<CardContext>(state, action);
+
+const reducePositionState = (state: PositionContext[], action: { index: number, state: PositionContext }) => reduceState<PositionContext>(state, action);
+
+
 const reduceCardAssignment = (state: (CardAssignment[])[], action: { state: AssignmentAction }) => {
   const newState = [...state];
   switch (action.state.type) {
@@ -198,6 +156,22 @@ export default function GameController({ serverGameState, children }: { serverGa
   // state of game
   const [localGameState, setLocalGameState] = useState<GameState>(serverGameState); // state that will be compared with server state
 
+  // positions contexts
+
+  const [positionsContexts, dispatchPositionContext] = useReducer(reducePositionState, Array(4).fill(null).map((__, index) => {
+    const direction = (localGameState.base.user_direction + index) % 4 as PlayerDirection;
+
+    return {
+      direction: direction,
+      position: getPosition(playerDirectionToRealDirection(direction, localGameState.base.user_direction)),
+      scale: 0.5,
+      visible: false,
+      selected: localGameState.base.current_player === direction,
+    };
+  }));
+
+  // card contexts
+
   const [cardAssignments, dispatchCardAssignments] = useReducer(reduceCardAssignment, Array(5).fill([]) as (CardAssignment[])[]);
 
   const [cardContexts, dispatchCardContext] = useReducer(reduceCardContext, Array(52).fill(null).map((_, index) => {
@@ -291,17 +265,20 @@ export default function GameController({ serverGameState, children }: { serverGa
         .map(assign => assign.index), dispatchCardContext, cardContexts, 0, easings.easeInOutExpo);
     }, ANIM_HAND_DELAY);
 
+    setSelectedPosition(positionsContexts, dispatchPositionContext, nextDirection(localGameState.base.current_player));
+
     logger.debug(`Played card ${cardToString(cardAssign.card!)} by ${PlayerDirection[handDirection]}`);
 
     requestTimeout(() => {
       localGameState.base.current_player = nextDirection(localGameState.base.current_player);
+
 
       logger.debug("State after play: ", _.cloneDeep(localGameState));
 
       setLocalGameState(localGameState);
       setIsAnimating(false);
     }, ANIM_TIME + ANIM_HAND_DELAY + ANIM_POST_DELAY);
-  }, [canUserInteract, cardStates, localGameState, cardAssignments, playCardAction, cardContexts]);
+  }, [canUserInteract, cardStates, localGameState, cardAssignments, playCardAction, cardContexts, positionsContexts]);
 
 
 
@@ -351,7 +328,7 @@ export default function GameController({ serverGameState, children }: { serverGa
       if (localCardCount > serverCardCount) {
         // retry sending request to server
         logger.debug(`localCardCount: ${localCardCount} | serverCardCount: ${serverCardCount}`);
-        logger.warn("State not synchronized. User's state is ahead of server's state. Retry sending move request to server or request updated state from server.");
+        logger.warn("State not synchronized. User's state is ahead of server's state. Retry sending play request to server or request updated state from server.");
         setIsAnimating(false);
         return;
       }
@@ -394,6 +371,7 @@ export default function GameController({ serverGameState, children }: { serverGa
         });
 
         const assigns = [...cardAssignmentsCopy[dummyDirection]];
+        const currentPlayer = localGameState.base.current_player;
 
         setTimeout(() => {
 
@@ -418,6 +396,8 @@ export default function GameController({ serverGameState, children }: { serverGa
           // animate dummy cards
           animateDummyShowUp(cardContexts.filter((context) => assigns.map(a => a.index).includes(context.index)),
             playerDirectionToRealDirection(dummyDirection, localGameState.base.user_direction));
+
+          setSelectedPosition(positionsContexts, dispatchPositionContext, nextDirection(currentPlayer));
         }, animTimeCount);
 
         animTimeCount += (ANIM_TIME + ANIM_POST_DELAY);
@@ -468,6 +448,7 @@ export default function GameController({ serverGameState, children }: { serverGa
         const realDirection = playerDirectionToRealDirection(handDirection, userDirection);
         const hand = getHand(localGameState, realDirection)!;
         const assigns = [...cardAssignmentsCopy[handDirection]];
+        const currentPlayer = localGameState.base.current_player;
 
         requestTimeout(() => {
           logger.debug(`Played card ${cardToString(cardAssign!.card!)} by ${PlayerDirection[handDirection]}`);
@@ -493,6 +474,8 @@ export default function GameController({ serverGameState, children }: { serverGa
           setTimeout(() => {
             animateHand(hand, 0, assigns.map(assign => assign.index), dispatchCardContext, cardContexts, 0, easings.easeInOutExpo);
           }, ANIM_HAND_DELAY);
+
+          setSelectedPosition(positionsContexts, dispatchPositionContext, nextDirection(currentPlayer));
 
         }, animTimeCount);
 
@@ -537,7 +520,7 @@ export default function GameController({ serverGameState, children }: { serverGa
 
       updateUserInterface(localGameState, cardAssignmentsCopy, dispatchCardState, setCanUserInteract);
     }, animTimeCount);
-  }, [cardAssignments, cardContexts]);
+  }, [cardAssignments, cardContexts, positionsContexts]);
 
   useEffect(() => {
     if (canUserInteract || isAnimating) return;
@@ -662,6 +645,8 @@ export default function GameController({ serverGameState, children }: { serverGa
 
 
       requestTimeout(() => {
+        showPositions(positionsContexts, dispatchPositionContext);
+
         updateUserInterface(localGameState, cardAssignmentsCopy, dispatchCardState, setCanUserInteract);
 
         setIsAnimating(false);
@@ -670,7 +655,7 @@ export default function GameController({ serverGameState, children }: { serverGa
         logger.info("Current game state: ", localGameState);
       }, ANIM_DELAY * (globalIndex - 1) + ANIM_TIME);
     }, 250);
-  }, [cardAssignments, cardContexts, isGameInitialized, localGameState, serverGameState]);
+  }, [cardAssignments, cardContexts, isGameInitialized, localGameState, positionsContexts, serverGameState]);
 
 
   const [gameContext, setGameContext] = useState<GameControllerContext>({
@@ -678,6 +663,7 @@ export default function GameController({ serverGameState, children }: { serverGa
     onPointerEnter,
     onPointerLeave,
     onClick,
+    positions: positionsContexts,
   });
 
   useEffect(() => {
@@ -686,8 +672,9 @@ export default function GameController({ serverGameState, children }: { serverGa
       onPointerEnter,
       onPointerLeave,
       onClick,
+      positions: positionsContexts,
     });
-  }, [cardContexts, onPointerEnter, onPointerLeave, onClick]);
+  }, [cardContexts, onPointerEnter, onPointerLeave, onClick, positionsContexts]);
 
 
   // DEBUG
@@ -859,9 +846,6 @@ export default function GameController({ serverGameState, children }: { serverGa
 
   return (
     <GameContext.Provider value={gameContext}>
-      <div className="absolute z-50 btn btn-primary">
-        Hello :D
-      </div>
       {children}
     </GameContext.Provider>
   );
