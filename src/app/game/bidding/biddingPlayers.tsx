@@ -5,6 +5,10 @@ import {
 } from "@/game_engine/gameModels";
 import { twMerge } from "tailwind-merge";
 
+
+const selectedTip = "Current player";
+const winnerTip = "Actual declarer";
+
 function BiddingPlayers({
   baseObservation,
   biddingObservation,
@@ -17,26 +21,28 @@ function BiddingPlayers({
       {Object.keys(PlayerDirection)
         .filter((key) => isNaN(Number(key)))
         .map((directionValue) => {
-          const playerDirection: PlayerDirection =
-            PlayerDirection[directionValue as keyof typeof PlayerDirection];
+          const playerDirection: PlayerDirection = PlayerDirection[directionValue as keyof typeof PlayerDirection];
+
+          const isSelected = playerDirection.valueOf() === baseObservation.current_player.valueOf();
+          const isWinner = biddingObservation.declarer && (biddingObservation.declarer.valueOf() === playerDirection.valueOf());
+
           return (
             <div
               key={playerDirection}
+              data-tip={isSelected ? selectedTip : isWinner ? winnerTip : ""}
               className={twMerge(
-                "avatar placeholder transition ease-in-out ring-primary rounded-full",
+                "avatar placeholder transition ease-in-out ring-primary rounded-full select-none",
 
-                playerDirection.valueOf() ===
-                  baseObservation.current_player.valueOf()
-                  ? "scale-125 ring-2 bg-base-200 text-base-content"
+                isSelected
+                  ? "scale-100 ring-2 bg-base-200 text-base-content tooltip"
                   : "scale-100 ring-0 bg-neutral-focus text-neutral-content",
-                biddingObservation.declarer && (biddingObservation.declarer.valueOf() ===
-                  playerDirection.valueOf())
-                  ? "bg-accent text-neutral-focus"
+                isWinner
+                  ? "bg-accent text-neutral-focus tooltip"
                   : ""
               )}
             >
-              <div className="rounded-full w-12">
-                <span className="text-xl">{directionValue[0]}</span>
+              <div className="rounded-full w-16">
+                <span className="text-2xl">{directionValue[0]}</span>
               </div>
             </div>
           );

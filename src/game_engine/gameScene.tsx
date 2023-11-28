@@ -1,4 +1,5 @@
-import { PerspectiveCamera, Stats, useTexture } from "@react-three/drei";
+import BiddingPage from "@/app/game/bidding/biddingPage";
+import { Html, PerspectiveCamera, Stats, useTexture } from "@react-three/drei";
 import { Canvas, useLoader } from "@react-three/fiber";
 import { RefObject, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { MathUtils, TextureLoader } from "three";
@@ -110,6 +111,16 @@ export default function GameScene({ width, height, parentRef }: { width: number,
         {/* <gridHelper /> */}
         {/* <axesHelper /> */}
         <Stats />
+        <Html
+          position={[0, 1.3, -6]}
+          transform
+          center
+          // sprite
+          scale={0.2}
+          style={{ width: "100%", height: "100%" }}
+        >
+          <BiddingPage />
+        </Html>
         <PerspectiveCamera
           makeDefault
           fov={cameraFOV}

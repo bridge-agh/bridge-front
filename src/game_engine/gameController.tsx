@@ -859,9 +859,9 @@ export default function GameController({ serverGameState, children }: { serverGa
 
   return (
     <GameContext.Provider value={gameContext}>
-      <div className="absolute z-50 btn btn-primary">
+      {/* <div className="absolute z-50 btn btn-primary">
         Hello :D
-      </div>
+      </div> */}
       {children}
     </GameContext.Provider>
   );
