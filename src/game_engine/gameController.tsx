@@ -664,6 +664,11 @@ export default function GameController({ serverGameState, children }: { serverGa
     onPointerLeave,
     onClick,
     positions: positionsContexts,
+    bidding: {
+      currentPlayer: localGameState.base.current_player,
+      userDirection: localGameState.base.user_direction,
+      observation: localGameState.bidding,
+    }
   });
 
   useEffect(() => {
@@ -673,8 +678,13 @@ export default function GameController({ serverGameState, children }: { serverGa
       onPointerLeave,
       onClick,
       positions: positionsContexts,
+      bidding: {
+        currentPlayer: localGameState.base.current_player,
+        userDirection: localGameState.base.user_direction,
+        observation: localGameState.bidding,
+      }
     });
-  }, [cardContexts, onPointerEnter, onPointerLeave, onClick, positionsContexts]);
+  }, [cardContexts, onPointerEnter, onPointerLeave, onClick, positionsContexts, localGameState.bidding, localGameState.base.current_player, localGameState.base.user_direction]);
 
 
   // DEBUG

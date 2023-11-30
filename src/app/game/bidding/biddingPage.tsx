@@ -7,10 +7,13 @@ import {
   GameStage,
   PlayerDirection,
 } from "@/game_engine/gameModels";
-import { useEffect, useState } from "react";
+import { BiddingState } from "@/game_engine/gameTypes";
+import { createContext, useEffect, useState } from "react";
 import BiddingHistory from "./biddingHistory";
 
-function BiddingPage() {
+export const BiddingContext = createContext<BiddingState>(null!);
+
+function BiddingPage({ bidding }: { bidding: BiddingState }) {
   // redux here, currently dummy data
   const [baseObservation, setBaseObservation] = useState<BaseObservation>({
     game_stage: GameStage.BIDDING,
@@ -70,24 +73,19 @@ function BiddingPage() {
   });
 
   return (
-    <div className="absolute z-50 top-[40%] w-max left-1/2 transform -translate-x-1/2 -translate-y-1/2 scale-[2]">
-      <div className="flex flex-row gap-4 bg-base-200 p-8 pr-4 rounded-xl">
-        <div>
-          <BiddingBids biddingObservation={biddingObservation} />
-        </div>
-        <div className="m-4 flex flex-col">
-          <div className="mb-4">
-            <BiddingPlayers
-              baseObservation={baseObservation}
-              biddingObservation={biddingObservation}
-            />
-          </div>
+    <BiddingContext.Provider value={bidding}>
+      <div className="absolute z-50 top-[40%] w-max left-1/2 transform -translate-x-1/2 -translate-y-1/2 scale-[2]">
+        <div className="h-[40rem] flex flex-row gap-4 bg-base-200 p-8 pr-4 rounded-xl">
           <div>
+            <BiddingBids />
+          </div>
+          <div className="mx-4 flex flex-col">
+            <BiddingPlayers />
             <BiddingHistory />
           </div>
         </div>
       </div>
-    </div>
+    </BiddingContext.Provider>
   );
 }
 

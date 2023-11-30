@@ -135,7 +135,7 @@ export default function GameScene({ width, height, parentRef }: { width: number,
           scale={0.2}
           style={{ width: "100%", height: "100%" }}
         >
-          <BiddingPage />
+          <BiddingPage bidding={gameContext.bidding} />
         </Html>
         <PerspectiveCamera
           makeDefault

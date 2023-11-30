@@ -1,7 +1,7 @@
 "use client";
 
 import GameController from "@/game_engine/gameController";
-import { BidSuit, BidTricks, CardRank, CardSuit, GameStage, GameState, PlayerDirection } from "@/game_engine/gameModels";
+import { BidSuit, BidTricks, CardRank, CardSuit, GameStage, GameState, PlayerDirection, SpecialBid } from "@/game_engine/gameModels";
 import protectRoute from "@/logic/protect_route";
 import { Suspense, useState } from "react";
 import PlayingPage from "./playingPage";
@@ -22,7 +22,39 @@ function Game() {
       },
       bidding: {
         first_dealer: PlayerDirection.WEST,
-        bid_history: [],
+        bid_history: [
+          {
+            suit: BidSuit.HEARTS,
+            tricks: BidTricks.TWO,
+          },
+          {
+            suit: BidSuit.SPADES,
+            tricks: BidTricks.TWO,
+          },
+          SpecialBid.PASS,
+          {
+            suit: BidSuit.SPADES,
+            tricks: BidTricks.THREE,
+          },
+          SpecialBid.PASS,
+          {
+            suit: BidSuit.HEARTS,
+            tricks: BidTricks.FOUR,
+          },
+          SpecialBid.PASS,
+          SpecialBid.DOUBLE,
+          SpecialBid.REDOUBLE,
+          {
+            suit: BidSuit.SPADES,
+            tricks: BidTricks.FIVE,
+          },
+          SpecialBid.PASS,
+          SpecialBid.PASS,
+          {
+            suit: BidSuit.NO_TRUMP,
+            tricks: BidTricks.SIX,
+          },
+        ],
         bid: {
           suit: BidSuit.SPADES,
           tricks: BidTricks.THREE,

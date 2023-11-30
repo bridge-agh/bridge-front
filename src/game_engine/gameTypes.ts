@@ -1,5 +1,5 @@
 import { SpringRef } from "@react-spring/three";
-import { Card, PlayerDirection } from "./gameModels";
+import { BiddingObservation, Card, PlayerDirection } from "./gameModels";
 
 // cards context
 
@@ -62,10 +62,17 @@ export interface PositionContext {
 
 // game controller context
 
+export type BiddingState = {
+    currentPlayer: PlayerDirection;
+    userDirection: PlayerDirection;
+    observation: BiddingObservation;
+}
+
 export interface GameControllerContext {
     cards: CardContext[];
     onPointerEnter: (springCard: CardContext) => void;
     onPointerLeave: (springCard: CardContext) => void;
     onClick: (springCard: CardContext) => void;
     positions: PositionContext[];
+    bidding: BiddingState
 }
