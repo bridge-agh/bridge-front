@@ -1,6 +1,6 @@
 import { PlayerDirection, cardToString } from "@/game_engine/gameModels";
 import { easings } from "@react-spring/three";
-import { CardContext } from "../gameController";
+import { CardContext } from "../gameTypes";
 import { PlayerHand, getCleanRoundPosition, getDummyShowUpPosition, getPlayedPosition } from "./cardRenderCalculator";
 
 // animation constants
