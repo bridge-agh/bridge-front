@@ -33,7 +33,7 @@ textureFilePaths.forEach((path) => {
 });
 
 const fov = 50;
-const planeAspectRatio = 16 / 9.8;
+const planeAspectRatio = 16 / 10.4;
 
 function calcFovAndAspect(currentHeight: number, currentWidth: number, currentAspect: number) {
   if (currentAspect > planeAspectRatio) {
@@ -128,12 +128,13 @@ export default function GameScene({ width, height, parentRef }: { width: number,
         {/* <axesHelper /> */}
         <Stats />
         <Html
-          position={[0, 1.3, -6]}
+          position={[0, 1.05, -5]}
           transform
           center
+          distanceFactor={10}
           // sprite
           scale={0.2}
-          style={{ width: "100%", height: "100%" }}
+        // style={{ width: "100%", height: "100%" }}
         >
           <BiddingPage bidding={gameContext.bidding} />
         </Html>
