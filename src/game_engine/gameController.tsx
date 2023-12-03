@@ -47,7 +47,7 @@ const reduceCardAssignment = (state: (CardAssignment[])[], action: { state: Assi
 function updateUserInterface(localGameState: GameState, cardAssignments: CardAssignment[][], dispatchCardState: any, setCanUserInteract: any) {
   const currentPlayer = localGameState.base.current_player;
 
-  logger.debug("", cardAssignments);
+  if (localGameState.game.round_player === undefined) return;
 
   if (currentPlayer === localGameState.base.user_direction || // user turn
     currentPlayer === oppositeDirection(localGameState.base.user_direction)) { // partner turn
@@ -135,8 +135,6 @@ function cleanRound(localGameState: GameState) {
 
 export default function GameController({ serverGameState, children }: { serverGameState: GameState, children: any }) {
   const { trigger: playCardAction } = usePlay();
-  // const passAction = usePass();
-  // const doubleAction = useDouble();
 
 
   // initial state
@@ -525,7 +523,7 @@ export default function GameController({ serverGameState, children }: { serverGa
   }, [cardAssignments, cardContexts, positionsContexts]);
 
   useEffect(() => {
-    if (canUserInteract || isAnimating) return;
+    if (localGameState.base.game_stage !== GameStage.PLAYING || canUserInteract || isAnimating) return;
 
     if (!_.isEqual(serverGameState, localGameState)) {
       logger.info("Detetected difference between server and local game state.");
@@ -536,6 +534,17 @@ export default function GameController({ serverGameState, children }: { serverGa
       processDifference(serverGameState, localGameState);
     }
   }, [canUserInteract, isAnimating, localGameState, processDifference, serverGameState]);
+
+  useEffect(() => {
+    if (localGameState.base.game_stage === GameStage.BIDDING && !_.isEqual(serverGameState, localGameState)) {
+      setLocalGameState(serverGameState);
+
+      // eslint-disable-next-line 
+      if (serverGameState.base.game_stage === GameStage.PLAYING) {
+        setBiddingContext([0, -80]);
+      }
+    };
+  }, [localGameState, serverGameState]);
 
   // initial game state
   useEffect(() => {

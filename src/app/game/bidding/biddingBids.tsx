@@ -1,3 +1,4 @@
+import { useBid, useDouble, usePass, useRedouble } from "@/api/session/game";
 import ClubSymbol from "@/components/cards/symbols/clubs";
 import DiamondsSymbol from "@/components/cards/symbols/diamonds";
 import HeartsSymbol from "@/components/cards/symbols/hearts";
@@ -9,7 +10,7 @@ import {
   TrickBid
 } from "@/game_engine/gameModels";
 import _ from "lodash";
-import { useContext } from "react";
+import { useCallback, useContext } from "react";
 import { twMerge } from "tailwind-merge";
 import { BiddingContext } from "./biddingPage";
 
@@ -72,12 +73,13 @@ function isBidLegal(currentBid: TrickBid | SpecialBid, newBid: TrickBid | Specia
 
     return false;
   } else {
-    newBid = newBid as TrickBid;
-    currentBid = currentBid as TrickBid;
 
-    if (currentBid === null) {
+    if (currentBid === null || currentBid === undefined) {
       return true;
     } else {
+      newBid = newBid as TrickBid;
+      currentBid = currentBid as TrickBid;
+
       if (newBid.tricks > currentBid.tricks) {
         return true;
       } else if (newBid.tricks === currentBid.tricks) {
@@ -93,17 +95,20 @@ function TrickBidButton({
   bid,
   disabled,
   selected,
+  onClick,
   className,
 }: {
   bid: TrickBid;
   disabled: boolean;
   selected: boolean;
+  onClick: (bid: TrickBid | SpecialBid) => void;
   className?: string;
 }) {
   return (
     <button
       disabled={disabled}
       data-tip="Final contract"
+      onClick={() => onClick(bid)}
       className={twMerge(
         "btn text-neutral-content bid hover:bg-primary-focus border-0 w-14 h-14 gap-1 p-1 text-lg flex flex-row justify-center transition-all",
         selected
@@ -123,6 +128,19 @@ function TrickBidButton({
 function BiddingBids() {
 
   const bidding = useContext(BiddingContext);
+
+  const { trigger: bidAction } = useBid();
+  const { trigger: passAction } = usePass();
+  const { trigger: doubleAction } = useDouble();
+  const { trigger: redoubleAction } = useRedouble();
+
+  const bidActionWrapper = useCallback((bid: TrickBid | SpecialBid) => {
+    if (bid.hasOwnProperty("suit")) {
+      bidAction(bid as TrickBid);
+    } else {
+      passAction();
+    }
+  }, [bidAction, passAction]);
 
   return (
     <div className="h-auto card bg-base-100 rounded-box place-items-center p-4">
@@ -154,6 +172,7 @@ function BiddingBids() {
                         }
                         selected={isSelected ? true : false}
                         className={isSelected ? "tooltip" : ""}
+                        onClick={bidActionWrapper}
                       />
                     );
                   })}
@@ -161,14 +180,14 @@ function BiddingBids() {
             );
           })}
         <div className="grid grid-cols-2 gap-4 mt-4">
-          <button className="btn hover-text-primary-bright border-0 hover:bg-primary-focus text-lg col-span-2" disabled={!isBidLegal(bidding.observation.bid!, SpecialBid.PASS, bidding.observation.bid_history)}>
+          <button className="btn hover-text-primary-bright border-0 hover:bg-primary-focus text-lg col-span-2" onClick={() => passAction()} disabled={!isBidLegal(bidding.observation.bid!, SpecialBid.PASS, bidding.observation.bid_history)}>
             <span className="text-2xl">Pass</span>
           </button>
           <div className="col-span-2 grid grid-cols-2 gap-4">
-            <button className="btn hover-text-primary-bright border-0 hover:bg-primary-focus text-lg" disabled={!isBidLegal(bidding.observation.bid!, SpecialBid.DOUBLE, bidding.observation.bid_history)}>
+            <button className="btn hover-text-primary-bright border-0 hover:bg-primary-focus text-lg" onClick={() => doubleAction()} disabled={!isBidLegal(bidding.observation.bid!, SpecialBid.DOUBLE, bidding.observation.bid_history)}>
               <span className="text-2xl">Double</span>
             </button>
-            <button className="btn hover-text-primary-bright border-0 hover:bg-primary-focus text-lg" disabled={!isBidLegal(bidding.observation.bid!, SpecialBid.REDOUBLE, bidding.observation.bid_history)}>
+            <button className="btn hover-text-primary-bright border-0 hover:bg-primary-focus text-lg" onClick={() => redoubleAction()} disabled={!isBidLegal(bidding.observation.bid!, SpecialBid.REDOUBLE, bidding.observation.bid_history)}>
               <span className="text-2xl">Redouble</span>
             </button>
           </div>
