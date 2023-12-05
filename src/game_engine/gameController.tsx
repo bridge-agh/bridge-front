@@ -47,7 +47,10 @@ const reduceCardAssignment = (state: (CardAssignment[])[], action: { state: Assi
 function updateUserInterface(localGameState: GameState, cardAssignments: CardAssignment[][], dispatchCardState: any, setCanUserInteract: any) {
   const currentPlayer = localGameState.base.current_player;
 
+  console.log(localGameState);
+
   if (localGameState.game.round_player === undefined) return;
+
 
   if (currentPlayer === localGameState.base.user_direction || // user turn
     currentPlayer === oppositeDirection(localGameState.base.user_direction)) { // partner turn
@@ -265,8 +268,6 @@ export default function GameController({ serverGameState, children }: { serverGa
         .map(assign => assign.index), dispatchCardContext, cardContexts, 0, easings.easeInOutExpo);
     }, ANIM_HAND_DELAY);
 
-    setSelectedPosition(positionsContexts, dispatchPositionContext, nextDirection(localGameState.base.current_player));
-
     logger.debug(`Played card ${cardToString(cardAssign.card!)} by ${PlayerDirection[handDirection]}`);
 
     requestTimeout(() => {
@@ -278,7 +279,7 @@ export default function GameController({ serverGameState, children }: { serverGa
       setLocalGameState(localGameState);
       setIsAnimating(false);
     }, ANIM_TIME + ANIM_HAND_DELAY + ANIM_POST_DELAY);
-  }, [canUserInteract, cardStates, localGameState, cardAssignments, playCardAction, cardContexts, positionsContexts]);
+  }, [canUserInteract, cardStates, localGameState, cardAssignments, playCardAction, cardContexts]);
 
 
 
@@ -396,8 +397,6 @@ export default function GameController({ serverGameState, children }: { serverGa
           // animate dummy cards
           animateDummyShowUp(cardContexts.filter((context) => assigns.map(a => a.index).includes(context.index)),
             playerDirectionToRealDirection(dummyDirection, localGameState.base.user_direction));
-
-          setSelectedPosition(positionsContexts, dispatchPositionContext, nextDirection(currentPlayer));
         }, animTimeCount);
 
         animTimeCount += (ANIM_TIME + ANIM_POST_DELAY);
@@ -449,6 +448,7 @@ export default function GameController({ serverGameState, children }: { serverGa
         const hand = getHand(localGameState, realDirection)!;
         const assigns = [...cardAssignmentsCopy[handDirection]];
         const currentPlayer = localGameState.base.current_player;
+        const roundCards = localGameState.game.round_cards.length;
 
         requestTimeout(() => {
           logger.debug(`Played card ${cardToString(cardAssign!.card!)} by ${PlayerDirection[handDirection]}`);
@@ -475,7 +475,8 @@ export default function GameController({ serverGameState, children }: { serverGa
             animateHand(hand, 0, assigns.map(assign => assign.index), dispatchCardContext, cardContexts, 0, easings.easeInOutExpo);
           }, ANIM_HAND_DELAY);
 
-          setSelectedPosition(positionsContexts, dispatchPositionContext, nextDirection(currentPlayer));
+          if (roundCards !== 4)
+            setSelectedPosition(positionsContexts, dispatchPositionContext, nextDirection(currentPlayer));
 
         }, animTimeCount);
 
@@ -503,6 +504,8 @@ export default function GameController({ serverGameState, children }: { serverGa
           logger.info(`Round finished. Winner of round is ${PlayerDirection[winningDirection]}`);
 
           animateCleanRound(contexts, playerDirectionToRealDirection(winningDirection, localGameState.base.user_direction));
+
+          setSelectedPosition(positionsContexts, dispatchPositionContext, winningDirection);
         }, animTimeCount);
 
         animTimeCount += (ANIM_TIME + ANIM_POST_DELAY);
@@ -542,9 +545,12 @@ export default function GameController({ serverGameState, children }: { serverGa
       // eslint-disable-next-line 
       if (serverGameState.base.game_stage === GameStage.PLAYING) {
         setBiddingContext([0, -80]);
+
+        setSelectedPosition(positionsContexts, dispatchPositionContext, serverGameState.base.current_player);
+        updateUserInterface(serverGameState, cardAssignments, dispatchCardState, setCanUserInteract);
       }
     };
-  }, [localGameState, serverGameState]);
+  }, [cardAssignments, localGameState, positionsContexts, serverGameState]);
 
   // initial game state
   useEffect(() => {
@@ -660,7 +666,7 @@ export default function GameController({ serverGameState, children }: { serverGa
 
         updateUserInterface(localGameState, cardAssignmentsCopy, dispatchCardState, setCanUserInteract);
 
-        setBiddingContext([0, 0]);
+        if (localGameState.base.game_stage === GameStage.BIDDING) setBiddingContext([0, 0]);
 
         setIsAnimating(false);
 

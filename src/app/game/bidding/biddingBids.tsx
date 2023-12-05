@@ -29,29 +29,6 @@ export function suitToSymbol(suit: BidSuit) {
   }
 }
 
-// def is_legal(current_bid: TrickBid, bid_history: list[Union[TrickBid, SpecialBid]],
-//   new_bid: Union[TrickBid, SpecialBid]) -> bool:
-// if isinstance(new_bid, SpecialBid):
-// if new_bid == SpecialBid.PASS:
-//  return True
-// n_bids = len(bid_history)
-// if new_bid == SpecialBid.DOUBLE and n_bids > 0:
-//  # TrickBid was played by opponent's team
-//  if isinstance(bid_history[-1], TrickBid) or (n_bids >= 3 and
-//          bid_history[-2:] == [SpecialBid.PASS, SpecialBid.PASS] and isinstance(bid_history[-3], TrickBid)):
-//      return True
-// elif new_bid == SpecialBid.REDOUBLE and n_bids > 0:
-//  # DOUBLE was used by opponent's team
-//  if bid_history[-1] == SpecialBid.DOUBLE or (n_bids >= 3 and
-//          bid_history[-2:] == [SpecialBid.PASS, SpecialBid.PASS] and bid_history[-3] == SpecialBid.DOUBLE):
-//      return True
-// return False
-// else:
-// if current_bid is None:
-//  return True
-// else:
-//  return new_bid > current_bid
-
 function isBidLegal(currentBid: TrickBid | SpecialBid, newBid: TrickBid | SpecialBid, bidHistory: (TrickBid | SpecialBid)[]) {
   if (!newBid.hasOwnProperty("suit")) {
     if (newBid === SpecialBid.PASS) return true;
@@ -135,12 +112,14 @@ function BiddingBids() {
   const { trigger: redoubleAction } = useRedouble();
 
   const bidActionWrapper = useCallback((bid: TrickBid | SpecialBid) => {
-    if (bid.hasOwnProperty("suit")) {
-      bidAction(bid as TrickBid);
-    } else {
-      passAction();
+    if (bidding.currentPlayer === bidding.userDirection) {
+      if (bid.hasOwnProperty("suit")) {
+        bidAction(bid as TrickBid);
+      } else {
+        passAction();
+      }
     }
-  }, [bidAction, passAction]);
+  }, [bidAction, bidding.currentPlayer, bidding.userDirection, passAction]);
 
   return (
     <div className="h-auto card bg-base-100 rounded-box place-items-center p-4">
@@ -180,14 +159,23 @@ function BiddingBids() {
             );
           })}
         <div className="grid grid-cols-2 gap-4 mt-4">
-          <button className="btn hover-text-primary-bright border-0 hover:bg-primary-focus text-lg col-span-2" onClick={() => passAction()} disabled={!isBidLegal(bidding.observation.bid!, SpecialBid.PASS, bidding.observation.bid_history)}>
+          <button className="btn hover-text-primary-bright border-0 hover:bg-primary-focus text-lg col-span-2" onClick={() => {
+            if (bidding.currentPlayer === bidding.userDirection)
+              passAction();
+          }} disabled={!isBidLegal(bidding.observation.bid!, SpecialBid.PASS, bidding.observation.bid_history)}>
             <span className="text-2xl">Pass</span>
           </button>
           <div className="col-span-2 grid grid-cols-2 gap-4">
-            <button className="btn hover-text-primary-bright border-0 hover:bg-primary-focus text-lg" onClick={() => doubleAction()} disabled={!isBidLegal(bidding.observation.bid!, SpecialBid.DOUBLE, bidding.observation.bid_history)}>
+            <button className="btn hover-text-primary-bright border-0 hover:bg-primary-focus text-lg" onClick={() => {
+              if (bidding.currentPlayer === bidding.userDirection)
+                doubleAction();
+            }} disabled={!isBidLegal(bidding.observation.bid!, SpecialBid.DOUBLE, bidding.observation.bid_history)}>
               <span className="text-2xl">Double</span>
             </button>
-            <button className="btn hover-text-primary-bright border-0 hover:bg-primary-focus text-lg" onClick={() => redoubleAction()} disabled={!isBidLegal(bidding.observation.bid!, SpecialBid.REDOUBLE, bidding.observation.bid_history)}>
+            <button className="btn hover-text-primary-bright border-0 hover:bg-primary-focus text-lg" onClick={() => {
+              if (bidding.currentPlayer === bidding.userDirection)
+                redoubleAction();
+            }} disabled={!isBidLegal(bidding.observation.bid!, SpecialBid.REDOUBLE, bidding.observation.bid_history)}>
               <span className="text-2xl">Redouble</span>
             </button>
           </div>

@@ -152,7 +152,7 @@ export default function GameScene({ width, height, parentRef }: { width: number,
           position={[0, 0, 4.2]}
           ref={cameraRef}
         />
-      </Canvas>
+      </Canvas >
       {/* <Loader /> */}
     </>
   );
