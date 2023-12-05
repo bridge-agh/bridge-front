@@ -47,10 +47,7 @@ const reduceCardAssignment = (state: (CardAssignment[])[], action: { state: Assi
 function updateUserInterface(localGameState: GameState, cardAssignments: CardAssignment[][], dispatchCardState: any, setCanUserInteract: any) {
   const currentPlayer = localGameState.base.current_player;
 
-  console.log(localGameState);
-
   if (localGameState.game.round_player === undefined) return;
-
 
   if (currentPlayer === localGameState.base.user_direction || // user turn
     currentPlayer === oppositeDirection(localGameState.base.user_direction)) { // partner turn
@@ -372,7 +369,6 @@ export default function GameController({ serverGameState, children }: { serverGa
         });
 
         const assigns = [...cardAssignmentsCopy[dummyDirection]];
-        const currentPlayer = localGameState.base.current_player;
 
         setTimeout(() => {
 
@@ -427,7 +423,6 @@ export default function GameController({ serverGameState, children }: { serverGa
 
           localGameState.game.dummy_cards.splice(localGameState.game.dummy_cards.findIndex((card) => _.isEqual(card, cardAssign!.card)), 1);
 
-          console.log(cardAssign);
           logger.debug(`playing card from dummys (or partner if declarer) hand: ${cardToString(cardAssign!.card!)}`);
         } else { // random card from hand
           const randomIndex = Math.floor(Math.random() * getHandCount(handDirection, localGameState));
