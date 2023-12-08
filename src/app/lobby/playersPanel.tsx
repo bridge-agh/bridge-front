@@ -43,12 +43,12 @@ export default function PlayersPanel({
     }
   }, [positionsToSwap, handleForceSwap]);
 
-  function directionToPlayer(direction: PlayerDirection, key: number) {
+  const directionToPlayer = useCallback((direction: PlayerDirection, key: number) => {
     const player = players.find((p) => p.position == direction);
     return (
       <PlayerPanel
         key={key}
-        player={players.find((p) => p.position == direction)}
+        player={player}
         userId={userId}
         host={host}
         position={direction}
@@ -57,7 +57,7 @@ export default function PlayersPanel({
         promoteHost={handleSetHost}
       />
     );
-  }
+  }, [addPositionToSwap, handleSetHost, host, players, positionsToSwap, userId]);
 
   return (
     <div className="flex flex-col gap-4 md:flex-row justify-between items-center mb-3">
