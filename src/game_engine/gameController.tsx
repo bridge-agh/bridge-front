@@ -1,6 +1,5 @@
 import { usePlay } from "@/api/session/game";
-import { Card, GameStage, GameState, PlayerDirection, Trick, cardToString, nextDirection, oppositeDirection, playerDirectionToRealDirection } from "@/game_engine/gameModels";
-import { BidSuit, BidTricks, Card, CardRank, CardSuit, GameStage, GameState, PlayerDirection, Trick, cardToString, diffDirection, nextDirection, oppositeDirection, playerDirectionToRealDirection } from "@/game_engine/gameModels";
+import { Card, GameStage, GameState, PlayerDirection, Trick, cardToString, diffDirection, nextDirection, oppositeDirection, playerDirectionToRealDirection } from "@/game_engine/gameModels";
 import { logger } from "@/logic/logger";
 import { easings, useSpring } from "@react-spring/three";
 import _ from "lodash";
