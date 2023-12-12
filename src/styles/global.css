@@ -28,28 +28,20 @@
 
 /* bidding */
 
-[data-theme="light"] .bid:hover {
-  @apply text-base-200;
+.bid-selected {
+  @apply text-neutral;
 }
 
-[data-theme="light"] .bid:hover .fill-base-content {
-  @apply fill-base-200;
+.bid-selected .fill-neutral-content {
+  @apply fill-neutral;
 }
 
-[data-theme="dark"] .bid-selected {
-  @apply text-neutral-focus;
+.bid-history {
+  @apply text-base-content;
 }
 
-[data-theme="dark"] .bid-selected .fill-base-content {
-  @apply fill-neutral-focus;
-}
-
-[data-theme="light"] .bid-selected:hover {
-  @apply text-neutral-focus;
-}
-
-[data-theme="light"] .bid-selected:hover .fill-base-content {
-  @apply fill-neutral-focus;
+.bid-history .fill-neutral-content {
+  @apply fill-base-content;
 }
 
 /* daisyUI fix */
@@ -61,6 +53,22 @@
 
   .drawer-content {
     transform: none !important; /* override daisyUI */
+  }
+}
+
+/* no-scrollbar */
+@layer utilities {
+  @variants responsive {
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .no-scrollbar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
   }
 }
 

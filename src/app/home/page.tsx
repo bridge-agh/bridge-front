@@ -1,9 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
 import { useCreateLobby, useJoinLobby } from "@/api/session/lobby";
 import protectRoute from "@/logic/protect_route";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 function Home() {
   const router = useRouter();
@@ -26,7 +26,7 @@ function Home() {
     if (!targetLobbyId || createLobby.loading || joinLobby.loading) {
       return;
     }
-    joinLobby.trigger({sessionId: targetLobbyId}).then(goToLobby);
+    joinLobby.trigger({ sessionId: targetLobbyId }).then(goToLobby);
   }, [joinLobby, createLobby, goToLobby, targetLobbyId]);
 
   useEffect(() => {

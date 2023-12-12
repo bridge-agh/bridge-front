@@ -1,4 +1,8 @@
-import { OrbitControls, PerspectiveCamera, Stats, useTexture } from "@react-three/drei";
+
+import BiddingPage from "@/app/game/bidding/biddingPage";
+import { Html, PerspectiveCamera, Stats, useTexture } from "@react-three/drei";
+
+import { animated } from "@react-spring/three";
 import { Canvas, useLoader } from "@react-three/fiber";
 import { RefObject, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { MathUtils, TextureLoader } from "three";
@@ -30,7 +34,7 @@ textureFilePaths.forEach((path) => {
 });
 
 const fov = 50;
-const planeAspectRatio = 16 / 9.8;
+const planeAspectRatio = 16 / 10.4;
 
 function calcFovAndAspect(currentHeight: number, currentWidth: number, currentAspect: number) {
   if (currentAspect > planeAspectRatio) {
@@ -46,6 +50,8 @@ function calcFovAndAspect(currentHeight: number, currentWidth: number, currentAs
     return [newFov, newAspect];
   }
 }
+
+const AnimatedHtml = animated(Html);
 
 export default function GameScene({ width, height, parentRef }: { width: number, height: number, parentRef: RefObject<HTMLDivElement> }) {
   // force load textures if not preloaded in global context
@@ -120,10 +126,25 @@ export default function GameScene({ width, height, parentRef }: { width: number,
         })}
         {/* </Suspense> */}
         {/* <Preload all /> */}
-        <OrbitControls />
+        {/* <OrbitControls /> */}
         {/* <gridHelper /> */}
         {/* <axesHelper /> */}
         <Stats />
+        <Html
+          position={[0, 1.05, -5]}
+          transform
+          center
+          distanceFactor={10}
+          // sprite
+          scale={0.2}
+          style={{
+            transition: "all 0.5s ease",
+            transform: `translateX(${gameContext.bidding.position[0]}rem) translateY(${gameContext.bidding.position[1]}rem)`,
+          }}
+        // style={{ width: "100%", height: "100%" }}
+        >
+          <BiddingPage bidding={gameContext.bidding} />
+        </Html>
         <PerspectiveCamera
           makeDefault
           fov={cameraFOV}
@@ -131,7 +152,7 @@ export default function GameScene({ width, height, parentRef }: { width: number,
           position={[0, 0, 4.2]}
           ref={cameraRef}
         />
-      </Canvas>
+      </Canvas >
       {/* <Loader /> */}
     </>
   );
