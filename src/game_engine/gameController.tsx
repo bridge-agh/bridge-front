@@ -1,5 +1,6 @@
 import { usePlay } from "@/api/session/game";
 import { Card, GameStage, GameState, PlayerDirection, Trick, cardToString, nextDirection, oppositeDirection, playerDirectionToRealDirection } from "@/game_engine/gameModels";
+import { BidSuit, BidTricks, Card, CardRank, CardSuit, GameStage, GameState, PlayerDirection, Trick, cardToString, diffDirection, nextDirection, oppositeDirection, playerDirectionToRealDirection } from "@/game_engine/gameModels";
 import { logger } from "@/logic/logger";
 import { easings, useSpring } from "@react-spring/three";
 import _ from "lodash";
@@ -344,7 +345,16 @@ export default function GameController({ serverGameState, children }: { serverGa
       if (localGameState.game.tricks.NS.length + localGameState.game.tricks.EW.length <= 1 && localGameState.game.dummy_cards.length === 0 && localGameState.game.round_cards.length > 0) {
         logger.debug("Dummy cards case fired.");
 
+        const dummyDirection = oppositeDirection(localGameState.bidding.declarer!) === localGameState.base.user_direction ? localGameState.bidding.declarer! : oppositeDirection(localGameState.bidding.declarer!);
+
+        // backwards dummy solver
         localGameState.game.dummy_cards = [...serverGameState.game.dummy_cards];
+
+        // combine above foreach into single stream
+        [...serverGameState.game.tricks.NS, ...serverGameState.game.tricks.EW].forEach((trick) => {
+          const dummyIndex = diffDirection(trick.round_player, dummyDirection);
+          localGameState.game.dummy_cards.push(trick.cards[dummyIndex]);
+        });
 
         if (localGameState.game.dummy_cards.length !== 13) {
           localGameState.game.dummy_cards.push(serverCardsToCompare[1]);
@@ -356,10 +366,9 @@ export default function GameController({ serverGameState, children }: { serverGa
           }
         }
 
-        const dummy_cards = [...localGameState.game.dummy_cards].sort(compareCards).reverse();
+        const dummy_cards = [...localGameState.game.dummy_cards.sort(compareCards)].reverse();
 
 
-        const dummyDirection = oppositeDirection(localGameState.bidding.declarer!) === localGameState.base.user_direction ? oppositeDirection(localGameState.base.user_direction) : oppositeDirection(localGameState.bidding.declarer!);
         const contexts = cardContextsCopy.filter((context) => cardAssignmentsCopy[dummyDirection].map(assign => assign.index).includes(context.index));
 
         // update card context and assignment state
@@ -411,19 +420,20 @@ export default function GameController({ serverGameState, children }: { serverGa
         let cardAssign: CardAssignment = null!;
 
 
-        if (handDirection === userDirection) { // exact card in user hand (dummy played user's card)
-          cardAssign = cardAssignmentsCopy[handDirection].find((assign) => _.isEqual(assign.card, card))!;
+        if (handDirection === userDirection) { // card played from user's hand
+          cardAssign = _.find(cardAssignmentsCopy[handDirection], (assign) => _.isEqual(assign.card, card))!;
 
-          localGameState.game.hand.splice(localGameState.game.hand.findIndex((card) => _.isEqual(card, cardAssign!.card)), 1);
+          _.remove(localGameState.game.hand, (card) => _.isEqual(card, cardAssign!.card));
 
           logger.debug(`playing card from user's hand: ${cardToString(cardAssign!.card!)}`);
-        } else if (oppositeDirection(handDirection) === localGameState.bidding.declarer || // exact card in dummy hand 
-          (oppositeDirection(userDirection) === localGameState.bidding.declarer && handDirection === oppositeDirection(userDirection))) { // or partner hand
-          cardAssign = cardAssignmentsCopy[handDirection].find((assign) => _.isEqual(assign.card, card))!;
+        } else if (oppositeDirection(handDirection) === localGameState.bidding.declarer || // not user's partner plays from dummy's hand
+          (oppositeDirection(userDirection) === localGameState.bidding.declarer && handDirection === localGameState.bidding.declarer)) { // user's partner plays from its hand
+          cardAssign = _.find(cardAssignmentsCopy[handDirection], (assign) => _.isEqual(assign.card, card))!;
 
-          localGameState.game.dummy_cards.splice(localGameState.game.dummy_cards.findIndex((card) => _.isEqual(card, cardAssign!.card)), 1);
+          _.remove(localGameState.game.dummy_cards, (card) => _.isEqual(card, cardAssign!.card));
 
-          logger.debug(`playing card from dummys (or partner if declarer) hand: ${cardToString(cardAssign!.card!)}`);
+          console.log(cardAssign);
+          logger.debug(`playing card from dummy's (or partner's if user is declarer) hand: ${cardToString(cardAssign!.card!)}`);
         } else { // random card from hand
           const randomIndex = Math.floor(Math.random() * getHandCount(handDirection, localGameState));
           cardAssign = cardAssignmentsCopy[handDirection][randomIndex];
