@@ -2,9 +2,10 @@
 
 import { useCallback } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
+import { useCreateUserWithEmailAndPassword, useSignInWithEmailAndPassword, useUpdateProfile } from "react-firebase-hooks/auth";
 import { useRouter } from "next/navigation";
 import { auth } from "@/logic/fb";
+import { signInWithEmailAndPassword } from "@firebase/auth";
 
 type RegisterData = {
   username: string;
@@ -31,13 +32,17 @@ export default function RegisterForm({ className }: { className?: string }) {
   });
 
   const [createUserWithEmailAndPassword, user, loading, error] = useCreateUserWithEmailAndPassword(auth);
+  const [updateProfile, updating, profileError] = useUpdateProfile(auth);
+  const [signInWithEmailAndPassword, currentUser, signInLoading, signInLoadingerror] = useSignInWithEmailAndPassword(auth);
 
   const onSubmit: SubmitHandler<RegisterData> = useCallback(
     (data) => {
       if (loading) return;
-      createUserWithEmailAndPassword(data.email, data.password);
+      createUserWithEmailAndPassword(data.email, data.password)
+        .then(() => signInWithEmailAndPassword(data.email, data.password)
+          .then(() => updateProfile({displayName: data.username})));
     },
-    [createUserWithEmailAndPassword, loading]
+    [createUserWithEmailAndPassword, loading, signInWithEmailAndPassword, updateProfile]
   );
 
   const router = useRouter();

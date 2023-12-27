@@ -30,7 +30,7 @@ export default function LoginForm({ className }: { className?: string }) {
   const onSubmit: SubmitHandler<LoginData> = useCallback(
     (data) => {
       if (loading) return;
-      signInWithEmailAndPassword(data.email, data.password);
+      signInWithEmailAndPassword(data.email, data.password).then(c => console.log(c));
     },
     [signInWithEmailAndPassword, loading]
   );
