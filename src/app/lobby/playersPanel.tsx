@@ -1,7 +1,7 @@
 import { Player } from "@/api/session";
 import { PlayerDirection } from "@/game_engine/gameModels";
 import PlayerPanel from "./playerPanel";
-import { useForceSwap, usePromoteHost } from "@/api/session/lobby";
+import { useForceSwap, usePromoteHost, useSetAssistant, useKick } from "@/api/session/lobby";
 import { useCallback, useEffect, useState } from "react";
 
 export default function PlayersPanel({
@@ -16,6 +16,8 @@ export default function PlayersPanel({
   const promoteHost = usePromoteHost();
   const forceSwap = useForceSwap();
   const [positionsToSwap, setPositionsToSwap] = useState<PlayerDirection[]>([]);
+  const setAssistant = useSetAssistant();
+  const kick = useKick();
 
   const handleForceSwap = useCallback(() => {
     if (forceSwap.loading || positionsToSwap.length != 2) return;
@@ -35,6 +37,15 @@ export default function PlayersPanel({
     promoteHost.trigger({ userId: userId });
   }, [promoteHost]);
 
+  const handleSetAssistant = useCallback((direction: PlayerDirection) => {
+    if (setAssistant.loading) return;
+    setAssistant.trigger({direction: direction});
+  }, [setAssistant]);
+  
+  const handleKick = useCallback((id: string) => {
+    if (kick.loading) return;
+    kick.trigger({id: id});
+  }, [kick]);
 
   useEffect(() => {
     if (positionsToSwap.length == 2) {
@@ -55,9 +66,11 @@ export default function PlayersPanel({
         addPositionToSwap={addPositionToSwap}
         positionsToSwap={positionsToSwap}
         promoteHost={handleSetHost}
+        setAssistant={handleSetAssistant}
+        kick={handleKick}
       />
     );
-  }, [addPositionToSwap, handleSetHost, host, players, positionsToSwap, userId]);
+  }, [addPositionToSwap, handleKick, handleSetAssistant, handleSetHost, host, players, positionsToSwap, userId]);
 
   return (
     <div className="flex flex-col gap-4 md:flex-row justify-between items-center mb-3">

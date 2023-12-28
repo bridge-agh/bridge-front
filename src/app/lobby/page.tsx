@@ -1,11 +1,11 @@
 "use client";
 
-import { useForceSwap, useReady, usePromoteHost } from "@/api/session/lobby";
+import { useReady } from "@/api/session/lobby";
 import { useSessionInfo, useLeaveSession } from "@/api/session";
 import protectRoute from "@/logic/protect_route";
 import useUser from "@/logic/use_user";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import PlayersPanel from "./playersPanel";
 
 

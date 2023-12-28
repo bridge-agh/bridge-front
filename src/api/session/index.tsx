@@ -11,6 +11,8 @@ export interface Player {
   id: string
   ready: boolean
   position: PlayerDirection
+  displayName: string | null
+  isHuman: boolean
 }
 
 export interface GetInfoResponse {

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { BsPersonCircle, BsQuestionCircle } from "react-icons/bs";
 import { FaExchangeAlt } from "react-icons/fa";
 import { RiVipCrownLine, RiVipCrownFill } from "react-icons/ri";
+import { PiMonitorDuotone } from "react-icons/pi";
 import { TiDelete } from "react-icons/ti";
 import { twMerge } from "tailwind-merge";
 import {
@@ -18,6 +19,8 @@ export default function PlayerPanel({
   addPositionToSwap,
   positionsToSwap,
   promoteHost,
+  setAssistant,
+  kick
 }: {
   player: Player | undefined | null;
   userId: string;
@@ -26,13 +29,17 @@ export default function PlayerPanel({
   addPositionToSwap: (position: PlayerDirection) => void;
   positionsToSwap: PlayerDirection[];
   promoteHost: (userId: string) => void;
+  setAssistant: (direction: PlayerDirection) => void;
+  kick: (id: string) => void;
 }) {
   const [nameText, setNameText] = useState(player?.id);
   const [isPlayer, setIsPlayer] = useState(false);
+  const [isHumanPlayer, setIsHumanPlayer] = useState(false);
   const [animation, setAnimation] = useState("");
   const [exchangeButtonHovered, setExchangeButtonHovered] = useState(false);
   const [kickButtonHovered, setKickButtonHovered] = useState(false);
   const [crownButtonHovered, setCrownButtonHovered] = useState(false);
+  const [assistantButtonHovered, setAssistantButtonHovered] = useState(false);
   const changeNameText = useCallback(
     (newName: string) => {
       if (nameText == null) setNameText(newName);
@@ -49,11 +56,13 @@ export default function PlayerPanel({
 
   useEffect(() => {
     if (player != null && player != undefined) {
-      changeNameText(player.id);
+      if (player.isHuman) setIsHumanPlayer(true);
+      changeNameText(player.displayName || player.id);
       setIsPlayer(true);
     } else {
       changeNameText("Waiting...");
       setIsPlayer(false);
+      setIsHumanPlayer(false);
     }
   }, [player, changeNameText]);
 
@@ -90,7 +99,7 @@ export default function PlayerPanel({
           className="tooltip  tooltip-warning tooltip-left xs:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]"
           data-tip="Promote player to a host"
         >
-          {isPlayer && player?.id != userId && userId == host?.id && (
+          {isHumanPlayer && player?.id != userId && userId == host?.id && (
             <RiVipCrownLine
               className={twMerge(
                 animation,
@@ -110,6 +119,27 @@ export default function PlayerPanel({
           )}
         </div>
         <div
+          className="tooltip  tooltip-info tooltip-left xs:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]"
+          data-tip="Assign virtual assistant"
+        >
+          {!isPlayer && (
+            <PiMonitorDuotone
+              className={twMerge(
+                animation,
+                "w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] text-info mr-3",
+                host?.ready ? "opacity-50" : "cursor-pointer"
+              )}
+              onClick={() => setAssistant(position)}
+              onMouseEnter={() => {
+                if (!host?.ready) setAssistantButtonHovered(true);
+              }}
+              onMouseLeave={() => {
+                if (!host?.ready) setAssistantButtonHovered(false);
+              }}
+            />
+          )}
+        </div>
+        <div
           className="tooltip  tooltip-error  tooltip-left xs:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]"
           data-tip="Kick player from the lobby"
         >
@@ -120,6 +150,7 @@ export default function PlayerPanel({
                 "w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] mr-3 shrink-0 text-error ",
                 host?.ready ? "opacity-50" : "cursor-pointer"
               )}
+              onClick={() => {if (!host?.ready && player != null) kick(player.id);}}
               onMouseEnter={() => {
                 if (!host?.ready) setKickButtonHovered(true);
               }}
@@ -138,7 +169,8 @@ export default function PlayerPanel({
             ? "ring-4 ring-accent"
             : "",
           kickButtonHovered ? "ring-4 ring-error" : "",
-          crownButtonHovered ? "ring-4 ring-yellow-300" : ""
+          crownButtonHovered ? "ring-4 ring-yellow-300" : "",
+          assistantButtonHovered ? "ring-4 ring-info" : ""
         )}
       >
         <div
