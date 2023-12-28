@@ -34,25 +34,28 @@ export default function UpdateForm({ fieldToUpdate, className }: { fieldToUpdate
 
   const user = auth.currentUser;
   
+  const router = useRouter();
+  
   const onSubmit: SubmitHandler<UpdateData> = useCallback(
     async (data) => {
       if (!user || user.email == null) return;
       console.log(user);
-      await signInWithEmailAndPassword(user.email, data.oldPassword);
+      const authenticated = await signInWithEmailAndPassword(user.email, data.oldPassword);
+      if (!authenticated) return;
       if (fieldToUpdate == "email") {
         if (updatingEmail) return;
-        updateEmail(data.email);
+        updateEmail(data.email).then(() => router.replace("/profile"));
       }
       if (fieldToUpdate == "username") {
         if (updatingProfile) return;
-        updateProfile({displayName: data.username});
+        updateProfile({displayName: data.username}).then(() => router.replace("/profile"));
       }
       if (fieldToUpdate == "password") {
         if (updatingPassword) return;
-        updatePassword(data.password);
+        updatePassword(data.password).then(() => router.replace("/profile"));
       }
     },
-    [fieldToUpdate, signInWithEmailAndPassword, updateEmail, updatePassword, updateProfile, updatingEmail, updatingPassword, updatingProfile, user]
+    [fieldToUpdate, router, signInWithEmailAndPassword, updateEmail, updatePassword, updateProfile, updatingEmail, updatingPassword, updatingProfile, user]
   );
 
 
