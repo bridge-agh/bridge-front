@@ -69,15 +69,15 @@ export default function PlayerPanel({
   return (
     <div key={player?.id} className="flex flex-col justify-start items-start items-stretch min-w-[100%] mb-4">
       <div className="mb-1 flex justify-end">
-        <div className="w-11 xs:w-14 relative text-accent-content text-center text-sm xs:text-base font-bold mr-auto">
+        <div className="w-11 ms:w-14 relative text-accent-content text-center text-sm ms:text-base font-bold mr-auto">
           {isPlayer && player?.id == host?.id && (
-            <RiVipCrownFill className="absolute bottom-5 inset-x-1/4 w-[20px] h-[20px] xs:w-[30px] xs:h-[30px] text-yellow-500 animate-fade-out" />
+            <RiVipCrownFill className="absolute bottom-5 inset-x-1/4 w-[20px] h-[20px] ms:w-[30px] ms:h-[30px] text-yellow-500 animate-fade-out" />
           )}
           <div>{getPlayerDirectionName(position)}</div>
         </div>
         <div
           className={twMerge(
-            "tooltip  tooltip-left xs:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]",
+            "tooltip  tooltip-left ms:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]",
             position == positionsToSwap[0] && !host?.ready
               ? "tooltip-accent"
               : "tooltip-primary"
@@ -87,7 +87,7 @@ export default function PlayerPanel({
           {userId == host?.id &&
           (isPlayer || (positionsToSwap.length > 0 && !host?.ready)) && (
             <FaExchangeAlt
-              className={twMerge(animation, "mr-3 w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] shrink-0", host?.ready ? "opacity-50" : "cursor-pointer")}
+              className={twMerge(animation, "mr-3 w-[15px] h-[15px] ms:w-[22px] ms:h-[22px] shrink-0", host?.ready ? "opacity-50" : "cursor-pointer")}
               onClick={() => {if (!host?.ready) addPositionToSwap(position);}}
               onMouseEnter={() => {if (!host?.ready) setExchangeButtonHovered(true);}}
               onMouseLeave={() => {if (!host?.ready) setExchangeButtonHovered(false);}}
@@ -96,14 +96,14 @@ export default function PlayerPanel({
           )}
         </div>
         <div
-          className="tooltip  tooltip-warning tooltip-left xs:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]"
+          className="tooltip  tooltip-warning tooltip-left ms:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]"
           data-tip="Promote player to a host"
         >
           {isHumanPlayer && player?.id != userId && userId == host?.id && (
             <RiVipCrownLine
               className={twMerge(
                 animation,
-                "w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] text-yellow-500 mr-3",
+                "w-[15px] h-[15px] ms:w-[22px] ms:h-[22px] text-yellow-500 mr-3",
                 host?.ready ? "opacity-50" : "cursor-pointer"
               )}
               onClick={() => {
@@ -119,14 +119,14 @@ export default function PlayerPanel({
           )}
         </div>
         <div
-          className="tooltip  tooltip-info tooltip-left xs:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]"
+          className="tooltip  tooltip-info tooltip-left ms:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]"
           data-tip="Assign virtual assistant"
         >
           {!isPlayer && (
             <PiMonitorDuotone
               className={twMerge(
                 animation,
-                "w-[15px] h-[15px] xs:w-[22px] xs:h-[22px] text-info mr-3",
+                "w-[15px] h-[15px] ms:w-[22px] ms:h-[22px] text-info mr-3",
                 host?.ready ? "opacity-50" : "cursor-pointer"
               )}
               onClick={() => setAssistant(position)}
@@ -140,14 +140,14 @@ export default function PlayerPanel({
           )}
         </div>
         <div
-          className="tooltip  tooltip-error  tooltip-left xs:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]"
+          className="tooltip  tooltip-error  tooltip-left ms:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]"
           data-tip="Kick player from the lobby"
         >
           {player?.id != userId && userId == host?.id && isPlayer && (
             <TiDelete
               className={twMerge(
                 animation,
-                "w-[20px] h-[20px] xs:w-[25px] xs:h-[25px] mr-3 shrink-0 text-error ",
+                "w-[20px] h-[20px] ms:w-[25px] ms:h-[25px] mr-3 shrink-0 text-error ",
                 host?.ready ? "opacity-50" : "cursor-pointer"
               )}
               onClick={() => {if (!host?.ready && player != null) kick(player.id);}}
@@ -174,18 +174,18 @@ export default function PlayerPanel({
         )}
       >
         <div
-          className={`w-11 h-11 xs:w-14 xs:h-14 rounded-full duration-500 ${
+          className={`w-11 h-11 ms:w-14 ms:h-14 rounded-full duration-500 ${
             player?.ready ? "bg-green-600" : "bg-blue-600"
           } flex flex-col justify-center items-center relative`}
         >
           {(isPlayer && (
-            <BsPersonCircle className="w-11 h-11 xs:w-14 xs:h-14" />
-          )) || <BsQuestionCircle className="w-11 h-11 xs:w-14 xs:h-14 " />}
+            <BsPersonCircle className="w-11 h-11 ms:w-14 ms:h-14" />
+          )) || <BsQuestionCircle className="w-11 h-11 ms:w-14 ms:h-14 " />}
         </div>
 
         <div
           className={twMerge(
-            "ml-2 font-semibold xs:text-lg xs:font-bold truncate hover:break-all hover:whitespace-normal"
+            "ml-2 font-semibold ms:text-lg ms:font-bold truncate hover:break-all hover:whitespace-normal"
           )}
         >
           <span className={twMerge(animation)}>{nameText}</span>

@@ -21,6 +21,7 @@ export interface GetInfoResponse {
   users: Player[]
   started: boolean
   gameState: GameState | null
+  assistantLevel: number
 }
 
 export function useSessionInfo(): SocketState<GetInfoResponse> {
@@ -44,4 +45,28 @@ async function leaveSessionFetcher(unused: void): Promise<void> {
 
 export function useLeaveSession() {
   return useFetch(leaveSessionFetcher);
+}
+
+// /set-ai-level
+
+export interface SetAssistantLevelRequest {
+  level: number;
+}
+
+async function setAssistantLevelFetcher(request: SetAssistantLevelRequest): Promise<void> {
+  const token = await getIdToken();
+  const res = await fetch(`${API_URL_SESSION}/set-ai-level`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify(request)
+  });
+  if (!res.ok) return Promise.reject(res.statusText);
+  return Promise.resolve();
+}
+
+export function useSetAssistantLevel() {
+  return useFetch(setAssistantLevelFetcher);
 }
