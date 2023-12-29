@@ -84,9 +84,13 @@ export interface PromoteHostRequest {
 }
 
 async function setHostFetcher(request: PromoteHostRequest): Promise<void> {
+  const token = await getIdToken();
   const res = await fetch(`${API_URL_SESSION_LOBBY}/set-host`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
     body: JSON.stringify(request)
   });
   if (!res.ok) return Promise.reject(res.statusText);
@@ -104,9 +108,13 @@ export interface SetAssistantRequest {
 }
 
 async function setAssistantFetcher(request: SetAssistantRequest): Promise<void> {
+  const token = await getIdToken();
   const res = await fetch(`${API_URL_SESSION_LOBBY}/set-assistant`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
     body: JSON.stringify(request)
   });
   if (!res.ok) return Promise.reject(res.statusText);
