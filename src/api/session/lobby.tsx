@@ -84,9 +84,13 @@ export interface PromoteHostRequest {
 }
 
 async function setHostFetcher(request: PromoteHostRequest): Promise<void> {
+  const token = await getIdToken();
   const res = await fetch(`${API_URL_SESSION_LOBBY}/set-host`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
     body: JSON.stringify(request)
   });
   if (!res.ok) return Promise.reject(res.statusText);
@@ -95,6 +99,30 @@ async function setHostFetcher(request: PromoteHostRequest): Promise<void> {
 
 export function usePromoteHost() {
   return useFetch(setHostFetcher);
+}
+
+// /set-assistant
+
+export interface SetAssistantRequest {
+  direction: PlayerDirection
+}
+
+async function setAssistantFetcher(request: SetAssistantRequest): Promise<void> {
+  const token = await getIdToken();
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/set-assistant`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify(request)
+  });
+  if (!res.ok) return Promise.reject(res.statusText);
+  return Promise.resolve();
+}
+
+export function useSetAssistant() {
+  return useFetch(setAssistantFetcher);
 }
 
 // /ready
@@ -119,4 +147,28 @@ async function readyFetcher(request: ReadyRequest): Promise<void> {
 
 export function useReady() {
   return useFetch(readyFetcher);
+}
+
+// /kick
+
+interface KickRequest {
+  id: string
+}
+
+async function kickFetcher(request: KickRequest): Promise<void> {
+  const token = await getIdToken();
+  const res = await fetch(`${API_URL_SESSION_LOBBY}/kick`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify(request)
+  });
+  if (!res.ok) return Promise.reject(res.statusText);
+  return Promise.resolve();
+}
+
+export function useKick() {
+  return useFetch(kickFetcher);
 }

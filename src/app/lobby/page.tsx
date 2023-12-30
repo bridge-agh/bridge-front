@@ -1,11 +1,11 @@
 "use client";
 
-import { useForceSwap, useReady, usePromoteHost } from "@/api/session/lobby";
+import { useReady } from "@/api/session/lobby";
 import { useSessionInfo, useLeaveSession } from "@/api/session";
 import protectRoute from "@/logic/protect_route";
 import useUser from "@/logic/use_user";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import PlayersPanel from "./playersPanel";
 
 
@@ -60,17 +60,24 @@ function Lobby() {
       <div className="rounded-xl bg-base-200 p-5 flex flex-col justify-start items-stretch">
         <div className="text-2xl font-bold mb-3 self-center">Lobby</div>
         <PlayersPanel players={lobby.users} userId={user.uid} host={host} />
-        <div className="flex flex-row justify-evenly sm:justify-between items-center">
+        <div className="flex flex-row justify-evenly sm:justify-between items-center  ">
           <button className="btn btn-xs btn-link text-error text-xs xs:btn-sm sm:btn-md" onClick={handleLeaveClick}>
             Leave
           </button>
-          <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" onClick={handleCopyClick}>
-            Copy ID
-          </button>
+          <div className="flex flex-col justify-center items-center gap-3">
+            <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" onClick={handleCopyClick}>
+              Copy ID
+            </button>
+            <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" onClick={() => router.push("/assistantPower")}>Set AI Level</button>
+          </div>
           <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" disabled={currentUser?.ready} onClick={handleReadyClick}>
             Ready
           </button>
         </div>
+        {/* <div className="flex flex-row w-full justify-center items-center">
+          <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" onClick={() => router.push("/assistantPower")}>Set AI Level</button>
+        </div>
+     */}
       </div>
     </div>
   );
