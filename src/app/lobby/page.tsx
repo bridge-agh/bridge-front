@@ -68,16 +68,16 @@ function Lobby() {
             <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" onClick={handleCopyClick}>
               Copy ID
             </button>
-            <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" onClick={() => router.push("/assistantPower")}>Set AI Level</button>
+            {currentUser?.id == host?.id && 
+              <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" onClick={() => router.push("/assistantPower")}>
+                Set AI Level
+              </button>
+            }
           </div>
           <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" disabled={currentUser?.ready} onClick={handleReadyClick}>
             Ready
           </button>
         </div>
-        {/* <div className="flex flex-row w-full justify-center items-center">
-          <button className="btn btn-xs btn-primary xs:btn-sm sm:btn-md" onClick={() => router.push("/assistantPower")}>Set AI Level</button>
-        </div>
-     */}
       </div>
     </div>
   );
