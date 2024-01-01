@@ -122,7 +122,7 @@ export default function PlayerPanel({
           className="tooltip  tooltip-info tooltip-left ms:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]"
           data-tip="Assign virtual assistant"
         >
-          {!isPlayer && (
+          {!isPlayer && userId == host?.id && (
             <PiMonitorDuotone
               className={twMerge(
                 animation,
