@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useSignInWithEmailAndPassword, useUpdateEmail, useUpdatePassword, useUpdateProfile } from "react-firebase-hooks/auth";
 import { useRouter } from "next/navigation";
@@ -27,7 +27,7 @@ export default function UpdateForm({ fieldToUpdate, className }: { fieldToUpdate
     mode: "onSubmit"
   });
 
-  const [signInWithEmailAndPassword, signedInUser, loading, error] = useSignInWithEmailAndPassword(auth);
+  const [signInWithEmailAndPassword, signedInUser, loading, signInError] = useSignInWithEmailAndPassword(auth);
   const [updateEmail, updatingEmail, emailError] = useUpdateEmail(auth);
   const [updateProfile, updatingProfile, profileError] = useUpdateProfile(auth);
   const [updatePassword, updatingPassword, passwordError] = useUpdatePassword(auth);
@@ -42,18 +42,20 @@ export default function UpdateForm({ fieldToUpdate, className }: { fieldToUpdate
       console.log(user);
       const authenticated = await signInWithEmailAndPassword(user.email, data.oldPassword);
       if (!authenticated) return;
+      let updated = false;
       if (fieldToUpdate == "email") {
         if (updatingEmail) return;
-        updateEmail(data.email).then(() => router.replace("/profile"));
+        updated = await updateEmail(data.email);
       }
       if (fieldToUpdate == "username") {
         if (updatingProfile) return;
-        updateProfile({displayName: data.username}).then(() => router.replace("/profile"));
+        updated = await updateProfile({displayName: data.username});
       }
       if (fieldToUpdate == "password") {
         if (updatingPassword) return;
-        updatePassword(data.password).then(() => router.replace("/profile"));
+        updated = await updatePassword(data.password);
       }
+      if (updated) router.replace("/profile");
     },
     [fieldToUpdate, router, signInWithEmailAndPassword, updateEmail, updatePassword, updateProfile, updatingEmail, updatingPassword, updatingProfile, user]
   );
@@ -107,7 +109,8 @@ export default function UpdateForm({ fieldToUpdate, className }: { fieldToUpdate
           Update
         </button>
         <span className="text-center text-sm text-error mt-3 min-h-6">
-          {(errors && handleErrors(errors)) || (error && error.message)}
+          {(errors && handleErrors(errors)) || (signInError && signInError.message) ||
+           (emailError && emailError.message) || (passwordError && passwordError.message) || (profileError && profileError.message)}
         </span>
       </div>
     </form>

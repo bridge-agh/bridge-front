@@ -62,7 +62,7 @@ export default function Header() {
                 className="mt-16 p-2 shadow menu menu-compact dropdown-content bg-base-200 rounded-box w-52 drop-shadow-lg"
               >
                 <li>
-                  <a>Profile</a>
+                  <Link href={"/profile"}>Profile</Link>
                 </li>
                 <li>
                   <ThemeSwitch />
