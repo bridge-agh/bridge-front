@@ -34,7 +34,6 @@ export default function PlayerPanel({
 }) {
   const [nameText, setNameText] = useState(player?.id);
   const [isPlayer, setIsPlayer] = useState(false);
-  const [isHumanPlayer, setIsHumanPlayer] = useState(false);
   const [animation, setAnimation] = useState("");
   const [exchangeButtonHovered, setExchangeButtonHovered] = useState(false);
   const [kickButtonHovered, setKickButtonHovered] = useState(false);
@@ -55,15 +54,18 @@ export default function PlayerPanel({
   );
 
   useEffect(() => {
+    console.log(player);
     if (player != null && player != undefined) {
-      if (player.isHuman) setIsHumanPlayer(true);
       changeNameText(player.displayName || player.id);
       setIsPlayer(true);
     } else {
       changeNameText("Waiting...");
       setIsPlayer(false);
-      setIsHumanPlayer(false);
     }
+    setCrownButtonHovered(false);
+    setExchangeButtonHovered(false);
+    setKickButtonHovered(false);
+    setAssistantButtonHovered(false);
   }, [player, changeNameText]);
 
   return (
@@ -88,7 +90,9 @@ export default function PlayerPanel({
           (isPlayer || (positionsToSwap.length > 0 && !host?.ready)) && (
             <FaExchangeAlt
               className={twMerge(animation, "mr-3 w-[15px] h-[15px] ms:w-[22px] ms:h-[22px] shrink-0", host?.ready ? "opacity-50" : "cursor-pointer")}
-              onClick={() => {if (!host?.ready) addPositionToSwap(position);}}
+              onClick={() => {
+                if (!host?.ready) addPositionToSwap(position);
+              }}
               onMouseEnter={() => {if (!host?.ready) setExchangeButtonHovered(true);}}
               onMouseLeave={() => {if (!host?.ready) setExchangeButtonHovered(false);}}
               onAnimationStart={() => {if (!host?.ready) setExchangeButtonHovered(false);}}
@@ -99,7 +103,7 @@ export default function PlayerPanel({
           className="tooltip  tooltip-warning tooltip-left ms:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]"
           data-tip="Promote player to a host"
         >
-          {isHumanPlayer && player?.id != userId && userId == host?.id && (
+          {player?.isHuman && player?.id != userId && userId == host?.id && (
             <RiVipCrownLine
               className={twMerge(
                 animation,
@@ -107,7 +111,7 @@ export default function PlayerPanel({
                 host?.ready ? "opacity-50" : "cursor-pointer"
               )}
               onClick={() => {
-                if (!host?.ready && player != null) promoteHost(player.id);
+                if (!host?.ready && player != null && player.isHuman) promoteHost(player.id);
               }}
               onMouseEnter={() => {
                 if (!host?.ready) setCrownButtonHovered(true);
@@ -122,14 +126,16 @@ export default function PlayerPanel({
           className="tooltip  tooltip-info tooltip-left ms:tooltip-top before:max-w-[6rem] lg:before:max-w-[20rem] before:content-[attr(data-tip)]"
           data-tip="Assign virtual assistant"
         >
-          {!isPlayer && (
+          {!isPlayer && userId == host?.id && (
             <PiMonitorDuotone
               className={twMerge(
                 animation,
                 "w-[15px] h-[15px] ms:w-[22px] ms:h-[22px] text-info mr-3",
                 host?.ready ? "opacity-50" : "cursor-pointer"
               )}
-              onClick={() => setAssistant(position)}
+              onClick={() => {
+                if (!host?.ready) setAssistant(position);
+              }}
               onMouseEnter={() => {
                 if (!host?.ready) setAssistantButtonHovered(true);
               }}
@@ -150,7 +156,8 @@ export default function PlayerPanel({
                 "w-[20px] h-[20px] ms:w-[25px] ms:h-[25px] mr-3 shrink-0 text-error ",
                 host?.ready ? "opacity-50" : "cursor-pointer"
               )}
-              onClick={() => {if (!host?.ready && player != null) kick(player.id);}}
+              onClick={() => {if (!host?.ready && player != null) kick(player.id);
+              }}
               onMouseEnter={() => {
                 if (!host?.ready) setKickButtonHovered(true);
               }}
