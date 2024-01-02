@@ -7,7 +7,8 @@ const pages = [
   "/lobby",
   "/game",
   "/results",
-  "/assistantPower"
+  "/assistantPower",
+  "/profile"
 ];
 
 export default function Root() {

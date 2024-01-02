@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
+import { useCreateUserWithEmailAndPassword, useSignInWithEmailAndPassword, useUpdateProfile } from "react-firebase-hooks/auth";
 import { useRouter } from "next/navigation";
 import { auth } from "@/logic/fb";
 
@@ -30,20 +30,26 @@ export default function RegisterForm({ className }: { className?: string }) {
     mode: "onSubmit"
   });
 
-  const [createUserWithEmailAndPassword, user, loading, error] = useCreateUserWithEmailAndPassword(auth);
+  const [createUserWithEmailAndPassword, user, loading, createError] = useCreateUserWithEmailAndPassword(auth);
+  const [updateProfile, updating, profileError] = useUpdateProfile(auth);
+  const [signInWithEmailAndPassword, currentUser, signInLoading, signInError] = useSignInWithEmailAndPassword(auth);
 
   const onSubmit: SubmitHandler<RegisterData> = useCallback(
-    (data) => {
+    async (data) => {
       if (loading) return;
-      createUserWithEmailAndPassword(data.email, data.password);
+      const created = await createUserWithEmailAndPassword(data.email, data.password);
+      if (!created) return;
+      const signedIn = await signInWithEmailAndPassword(data.email, data.password);
+      if (!signedIn) return;
+      const updated = updateProfile({displayName: data.username});
     },
-    [createUserWithEmailAndPassword, loading]
+    [createUserWithEmailAndPassword, loading, signInWithEmailAndPassword, updateProfile]
   );
 
   const router = useRouter();
 
   if (user) {
-    router.replace("/login");
+    router.replace("/home");
   }
 
   return (
@@ -103,7 +109,7 @@ export default function RegisterForm({ className }: { className?: string }) {
           {errors && handleErrors(errors)}
         </span>
         <span className="text-center text-sm text-error mt-3 min-h-6">
-          {error && error.message}
+          {(createError && createError.message) || (signInError && signInError.message) || (profileError && profileError.message)}
         </span>
       </div>
     </form>
