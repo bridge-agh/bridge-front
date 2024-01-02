@@ -3,6 +3,7 @@ import { Card, GameStage, GameState, PlayerDirection, Trick, cardToString, diffD
 import { logger } from "@/logic/logger";
 import { easings, useSpring } from "@react-spring/three";
 import _ from "lodash";
+import { useRouter } from "next/navigation";
 import { createContext, useCallback, useEffect, useReducer, useState } from "react";
 import { AssignmentAction, AssignmentActionType, CardAssignment, CardContext, CardState, GameControllerContext, PLAYED_ASSIGNMENTS, PositionContext } from "./gameTypes";
 import { ANIM_DELAY, ANIM_HAND_DELAY, ANIM_POST_DELAY, ANIM_TIME, animateCardPlay, animateCleanRound, animateDummyShowUp, animateHand, requestTimeout } from "./logic/cardAnimator";
@@ -134,6 +135,7 @@ function cleanRound(localGameState: GameState) {
 
 
 export default function GameController({ serverGameState, children }: { serverGameState: GameState, children: any }) {
+  const router = useRouter();
   const { trigger: playCardAction } = usePlay();
 
 
@@ -516,6 +518,23 @@ export default function GameController({ serverGameState, children }: { serverGa
 
         logger.debug(`State after ${PlayerDirection[winningDirection]} winning the round: `, _.cloneDeep(localGameState));
       }
+
+      // case 5 - scoring
+      if (localGameState.game.tricks.NS.length + localGameState.game.tricks.EW.length === 13) {
+        logger.debug("Scoring case fired");
+
+        requestTimeout(() => {
+          localGameState.base.game_stage = GameStage.SCORING;
+
+          logger.info("Game finished.");
+        }, animTimeCount);
+
+        animTimeCount += (ANIM_TIME);
+
+        logger.debug("State after scoring: ", _.cloneDeep(localGameState));
+
+        return;
+      }
     }
 
     requestTimeout(() => {
@@ -528,6 +547,12 @@ export default function GameController({ serverGameState, children }: { serverGa
       updateUserInterface(localGameState, cardAssignmentsCopy, dispatchCardState, setCanUserInteract);
     }, animTimeCount);
   }, [cardAssignments, cardContexts, positionsContexts]);
+
+  useEffect(() => {
+    if (localGameState.base.game_stage === GameStage.SCORING) {
+      router.replace("/results");
+    }
+  }, [localGameState.base.game_stage, router]);
 
   useEffect(() => {
     if (localGameState.base.game_stage !== GameStage.PLAYING || canUserInteract || isAnimating) return;

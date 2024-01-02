@@ -1,17 +1,13 @@
-import { SpecialBid } from "@/game_engine/gameModels";
-import { useContext } from "react";
+import { BiddingObservation, SpecialBid } from "@/game_engine/gameModels";
 import { suitToSymbol } from "./biddingBids";
-import { BiddingContext } from "./biddingPage";
 
-function BiddingHistory() {
-
-  const bidding = useContext(BiddingContext);
+function BiddingHistory({ biddingObservation }: { biddingObservation: BiddingObservation }) {
 
   return (
     <div className="overflow-auto no-scrollbar grid grid-cols-4 gap-4">
-      {Array(bidding.observation.first_dealer.valueOf()).fill(<div></div>)}
+      {Array(biddingObservation.first_dealer.valueOf()).fill(<div></div>)}
       {
-        bidding.observation.bid_history.map((bid, index) => {
+        biddingObservation.bid_history.map((bid, index) => {
           return (
             <div key={index} className="mx-auto">
               {

@@ -81,7 +81,7 @@ function BiddingPage({ bidding }: { bidding: BiddingState }) {
           </div>
           <div className="mx-4 flex flex-col">
             <BiddingPlayers />
-            <BiddingHistory />
+            <BiddingHistory biddingObservation={bidding.observation} />
           </div>
         </div>
       </div>

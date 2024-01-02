@@ -1,7 +1,8 @@
 "use client";
 
+import { useLeaveSession, useSessionInfo } from "@/api/session";
 import { useReady } from "@/api/session/lobby";
-import { useSessionInfo, useLeaveSession } from "@/api/session";
+import { logger } from "@/logic/logger";
 import protectRoute from "@/logic/protect_route";
 import useUser from "@/logic/use_user";
 import { useRouter } from "next/navigation";
@@ -15,7 +16,7 @@ function Lobby() {
   const sessionInfo = useSessionInfo();
   const leaveSession = useLeaveSession();
   const setReady = useReady();
-  
+
   const goHome = useCallback(() => {
     router.push("/home");
   }, [router]);
@@ -41,9 +42,11 @@ function Lobby() {
 
   useEffect(() => {
     if (sessionInfo.data && sessionInfo.data.users.length === 4 && sessionInfo.data.users.every(u => u.ready)) {
-      router.push("/game");
+      router.replace("/game");
     }
   }, [router, sessionInfo.data]);
+
+  logger.debug("", sessionInfo);
 
   if (!sessionInfo.data || !user) return null;
 
@@ -52,10 +55,11 @@ function Lobby() {
   const host = lobby.users.find(u => u.id == lobby.hostId);
 
   if (sessionInfo.data && sessionInfo.data.users.length === 4 && sessionInfo.data.users.every(u => u.ready)) {
-    router.push("/game");
+    router.replace("/game");
     return null;
   }
-  return (                                   
+
+  return (
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 md:col-start-1 md:col-span-6 lg:col-start-2 lg:col-span-6 xl:col-start-4 xl:col-span-6">
       <div className="rounded-xl bg-base-200 p-5 flex flex-col justify-start items-stretch">
         <div className="text-2xl font-bold mb-3 self-center">Lobby</div>

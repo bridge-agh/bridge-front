@@ -8,7 +8,7 @@ import { useCallback, useState } from "react";
 import { FaRegStar, FaStar } from "react-icons/fa";
 
 function AssistantPower() {
-  
+
   const { user } = useUser();
   const sessionInfo = useSessionInfo();
   const setAssistantLevel = useSetAssistantLevel();
@@ -18,7 +18,7 @@ function AssistantPower() {
 
   const handleSetAssistantLevel = useCallback(() => {
     if (setAssistantLevel.loading) return;
-    setAssistantLevel.trigger({level: power + 1});
+    setAssistantLevel.trigger({ level: power + 1 });
   }, [power, setAssistantLevel]);
 
   const setPowerLevel = (level: number, set: boolean) => {
@@ -40,17 +40,17 @@ function AssistantPower() {
     <div className="col-start-1 col-span-4 sm:col-start-2 sm:col-span-4 md:col-start-1 md:col-span-6 lg:col-start-2 lg:col-span-6 xl:col-start-4 xl:col-span-6">
       <div className="rounded-xl bg-base-200 p-5 flex flex-col justify-start items-stretch">
         <div className="text-2xl font-bold mb-3 self-center text-center">AI Power</div>
-        <div className="self-center text-center mb-2">Current power level: {power+ 1}</div>
+        <div className="self-center text-center mb-2">Current power level: {power + 1}</div>
         <div className="flex flex-row items-center justify-center w-[100%] ms:w-[70%] mx-auto mb-6">
-          {stars.map((filled, i) => filled ?  
-            <FaStar 
+          {stars.map((filled, i) => filled ?
+            <FaStar
               key={i}
               className="w-[85px] h-[100px] text-yellow-500 hover:cursor-pointer"
               onClick={() => setPowerLevel(i, true)}
               onPointerOver={() => setPowerLevel(i, false)}
               onPointerOut={() => setPowerLevel(power, false)}
             /> :
-            <FaRegStar 
+            <FaRegStar
               key={i}
               className="w-[85px] h-[100px] text-yellow-500 hover:cursor-pointer"
               onClick={() => setPowerLevel(i, true)}
@@ -61,15 +61,15 @@ function AssistantPower() {
         </div>
         <div className="w-full flex flex-row justify-center">
           <Link
-            href={sessionInfo.data.gameState != null ? "/game" : "/lobby"}
+            href="/lobby"
             className="btn btn-xs btn-primary xs:btn-sm sm:btn-md">
-            Go back
+            Return to lobby
           </Link>
         </div>
-        
+
       </div>
     </div>
-   
+
   );
 }
 
